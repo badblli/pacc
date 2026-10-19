@@ -36,15 +36,23 @@ PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](ht
 
 All data comes from the game's own public meta report (`/meta-v2`, `/meta/pokemons`, `/meta/items`), built from the last ~100,000 games and refreshed daily.
 
-## Installation (developer mode)
+## Installation (2 minutes)
 
-1. Open `chrome://extensions` in Chrome.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and select this project's `extension` folder.
-4. Open pokemon-auto-chess.com. If you use the Turkish game translation, the game's own language setting must be **English**.
-5. Click the logo button at the bottom right or press **Alt+P** to open the panel.
+PACC works in Chrome, Edge, Brave and Opera.
 
-After changing the code, press the ⟳ button on the extension's card in `chrome://extensions`, then reload the game tab.
+1. **Download** `PACC-vX.Y.Z.zip` from the [latest release](https://github.com/badblli/pacc/releases/latest) and **unzip** it (right click → *Extract All*).
+2. Open `chrome://extensions` (Edge: `edge://extensions`).
+3. Turn on **Developer mode** (top right).
+4. **Drag the unzipped folder** onto the page, or click **Load unpacked** and pick it.
+5. Open [pokemon-auto-chess.com](https://pokemon-auto-chess.com) and start a game. Advice appears on the pick windows and the shop; press **Alt+P** (or the logo at the bottom right) for the panel.
+
+Keep the unzipped folder where it is: Chrome loads the extension from it. To update, download the new zip, replace the folder's contents and press ⟳ on the PACC card.
+
+> The interface follows your browser language (English or Turkish); change it from the PACC toolbar icon. The Turkish game translation only applies when the game's own language is **English**.
+
+### From source (developers)
+
+Clone the repo and load the `extension` folder with **Load unpacked**. After changing code, press ⟳ on the extension card and reload the game tab. `npm run pack` builds the release zip.
 
 ## How it works
 

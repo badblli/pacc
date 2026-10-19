@@ -3,3 +3,4 @@ node_modules/
 extension/_metadata/
 .playwright-mcp/
 .claude/
+dist/

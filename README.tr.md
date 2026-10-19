@@ -38,15 +38,23 @@ PACC (Poké Auto Chess Coach), [Pokémon Auto Chess](https://pokemon-auto-chess.
 
 Veriler oyunun kendi meta raporundan gelir (`/meta-v2`, `/meta/pokemons`, `/meta/items`). Rapor son ~100.000 oyundan oluşur ve günde bir kez yenilenir.
 
-## Kurulum (geliştirici modu)
+## Kurulum (2 dakika)
 
-1. Chrome'da `chrome://extensions` sayfasını aç.
-2. Sağ üstten **Geliştirici modu**nu aç.
-3. **Paketlenmemiş öğe yükle** düğmesine bas ve bu projedeki `extension` klasörünü seç.
-4. pokemon-auto-chess.com'u aç. Türkçe çeviriyi kullanacaksan oyunun ayarlarında dil **English** olmalı.
-5. Sağ alttaki logo düğmesine ya da **Alt+P** kısayoluna basınca panel açılır.
+PACC Chrome, Edge, Brave ve Opera'da çalışır.
 
-Kodu değiştirdikten sonra `chrome://extensions` sayfasında eklentinin ⟳ düğmesine bas, ardından oyun sekmesini yenile.
+1. [Son sürümden](https://github.com/badblli/pacc/releases/latest) `PACC-vX.Y.Z.zip` dosyasını **indir** ve **zip'ten çıkar** (sağ tık → *Tümünü ayıkla*).
+2. `chrome://extensions` sayfasını aç (Edge: `edge://extensions`).
+3. Sağ üstten **Geliştirici modu**nu aç.
+4. Çıkardığın **klasörü sayfaya sürükle** ya da **Paketlenmemiş öğe yükle** düğmesiyle seç.
+5. [pokemon-auto-chess.com](https://pokemon-auto-chess.com)'u açıp bir oyuna gir. Öneriler seçim pencerelerinde ve dükkanda görünür; panel için **Alt+P** (ya da sağ alttaki logo).
+
+Çıkardığın klasörü silme: Chrome eklentiyi oradan yükler. Güncellemek için yeni zip'i indir, klasörün içeriğini değiştir ve PACC kartındaki ⟳ düğmesine bas.
+
+> Arayüz tarayıcı diline göre açılır (Türkçe ya da İngilizce); araç çubuğundaki PACC simgesinden değiştirebilirsin. Türkçe oyun çevirisi için oyunun kendi dil ayarı **English** olmalı.
+
+### Kaynaktan (geliştiriciler)
+
+Repoyu klonla ve `extension` klasörünü **Paketlenmemiş öğe yükle** ile seç. Kodu değiştirince eklenti kartındaki ⟳ düğmesine bas ve oyun sekmesini yenile. `npm run pack` sürüm zip'ini üretir.
 
 ## Nasıl çalışıyor?
 
