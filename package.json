@@ -1,0 +1,15 @@
+{
+  "name": "pac-koc",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Pokémon Auto Chess için Türkçe çeviri + item/meta paneli (Chrome eklentisi)",
+  "scripts": {
+    "build:tr": "node scripts/build-translation.mjs",
+    "build:data": "node scripts/build-static-data.mjs",
+    "build": "npm run build:data && npm run build:tr"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

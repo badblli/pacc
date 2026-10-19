@@ -1,0 +1,117 @@
+:host {
+  all: initial;
+  --ink: #101b23;
+  --green: #8cf2a4;
+  --red: #ff8c91;
+  --edge: #283e49;
+  pointer-events: none !important;
+}
+.surface, .tooltip { font: 12px/1.45 "Trebuchet MS", Verdana, sans-serif; color: #f2f8f3; }
+*, *::before, *::after { box-sizing: border-box; pointer-events: none !important; }
+.mark { position: fixed; border: 2px solid var(--green); color: var(--green); }
+.best { border-width: 3px; animation: beacon 2.4s ease-in-out infinite; }
+.good { border-width: 1px; box-shadow: inset 0 0 0 1px #102b20; }
+.avoid { color: var(--red); border-color: var(--red); background: #be25351c; }
+.badge {
+  position: absolute;
+  top: -12px;
+  left: -2px;
+  padding: 2px 7px;
+  max-width: calc(100% + 4px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--ink);
+  border: 1px solid currentColor;
+  box-shadow: 2px 2px 0 #060d13b3;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.good .badge { font-size: 11px; }
+.reason {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+  padding: 4px 6px;
+  background: #101b23ed;
+  color: #f2f8f3;
+  border-left: 2px solid currentColor;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reason:empty, .shop .reason { display: none; }
+.shop .badge { top: 2px; left: 2px; padding: 0 5px; font-size: 13px; }
+.tooltip {
+  position: fixed;
+  padding: 10px 12px;
+  background: #101b23fa;
+  border: 1px solid var(--edge);
+  border-top: 2px solid var(--green);
+  box-shadow: 3px 3px 0 #050c14a6;
+  overflow-wrap: anywhere;
+  max-height: calc(100vh - 16px);
+  overflow: hidden;
+}
+.tooltip { border-top-color: var(--accent, var(--green)); }
+.tooltip[hidden], .toast[hidden], .surface[hidden] { display: none; }
+.tooltip strong { display: block; margin-bottom: 6px; color: #fff; }
+.tooltip div + div { margin-top: 4px; }
+.tooltip .chain { color: #a6bbc0; }
+.tooltip .chain b { color: #fff; }
+/* Tahtadaki item birleştirme işaretleri: --c tarif rengi */
+.craft { position: fixed; --c: #ffd166; color: var(--c); }
+.craft .reason { display: none; }
+.craft.part { border: 2px dashed var(--c); border-radius: 6px; box-shadow: 0 0 10px color-mix(in srgb, var(--c) 45%, transparent); }
+.craft.part .badge {
+  top: -9px;
+  left: -9px;
+  min-width: 22px;
+  padding: 0 4px;
+  border-radius: 11px;
+  border-color: var(--c);
+  color: #101b23;
+  background: var(--c);
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+}
+.craft.ring {
+  border: 3px solid var(--c);
+  border-radius: 50%;
+  animation: craftpulse 1.8s ease-in-out infinite;
+}
+.craft.ring .badge {
+  top: calc(-16px - var(--level, 0) * 22px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: none;
+  border-color: var(--c);
+  color: var(--c);
+  font-size: 11px;
+}
+.craft.ring.below .badge { top: auto; bottom: calc(-16px - var(--level, 0) * 22px); }
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 7px 12px;
+  font: 12px/1.45 "Trebuchet MS", Verdana, sans-serif;
+  color: #f2f8f3;
+  background: #101b23f2;
+  border: 1px solid var(--edge);
+  border-left: 3px solid var(--green);
+  box-shadow: 3px 3px 0 #050c14a6;
+}
+@keyframes beacon {
+  0%, 100% { box-shadow: 0 0 0 1px #8cf2a42e, 0 0 9px #8cf2a422; }
+  50% { box-shadow: 0 0 0 3px #8cf2a422, 0 0 16px #8cf2a447; }
+}
+@keyframes craftpulse {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 25%, transparent), 0 0 18px color-mix(in srgb, var(--c) 40%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .best, .craft.ring { animation: none; } }

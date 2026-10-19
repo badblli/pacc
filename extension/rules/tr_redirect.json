@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": { "extensionPath": "/locales/tr/translation.json" }
+    },
+    "condition": {
+      "regexFilter": "^https://pokemon-auto-chess\\.com/(.*/)?locales/en/translation\\.json",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  }
+]

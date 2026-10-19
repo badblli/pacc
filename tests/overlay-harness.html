@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAC Koç · Overlay deneme tahtası</title>
+<style>
+  :root { color-scheme: dark; font: 15px/1.5 "Trebuchet MS", Verdana, sans-serif; color: #e5eceb; background: #101b23; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; padding: 28px clamp(16px, 5vw, 80px); background: repeating-linear-gradient(0deg, #ffffff02 0 1px, transparent 1px 4px); }
+  header { max-width: 1000px; margin: auto; }
+  .eyebrow { color: #8cf2a4; font: bold 12px monospace; letter-spacing: 3px; }
+  h1 { font-size: clamp(24px, 4vw, 38px); margin: 6px 0; }
+  p { color: #a6bbc0; margin: 6px 0 18px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0; }
+  button { font: inherit; color: #dce9eb; background: #233742; border: 1px solid #4d6874; padding: 8px 13px; box-shadow: 2px 2px #060d13; cursor: pointer; }
+  button:hover, button[aria-pressed="true"] { color: #a6ffbe; border-color: #8cf2a4; background: #294337; }
+  button:focus-visible, input:focus-visible, .my-box:focus-visible, .game-pokemon-portrait:focus-visible { outline: 3px solid #ffd77e; outline-offset: 4px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 20px; }
+  main { max-width: 1000px; margin: 32px auto; }
+  .game-choice { pointer-events: none; }
+  .my-container { background: #182832; padding: 20px; border: 3px solid #49606b; box-shadow: 5px 5px #060d13; }
+  h2 { font-size: 20px; margin: 0 0 30px; }
+  .game-choice-pokemons-list, .game-choice-items-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  .my-box, .game-pokemon-portrait { position: relative; border: 2px solid #526b77; background: #243b46; cursor: pointer; text-align: center; }
+  .my-box { pointer-events: initial; height: 215px; padding: 28px 8px 45px; }
+  .my-box:hover, .game-pokemon-portrait:hover { background-color: #355565; }
+  .sprite { display: block; font-size: 58px; line-height: 1.5; filter: drop-shadow(3px 4px #080f16); }
+  .my-box b { font-size: 14px; }
+  .my-box small { display: block; color: #b6c8ca; }
+  .store { margin-top: 40px; }
+  .game-pokemons-store { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; padding: 0; list-style: none; }
+  .game-pokemon-portrait { height: 100px; padding-top: 18px; background-image: linear-gradient(145deg, #42616e44, transparent); font-size: 32px; }
+  .empty { border-style: dashed; opacity: .4; }
+  output { display: block; color: #ffd77e; min-height: 28px; }
+  .board { margin-top: 40px; }
+  .canvas { position: relative; height: 330px; border: 3px solid #49606b; background: radial-gradient(circle at 50% 40%, #2c4a3a, #14232b); box-shadow: 5px 5px #060d13; }
+  .unit, .inv-item { position: absolute; display: grid; place-items: center; cursor: pointer; }
+  .unit { width: 72px; height: 72px; font-size: 40px; }
+  .unit small { position: absolute; bottom: -16px; font-size: 11px; color: #b6c8ca; white-space: nowrap; }
+  .inv-item { width: 52px; height: 52px; border-radius: 50%; border: 2px solid #526b77; background: #243b46; font-size: 26px; }
+  #panel-preview { position: fixed; z-index: 2147483646; right: 24px; top: 290px; width: 230px; padding: 20px; border: 2px solid #8cf2a4; background: #14212bf5; box-shadow: 5px 5px #050c14; }
+  [hidden] { display: none !important; }
+  @media (max-width: 650px) { .game-choice-pokemons-list, .game-choice-items-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .game-pokemons-store { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+<header>
+  <div class="eyebrow">PAC KOÇ / D1 LAB</div>
+  <h1>Öneriler, doğrudan kartların üstünde.</h1>
+  <p>Çerçeveye gel: gerekçeleri oku. Karta tıkla: tıklamanın alta geçtiğini gör.</p>
+  <nav aria-label="Test senaryoları">
+    <button data-scene="starter" aria-pressed="true">Starter</button>
+    <button data-scene="item" aria-pressed="false">Item seçimi</button>
+    <button data-scene="shop" aria-pressed="false">Sadece dükkan</button>
+    <button data-scene="hidden" aria-pressed="false">Gizli pencere</button>
+    <button data-scene="craft" aria-pressed="false">Item birleştirme</button>
+  </nav>
+  <div class="controls">
+    <label><input id="enabled" type="checkbox" checked> Tahta üstü öneriler</label>
+    <label><input id="panel" type="checkbox"> Panel katmanını göster</label>
+    <label><input id="fight" type="checkbox"> Savaş fazı (craft gizlenmeli)</label>
+    <label><input id="noscreen" type="checkbox"> screen: null (konum yok)</label>
+  </div>
+  <output id="result" aria-live="polite">Henüz kart seçilmedi.</output>
+</header>
+<main>
+  <div class="game-choice"><div class="my-container">
+    <h2>Başlangıç Pokémon'unu seç</h2>
+    <div class="game-choice-pokemons-list"></div>
+    <div class="game-choice-items-list" hidden></div>
+  </div></div>
+  <section class="store"><h2>Dükkan <small>· 6 slot / sıra ile eşleştirme</small></h2>
+    <ul class="game-pokemons-store">
+      <div class="game-pokemon-portrait" role="button" tabindex="0" data-name="Bulbasaur">🌱</div>
+      <div class="game-pokemon-portrait" role="button" tabindex="0" data-name="Charmander">🔥</div>
+      <div class="game-pokemon-portrait" role="button" tabindex="0" data-name="Squirtle">💧</div>
+      <div class="game-pokemon-portrait" role="button" tabindex="0" data-name="Pikachu">⚡</div>
+      <div class="game-pokemon-portrait" role="button" tabindex="0" data-name="Eevee">🦊</div>
+      <div class="game-pokemon-portrait empty" aria-label="Boş slot"></div>
+    </ul>
+  </section>
+  <section class="board" hidden><h2>Tahta <small>· sahte canvas · Alt+I craft, Alt+O tüm katman</small></h2>
+    <div class="canvas" id="canvas">
+      <div class="unit" data-name="Pikachu" data-index="0" style="left:12%;top:38%">⚡<small>Pikachu (0)</small></div>
+      <div class="unit" data-name="Charmander" data-index="1" style="left:34%;top:38%">🔥<small>Charmander (1)</small></div>
+      <div class="unit" data-name="Pikachu" data-index="2" style="left:56%;top:38%">⚡<small>Pikachu (2)</small></div>
+      <div class="inv-item" data-name="FOSSIL_STONE" style="right:6%;top:8%">🪨</div>
+      <div class="inv-item" data-name="MYSTIC_WATER" style="right:6%;top:28%">💧</div>
+      <div class="inv-item" data-name="TWISTED_SPOON" style="right:6%;top:48%">🥄</div>
+      <div class="inv-item" data-name="MIRACLE_SEED" style="right:6%;top:68%">🌱</div>
+      <div class="inv-item" data-name="NEVER_MELT_ICE" style="right:20%;top:8%">❄️</div>
+    </div>
+  </section>
+  <p>Senaryolar temsili veriler kullanır. Dosyadan açılışta tarayıcı JSON erişimini kısıtladığı için küçük yerel veri fixture'ları kullanılır. Gerçek oyun entegrasyonu ayrıca doğrulanmalıdır.</p>
+</main>
+<aside id="panel-preview" hidden>Panel önizlemesi<br><small>z-index: 2147483646<br>Çerçevelerin üstünde kalır.</small></aside>
+<script>
+  const listeners = []
+  const store = { settings: { overlay: true }, meta: { pokemons: {}, items: {}, clusters: [] } }
+  window.chrome = {
+    runtime: { id: "harness", getURL: (path) => `../extension/${path}`, sendMessage: async () => ({ meta: store.meta }) },
+    storage: {
+      local: {
+        get: async () => structuredClone(store),
+        set: async (patch) => {
+          const changes = Object.fromEntries(Object.entries(patch).map(([key, newValue]) => [key, { oldValue: store[key], newValue }]))
+          Object.assign(store, patch)
+          listeners.forEach((listener) => listener(changes, "local"))
+        }
+      },
+      onChanged: { addListener: (listener) => listeners.push(listener) }
+    }
+  }
+  // file:// fetch JSON'ı engelleyebilir; CSS ve script'ler normal dosya yollarından yüklenir.
+  if (location.protocol === "file:") {
+    const originalFetch = window.fetch.bind(window)
+    window.fetch = (url, ...args) => {
+      if (String(url).endsWith("translation.json")) return Promise.resolve(new Response(JSON.stringify({ pkm: {}, item: {}, synergy: {} })))
+      if (String(url).endsWith("static.json")) return Promise.resolve(new Response(JSON.stringify({ pkmIndex: {}, pkmTypes: {}, recipes: {}, components: [] })))
+      return originalFetch(url, ...args)
+    }
+  }
+</script>
+<script src="../extension/content/advisor.js"></script>
+<script>
+  // Görsel denemeyi meta indirmesine bağlamamak için sabit kararlar kullanırız.
+  window.PacAdvisor ??= {}
+  // Evrim zinciri satırı için küçük fixture (gerçek familyChain advisor.js'te; yoksa bu kullanılır)
+  const chains = [["Bulbasaur", "Ivysaur", "Venusaur"], ["Charmander", "Charmeleon", "Charizard"], ["Squirtle", "Wartortle", "Blastoise"], ["Pichu", "Pikachu", "Raichu"]]
+  if (typeof window.PacAdvisor.familyChain !== "function") window.PacAdvisor.familyChain = (data, pkm) => chains.find((c) => c.includes(pkm)) ?? [pkm]
+  window.PacAdvisor.boardAdvice = (ctx, snap) => ({
+    choice: snap.choices.length ? {
+      id: snap.choices[0].id, type: snap.choices[0].type,
+      kind: snap.choices[0].items.length ? "item" : "pokemon",
+      options: (snap.choices[0].items.length ? snap.choices[0].items : snap.choices[0].pokemons).map((label, index) => ({
+        index, label, verdict: ["best", "good", "avoid", "neutral"][index],
+        pct: [82, 64, 21, null][index], tag: ["Ana taşıyıcı", "Esnek", null, null][index],
+        reasons: [["Takımının sinerjisini tamamlıyor.", "Mevcut kadronla güçlü bir eşleşme."], ["Esnek ve güvenli bir seçenek."], ["Takımınla uyumu düşük.", "Diğer seçenekler daha fazla katkı sağlıyor."], []][index]
+      }))
+    } : null,
+    shop: snap.shop.map((label, index) => ({ index, label, verdict: index === 0 || index === 3 ? "good" : "neutral", pct: index === 0 ? 71 : index === 3 ? 58 : null, tag: index === 0 ? "Sinerji" : undefined, reasons: ["Kadronu güçlendirebilir."] }))
+      .filter(({ label }) => label !== "DEFAULT"),
+    // targetIndex = snap.board indeksi: aynı isimli iki Pikachu'dan ikincisi (2) hedef; üçüncü tarif bozuk (sessizce atlanmalı)
+    craft: snap.board.length ? [
+      { item: "SHELL_BELL", components: ["FOSSIL_STONE", "MYSTIC_WATER"], target: "Pikachu", targetIndex: 2, pct: 77, reason: "Saldırgan taşıyıcıya can çalma." },
+      { item: "CHOICE_SPECS", components: ["TWISTED_SPOON", "MIRACLE_SEED"], target: "Charmander", targetIndex: 1, pct: 63, reason: "Yetenek gücü artışı." },
+      { item: "BROKEN", components: ["NOT_IN_INVENTORY"], targetIndex: 99 }
+    ] : []
+  })
+  const pokemon = ["Bulbasaur", "Charmander", "Squirtle", "Pikachu"]
+  const items = ["LEFTOVERS", "SHELL_BELL", "CHOICE_SPECS", "WIDE_LENS"]
+  let scene = "starter"
+  let snapshot
+  function renderScene(next) {
+    scene = next
+    const isItem = scene === "item"
+    const container = document.querySelector(".my-container")
+    container.style.visibility = scene === "hidden" ? "hidden" : "visible"
+    document.querySelector(".game-choice").hidden = scene === "shop" || scene === "craft"
+    document.querySelector(".board").hidden = scene !== "craft"
+    container.querySelector("h2").textContent = isItem ? "Bir item seç" : "Başlangıç Pokémon'unu seç"
+    for (const [kind, list, icons] of [["pokemons", pokemon, ["🌱", "🔥", "💧", "⚡"]], ["items", items, ["🍎", "🔔", "👓", "🔍"]]]) {
+      const group = container.querySelector(`.game-choice-${kind}-list`)
+      group.hidden = (kind === "items") !== isItem
+      group.replaceChildren(...list.map((name, index) => {
+        const card = document.createElement("div")
+        card.className = "my-box"
+        card.setAttribute("role", "button")
+        card.tabIndex = 0
+        card.dataset.name = name
+        card.innerHTML = `<span class="sprite">${icons[index]}</span><b>${name}</b><small>${["En iyi", "İyi", "Kaçın", "Nötr"][index]}</small>`
+        return card
+      }))
+    }
+    document.querySelectorAll("[data-scene]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.scene === scene)))
+    const board = scene === "craft" ? [{ name: "Pikachu", x: 2, y: 2 }, { name: "Charmander", x: 4, y: 2 }, { name: "Pikachu", x: 6, y: 2 }] : []
+    snapshot = { phase: document.getElementById("fight").checked ? 1 : 0, board, choices: scene === "shop" || scene === "craft" ? [] : [{ id: scene, type: isItem ? "item" : "starter", pokemons: isItem ? [] : pokemon, items: isItem ? items : [], costs: [] }], shop: [...pokemon, "Eevee", "DEFAULT"], bench: [], synergies: {}, items: [], gold: 20, level: 4 }
+    window.postMessage({ type: "pac-yardimci:game", snapshot }, "*")
+  }
+  document.querySelectorAll("[data-scene]").forEach((button) => button.addEventListener("click", () => renderScene(button.dataset.scene)))
+  document.getElementById("enabled").addEventListener("change", (event) => chrome.storage.local.set({ settings: { overlay: event.target.checked } }))
+  document.getElementById("fight").addEventListener("change", () => renderScene(scene))
+  // game-hook.js'in 250 ms "pac-yardimci:screen" mesajını taklit eder: sahte canvas öğelerinin sayfa dikdörtgenleri
+  const rectOf = (el) => { const r = el.getBoundingClientRect(); return { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) } }
+  setInterval(() => {
+    const on = scene === "craft" && !document.getElementById("noscreen").checked
+    const screen = on ? {
+      mode: document.getElementById("fight").checked ? "battle" : "pick",
+      units: [...document.querySelectorAll(".unit")].map((el, i) => ({ name: el.dataset.name, x: snapshot.board[i]?.x, y: snapshot.board[i]?.y, index: Number(el.dataset.index), rect: rectOf(el) })),
+      items: [...document.querySelectorAll(".inv-item")].map((el) => ({ item: el.dataset.name, rect: rectOf(el) }))
+    } : null
+    window.postMessage({ type: "pac-yardimci:screen", screen }, "*")
+  }, 250)
+  document.getElementById("panel").addEventListener("change", (event) => { document.getElementById("panel-preview").hidden = !event.target.checked })
+  function selectCard(event) {
+    const card = event.target.closest("[data-name]")
+    if (!card) return
+    document.getElementById("result").textContent = `Tıklama ulaştı: ${card.dataset.name}`
+    if (card.classList.contains("my-box")) {
+      document.querySelector(".my-container").style.visibility = "hidden"
+      snapshot = { ...snapshot, choices: [] }
+      window.postMessage({ type: "pac-yardimci:game", snapshot }, "*")
+    }
+  }
+  document.addEventListener("click", selectCard)
+  document.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") selectCard(event) })
+  window.addEventListener("message", (event) => { if (event.source === window && event.data?.type === "pac-yardimci:hello") renderScene(scene) })
+  renderScene(scene)
+</script>
+<script src="../extension/content/overlay.js"></script>
+</html>

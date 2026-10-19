@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tahta Koçu</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>
+      <img src="../icons/icon-48.png" alt="" />
+      <span>Tahta Koçu<small>Pokémon Auto Chess için Türkçe ve koç</small></span>
+    </h1>
+
+    <label class="opt">
+      <input type="checkbox" id="translation" />
+      <span>
+        <b>Türkçe çeviri</b>
+        <small>Oyunda dil <i>English</i> seçili olmalı. Değiştirince oyun sayfasını yenile.</small>
+      </span>
+    </label>
+
+    <label class="opt">
+      <input type="checkbox" id="panel" />
+      <span>
+        <b>Item / meta paneli</b>
+        <small>Sağ alttaki PAC düğmesi ya da Alt+P ile açılır.</small>
+      </span>
+    </label>
+
+    <label class="opt">
+      <input type="checkbox" id="overlay" />
+      <span>
+        <b>Tahta üstü öneriler</b>
+        <small>Seçim pencerelerinde ve dükkanda önerilen seçeneği yeşil, kaçınılacağı kırmızı çerçeveyle işaretler.</small>
+      </span>
+    </label>
+
+    <label class="opt">
+      <input type="checkbox" id="poolTracking" />
+      <span>
+        <b>Havuz ve ihtimal hesabı</b>
+        <small>Tüm oyuncuların tahtalarındaki kopyaları sayıp aradığın Pokémonun dükkanda çıkma ihtimalini hesaplar. Oyunun kurallarına göre gri alan, varsayılan olarak kapalı.</small>
+      </span>
+    </label>
+
+    <div class="status" id="status">Veri durumu kontrol ediliyor...</div>
+    <button id="refresh">Meta verisini şimdi yenile</button>
+
+    <p class="foot">
+      Veriler oyunun kendi meta raporundan (son ~100.000 oyun) gelir.
+      Eklenti sadece bilgi gösterir, oyunda senin yerine hamle yapmaz.
+    </p>
+    <p class="brand">
+      Yapan: <a href="https://github.com/badblli" target="_blank" rel="noopener">badblli</a>
+      · <a href="https://github.com/badblli/tahta-kocu" target="_blank" rel="noopener">GitHub</a>
+    </p>
+    <script src="popup.js"></script>
+  </body>
+</html>
