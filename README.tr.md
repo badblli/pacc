@@ -10,8 +10,15 @@ PACC (Poké Auto Chess Coach), [Pokémon Auto Chess](https://pokemon-auto-chess.
 
 İsim ve logo seçimi için [docs/branding.md](docs/branding.md) dosyasına bak. Logo `node scripts/build-icons.mjs` ile yeniden üretilir.
 
-<!-- Ekran görüntüsü: docs/screenshot.png ekleyip aşağıdaki satırı aç. -->
-<!-- ![Oyunda PACC](docs/screenshot.png) -->
+![Gerçek oyunda starter seçimi: PACC, Chespin'i "Recommended · 70%" olarak işaretleyip nedenini gösteriyor](docs/screenshots/starter-pick.jpg)
+
+*Gerçek oyunda starter seçimi: her seçenekte rozet var, tooltip gerekçeyi ve evrim zincirini gösteriyor.*
+
+<details><summary>Aynı seçimde koç paneli</summary>
+
+![Önerilen seçim sırasını gösteren PACC paneli](docs/screenshots/panel-pick.jpg)
+
+</details>
 
 ## Özellikler
 

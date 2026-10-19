@@ -8,8 +8,15 @@ PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](ht
 
 **Author:** [badblli](https://github.com/badblli) · **Repository:** [github.com/badblli/pacc](https://github.com/badblli/pacc)
 
-<!-- Screenshot: add docs/screenshot.png (panel + on-board badges) and uncomment the line below. -->
-<!-- ![PACC in a game](docs/screenshot.png) -->
+![Starter pick in a real game: PACC marks Chespin as "Recommended · 70%" and explains why](docs/screenshots/starter-pick.jpg)
+
+*Starter pick in a real game: badges on every option, and the tooltip shows the reason and the evolution chain.*
+
+<details><summary>Coach panel during the same pick</summary>
+
+![PACC panel showing the suggested pick order](docs/screenshots/panel-pick.jpg)
+
+</details>
 
 ## Features
 

@@ -127,13 +127,16 @@
         const name = isItem ? names.item(key) : names.pkm(key)
         const tag = typeof option.tag === "string" && option.tag ? ` · ${option.tag}` : ""
         const chain = isItem ? null : chainLine(key)
+        // Dar kartta (küçük pencere) uzun rozet kesiliyor: dükkan gibi kısa biçim kullan
+        const compact = shop || rect.width < 150
+        const symbol = option.verdict === "best" ? "★" : option.verdict === "avoid" ? "✗" : "✓"
         found.push({
           key: element,
           rect,
           className: `mark ${option.verdict}${shop ? " shop" : ""}`,
           // Dükkan rozeti dar: "★ %82"; seçim kartı: "✓ Önerilen · %82"
-          badge: shop
-            ? (option.verdict === "best" ? "★" : "✓") + (pctOf(option) === null ? "" : ` ${t("num.pct", { n: pctOf(option) })}`)
+          badge: compact
+            ? symbol + (pctOf(option) === null ? "" : ` ${t("num.pct", { n: pctOf(option) })}`)
             : verdictText(option.verdict) + pctText(option),
           reason: shop ? "" : (option.reasons?.[0] ?? ""),
           title: `${name ?? ""} · ${verdictText(option.verdict)}${pctText(option)}${tag}`,
