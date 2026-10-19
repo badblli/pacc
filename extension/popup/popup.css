@@ -26,6 +26,18 @@ h1 small { display: block; font-size: 10px; font-weight: 400; letter-spacing: 0;
 
 h1 img { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
 
+.lang { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-weight: 700; }
+
+.lang select {
+  font: inherit;
+  font-weight: 400;
+  color: #eef1f8;
+  background: #313850;
+  border: 1px solid #3b4360;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
 .opt { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; cursor: pointer; }
 
 .opt input { margin-top: 3px; }

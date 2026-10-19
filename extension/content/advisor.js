@@ -5,6 +5,13 @@
 ;(() => {
   const EMPTY = new Set(["DEFAULT", ""])
 
+  // Gerekçe metinleri katalog anahtarıdır (extension/i18n/*.json, "advice.*"). ctx.t yoksa PacI18n
+  // (İngilizce varsayılan) kullanılır; ikisi de yoksa anahtarın kendisi döner.
+  function T(ctx, key, vars) {
+    const t = typeof ctx?.t === "function" ? ctx.t : window.PacI18n?.t
+    return t ? t(key, vars) : key
+  }
+
   function familyOf(data, pkm) {
     return data.family[pkm] ?? pkm
   }
@@ -138,7 +145,7 @@
         const baseScore = (unit.stars ?? 1) * 0.2 - index * 0.2
         let plan = null
         if (rec.item === item) {
-          plan = { score: 7 + baseScore, reason: `${target} için önerilen item; doğrudan ver` }
+          plan = { score: 7 + baseScore, reason: T(ctx, "advice.giveDirect", { target }) }
         } else if (Array.isArray(snap.inventory)) {
           const recipe = ctx.data.recipes[rec.item]
           if (!recipe?.includes(item)) continue
@@ -149,7 +156,7 @@
             plan = {
               score: 6 + baseScore,
               result: rec.item,
-              reason: `${displayName(ctx, "item", other)} ile ${displayName(ctx, "item", rec.item)} yap → ${target} için kullan`
+              reason: T(ctx, "advice.craftWith", { other: displayName(ctx, "item", other), result: displayName(ctx, "item", rec.item), target })
             }
           }
         }
@@ -187,11 +194,13 @@
           p.frequency >= 0.4 && familyOf(ctx.data, p.name) === fam))
         if (metaFit && !owned) {
           const member = metaFit.core.find((p) => p.frequency >= 0.4 && familyOf(ctx.data, p.name) === fam).name
-          const evolves = member !== pkm ? `${displayName(ctx, "pkm", pkm)} → ${displayName(ctx, "pkm", member)}: ` : ""
-          reasons.push(`${evolves}meta diziliminde çekirdek (ort. ${metaFit.cluster.rank.toFixed(1)} sıra)`)
+          const evolves = member !== pkm
+            ? T(ctx, "advice.evolves", { from: displayName(ctx, "pkm", pkm), to: displayName(ctx, "pkm", member) })
+            : ""
+          reasons.push(evolves + T(ctx, "advice.metaCore", { rank: metaFit.cluster.rank.toFixed(1) }))
         }
         if (owned > 0 && owned < needed && (active.has(fam) || metaFit)) {
-          reasons.push(`evrim için kopya (${owned}/${needed})`)
+          reasons.push(T(ctx, "advice.copyShop", { owned, needed }))
         }
         if (reasons.length && !owned) {
           for (const syn of typesOf(ctx, pkm)) {
@@ -266,7 +275,7 @@
   }
 
   // Bir Pokémonun takımına ne kadar uyduğunu puanlar (ek seçim ve bölgesel öneri için ortak).
-  // reasons: { kind: "next" | "syn" | "comp", syn? } — panel Türkçe metne çevirir
+  // reasons: { kind: "next" | "syn" | "comp", syn? } — panel seçili dilde metne çevirir
   function fitScore(ctx, snap, comps, pkm) {
     const reasons = []
     let score = 0
@@ -325,24 +334,24 @@
 
     const lowLife = (snap.life ?? 100) <= 30
     if (lowLife && money >= 10) {
-      tips.push(["warn", `Canın az (${snap.life}). Altın biriktirme zamanı değil: reroll yap ya da seviye atla, takımını güçlendir.`])
+      tips.push(["warn", T(ctx, "advice.eco.lowLife", { life: snap.life })])
     } else if (interest < maxInterest) {
       const toNext = (interest + 1) * 10 - money
-      if (toNext <= 4) tips.push(["info", `${toNext} altın daha biriktirirsen faizin +${interest + 1} olur.`])
+      if (toNext <= 4) tips.push(["info", T(ctx, "advice.eco.interestNext", { gold: toNext, next: interest + 1 })])
     }
     const excess = money - maxInterest * 10
-    if (excess >= 4 && !lowLife) tips.push(["good", `Faiz tavanda (+${maxInterest}). ${excess} altın fazlan var: faizi bozmadan seviye atlayabilir ya da reroll yapabilirsin.`])
+    if (excess >= 4 && !lowLife) tips.push(["good", T(ctx, "advice.eco.interestMax", { max: maxInterest, excess })])
     if (!atMaxLevel && xpLeft > 0) {
       const floor = Math.floor(money / 10) * 10
       if (lowLife && levelCost > 0 && levelCost <= money) {
-        tips.push(["good", `${levelCost} altınla seviye ${snap.level + 1} olabilirsin.`])
+        tips.push(["good", T(ctx, "advice.eco.levelNow", { cost: levelCost, level: snap.level + 1 })])
       } else if (levelCost <= money - Math.min(floor, maxInterest * 10) && levelCost > 0) {
-        tips.push(["good", `${levelCost} altınla seviye ${snap.level + 1} olursun ve faizin düşmez.`])
+        tips.push(["good", T(ctx, "advice.eco.levelKeepInterest", { cost: levelCost, level: snap.level + 1 })])
       } else if (levelCost <= money) {
-        tips.push(["info", `Seviye ${snap.level + 1} için ${levelCost} altın (${xpLeft} XP) gerekiyor; şimdi alırsan faizin düşer.`])
+        tips.push(["info", T(ctx, "advice.eco.levelCost", { cost: levelCost, level: snap.level + 1, xp: xpLeft })])
       }
     }
-    if ((snap.streak ?? 0) >= 3) tips.push(["info", `${snap.streak} maçlık seri: her tur +${streakBonus} bonus altın getiriyor.`])
+    if ((snap.streak ?? 0) >= 3) tips.push(["info", T(ctx, "advice.eco.streak", { streak: snap.streak, bonus: streakBonus })])
 
     const probs = ctx.data.rules.rarityProbability[Math.min(10, Math.max(1, snap.level ?? 1))] ?? []
     const nextProbs = ctx.data.rules.rarityProbability[Math.min(10, (snap.level ?? 1) + 1)] ?? []
@@ -387,10 +396,11 @@
     // En üst yıldız için gereken kopya: 3 aşamalı zincirde 9, 2 aşamalıda 3
     const maxCopies = (base) => ((pokemons[base]?.[5] ?? 3) >= 3 ? 9 : 3)
     const targets = new Map()
-    for (const [base, copies] of Object.entries(mine)) if (copies < maxCopies(base)) targets.set(base, "elinde")
+    // why: "have" = elindeki aile, "comp" = önerilen dizilimin eksiği (panel metne çevirir)
+    for (const [base, copies] of Object.entries(mine)) if (copies < maxCopies(base)) targets.set(base, "have")
     for (const p of comps[0]?.core ?? []) {
       const base = familyOf(ctx.data, p.name)
-      if (!targets.has(base) && !mine[base]) targets.set(base, "dizilim için")
+      if (!targets.has(base) && !mine[base]) targets.set(base, "comp")
     }
 
     const rows = []
@@ -404,7 +414,7 @@
       const pShop = 1 - Math.pow(1 - pSlot, rules.shopSize)
       rows.push({ base, why, rarity, remaining, size: pool[base], mine: mine[base] ?? 0, need: maxCopies(base), pShop, possible: (probs[idx] ?? 0) > 0 })
     }
-    return rows.sort((a, b) => (a.why === b.why ? b.pShop - a.pShop : a.why === "elinde" ? -1 : 1)).slice(0, 10)
+    return rows.sort((a, b) => (a.why === b.why ? b.pShop - a.pShop : a.why === "have" ? -1 : 1)).slice(0, 10)
   }
 
   // ---------- 5) Rakip ----------
@@ -449,14 +459,13 @@
 
   // ---------- 8) Tahta üstü seçim ve dükkan rozetleri ----------
   const displayName = (ctx, kind, key) => ctx.names?.[kind]?.(key) ?? key
-  const verdictLabels = { best: "Önerilen", good: "İyi seçenek", neutral: "", avoid: "Kaçın" }
-  const noMeta = "Meta'da az oynanıyor / veri yok"
+  const verdictLabel = (ctx, verdict) => verdict === "neutral" ? "" : T(ctx, `advice.verdict.${verdict}`)
   const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length
   // Meta istatistiği ailenin başka bir üyesinden geliyorsa oyuncu neyi arayacağını görsün:
   // "Charmander → Charizard: meta ort. 3.1 sıra"
   const rankReason = (ctx, best, pkm) => pkm && best.name !== pkm
-    ? `${displayName(ctx, "pkm", pkm)} → ${displayName(ctx, "pkm", best.name)}: meta ort. ${best.rank.toFixed(1)} sıra`
-    : `Meta'da ${displayName(ctx, "pkm", best.name)} ort. ${best.rank.toFixed(1)} sıra`
+    ? T(ctx, "advice.rankFamily", { from: displayName(ctx, "pkm", pkm), to: displayName(ctx, "pkm", best.name), rank: best.rank.toFixed(1) })
+    : T(ctx, "advice.rank", { name: displayName(ctx, "pkm", best.name), rank: best.rank.toFixed(1) })
 
   function itemMeta(ctx, item) {
     const stat = ctx.tierItems?.[item]
@@ -469,8 +478,8 @@
       score: rank === null ? 0 : Math.max(0, 6 - rank) * 0.5,
       rank,
       reason: !item || EMPTY.has(item) ? null : rank === null
-        ? `+ ${displayName(ctx, "item", item)} (meta verisi yok)`
-        : `+ ${displayName(ctx, "item", item)} (meta'da ort. ${rank.toFixed(1)} sıra)`
+        ? T(ctx, "advice.bonusNoMeta", { item: displayName(ctx, "item", item) })
+        : T(ctx, "advice.bonus", { item: displayName(ctx, "item", item), rank: rank.toFixed(1) })
     }
   }
 
@@ -496,23 +505,23 @@
       pct: rank === null ? null : clampPct(metaPct(rank) + (clusters.length ? 5 : 0)),
       reasons: [
         ...(best ? [rankReason(ctx, best, pkm)] : []),
-        ...(clusters.length ? [`${clusters.length} meta dizilimde var (en iyi ort. ${clusterRank.toFixed(1)})`] : [])
+        ...(clusters.length ? [T(ctx, "advice.inComps", { count: clusters.length, rank: clusterRank.toFixed(1) })] : [])
       ]
     }
   }
 
-  // Sinerji adımı: "Su 2→3 (tamamlar)" ya da "Su 1→2 (eşik 3)"
+  // Sinerji adımı: "Su 2→3 (tamamlar)" ya da "Su 1→2 (eşik 3)" (İngilizcede "Water 2→3 (activates)")
   function synStep(ctx, syn, counts) {
     const count = counts[syn] ?? 0
     const next = ctx.thresholds?.[syn]?.find((step) => step > count)
-    const step = `${displayName(ctx, "syn", syn)} ${count}→${count + 1}`
-    if (next === count + 1) return `${step} (tamamlar)`
-    return next ? `${step} (eşik ${next})` : step
+    const step = T(ctx, "advice.synStep", { syn: displayName(ctx, "syn", syn), from: count, to: count + 1 })
+    if (next === count + 1) return T(ctx, "advice.synActivates", { step })
+    return next ? T(ctx, "advice.synThreshold", { step, next }) : step
   }
 
   function fitReasons(ctx, snap, reasons) {
     const counts = synergyCounts(ctx, snap)
-    return reasons.map((r) => r.kind === "comp" ? "Önerilen dizilimde var" : synStep(ctx, r.syn, counts))
+    return reasons.map((r) => r.kind === "comp" ? T(ctx, "advice.inSuggestedComp") : synStep(ctx, r.syn, counts))
   }
 
   // ---------- 9) Yüzdeli uyum puanı (pct) ----------
@@ -530,13 +539,13 @@
   const META_STRONG = 55
   const TEAM_FIT = 30
 
-  function tagFor(pct, meta, team) {
-    if (pct === null) return "Veri yok"
+  function tagFor(ctx, pct, meta, team) {
+    if (pct === null) return T(ctx, "advice.tag.noData")
     const strong = meta !== null && meta >= META_STRONG
-    if (team >= TEAM_FIT && strong) return "Meta + takım"
-    if (team >= TEAM_FIT) return "Takım uyumu"
-    if (strong && pct >= 40) return "Meta güçlü"
-    return "Zayıf seçim"
+    if (team >= TEAM_FIT && strong) return T(ctx, "advice.tag.metaTeam")
+    if (team >= TEAM_FIT) return T(ctx, "advice.tag.teamFit")
+    if (strong && pct >= 40) return T(ctx, "advice.tag.metaStrong")
+    return T(ctx, "advice.tag.weak")
   }
 
   // Ailenin toplam kopyası (yedek dahil) ve en üst yıldız için gereken kopya
@@ -575,7 +584,7 @@
     const { owned, needed } = familyCopies(ctx, snap, fam)
     if (owned > 0 && owned < needed) {
       team += 35
-      reasons.push([35, `Evrim için kopya (${owned}/${needed})`])
+      reasons.push([35, T(ctx, "advice.copy", { owned, needed })])
     }
     // Tahtandaki başka bir aileyle aynı meta dizilimin çekirdeğinde mi?
     for (const comp of comps) {
@@ -584,13 +593,13 @@
       const mate = onBoard.find((u) => familyOf(ctx.data, u.name) !== fam && core.has(familyOf(ctx.data, u.name)))
       if (!mate) continue
       team += 45
-      reasons.push([45, `Tahtandaki ${displayName(ctx, "pkm", mate.name)} ile aynı dizilim (ort. ${comp.cluster.rank.toFixed(1)})`])
+      reasons.push([45, T(ctx, "advice.sameComp", { name: displayName(ctx, "pkm", mate.name), rank: comp.cluster.rank.toFixed(1) })])
       const names = [...comp.core]
         .sort((a, b) => b.frequency - a.frequency)
         .filter((p) => familyOf(ctx.data, p.name) !== fam)
         .slice(0, 3)
         .map((p) => displayName(ctx, "pkm", p.name))
-      if (names.length) reasons.push([8, `Dizilim çekirdeği: ${names.join(", ")}`])
+      if (names.length) reasons.push([8, T(ctx, "advice.compCore", { names: names.join(", ") })])
       break
     }
     team = Math.min(100, team)
@@ -633,13 +642,13 @@
       const raw = memberRaw === null ? null : memberRaw + (bonus.rank === null ? 0 : metaPct(bonus.rank) * 0.1)
       const meta = meanOrNull(fits.map((fit) => fit.meta))
       const team = mean(fits.map((fit) => fit.team))
-      if (!reasons.length) reasons.push(noMeta)
+      if (!reasons.length) reasons.push(T(ctx, "advice.noMeta"))
       return {
         index,
         score: mean(fits.map((fit) => fit.score)) + bonus.score,
         raw,
         pct: roundPct(raw),
-        tag: tagFor(roundPct(raw), meta, team),
+        tag: tagFor(ctx, roundPct(raw), meta, team),
         rank,
         hasData: raw !== null,
         reasons: bonus.reason ? [...reasons.slice(0, 2), bonus.reason] : reasons.slice(0, 3)
@@ -655,9 +664,9 @@
       const fit = byItem.get(item)
       const rank = itemMeta(ctx, item)
       const reasons = fit?.reason ? [fit.reason] : []
-      if (fit?.reason && rank !== null) reasons.push(`Meta'da ${displayName(ctx, "item", item)} ort. ${rank.toFixed(1)} sıra`)
+      if (fit?.reason && rank !== null) reasons.push(T(ctx, "advice.rank", { name: displayName(ctx, "item", item), rank: rank.toFixed(1) }))
       if (!reasons.length && !Array.isArray(snap.inventory) && ctx.data.components.includes(item)) {
-        reasons.push("Eldeki parçalar okunamadı; birleşim doğrulanamadı")
+        reasons.push(T(ctx, "advice.noInventory"))
       }
       // Takım: hemen verilebiliyorsa 100, bir parçayla birleşip veriliyorsa 85, kullanım yoksa 0.
       // Birleşimde meta puanı ortaya çıkan itemden gelir.
@@ -669,19 +678,19 @@
         score: (fit?.score ?? 0) + (fit?.reason && rank !== null ? Math.max(0, 7 - rank) * 0.05 : 0),
         raw,
         pct: roundPct(raw),
-        tag: tagFor(roundPct(raw), meta, team),
+        tag: tagFor(ctx, roundPct(raw), meta, team),
         rank,
         hasData: Boolean(fit?.reason),
         // Hemen kullanımı olmayan item ileride birleşebilir; "kaçın" denmez.
         canAvoid: Boolean(fit?.reason),
-        reasons: reasons.length ? reasons.slice(0, 3) : ["Tahtandaki Pokémonlar için hazır kullanım bulunamadı"]
+        reasons: reasons.length ? reasons.slice(0, 3) : [T(ctx, "advice.noUse")]
       }
     })
   }
 
   // Kararlar pct ile tutarlı: best en yüksek pct; good en fazla 10 puan geride;
   // avoid için pct ≤ 40 VE best'ten ≥ 25 puan düşük (veri yoksa 0 sayılır).
-  function choiceVerdicts(scored) {
+  function choiceVerdicts(ctx, scored) {
     const known = scored.filter((option) => option.raw !== null)
     const best = known.reduce((top, option) => !top || option.raw > top.raw ? option : top, null)
     const tied = scored.length > 1 && known.length === scored.length &&
@@ -699,7 +708,7 @@
       return {
         index: option.index,
         verdict,
-        label: verdictLabels[verdict],
+        label: verdictLabel(ctx, verdict),
         reasons: option.reasons,
         score: option.score,
         pct: option.pct,
@@ -748,8 +757,8 @@
         targetIndex: p.targetIndex,
         pct: roundPct(p.raw),
         reason: p.rank !== null
-          ? `${target} için meta item, ort. ${p.rank.toFixed(1)} sıra`
-          : `${target} için meta'da en çok kullanılan ${p.order + 1}. item`
+          ? T(ctx, "advice.craftMeta", { target, rank: p.rank.toFixed(1) })
+          : T(ctx, "advice.craftOrder", { target, n: p.order + 1 })
       })
     }
     return out
@@ -763,7 +772,7 @@
       id: current.id,
       type: current.type,
       kind,
-      options: choiceVerdicts(kind === "pokemon"
+      options: choiceVerdicts(ctx, kind === "pokemon"
         ? pokemonChoiceScores(ctx, snap, current, comps)
         : itemChoiceScores(ctx, snap, current))
     } : null
@@ -778,7 +787,7 @@
         // Seçim kartlarıyla aynı ölçek; verdict "good" olmasa da puan verilir.
         const fit = pokemonFit(ctx, snap, teamComps, pkm, teamless)
         const pct = roundPct(fit.raw)
-        return { index, verdict, label: verdictLabels[verdict], reasons, pct, tag: tagFor(pct, fit.meta, fit.team) }
+        return { index, verdict, label: verdictLabel(ctx, verdict), reasons, pct, tag: tagFor(ctx, pct, fit.meta, fit.team) }
       })
     return { choice, shop, craft: craftPlan(ctx, snap) }
   }

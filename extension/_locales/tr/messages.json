@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "PACC — Auto Chess Koçu"
+  },
+  "extShortName": {
+    "message": "PACC"
+  },
+  "extDescription": {
+    "message": "Pokémon Auto Chess için oyun içi koç ve Türkçe çeviri: takımına göre dizilim, item, dükkan ve karusel önerileri."
+  },
+  "actionTitle": {
+    "message": "PACC"
+  },
+  "cmdTogglePanel": {
+    "message": "Item / meta panelini aç-kapat"
+  }
+}

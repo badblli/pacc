@@ -2,7 +2,7 @@
 <html lang="tr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PAC Koç · Overlay deneme tahtası</title>
+<title>PACC · Overlay deneme tahtası</title>
 <style>
   :root { color-scheme: dark; font: 15px/1.5 "Trebuchet MS", Verdana, sans-serif; color: #e5eceb; background: #101b23; }
   * { box-sizing: border-box; }
@@ -58,6 +58,7 @@
     <label><input id="panel" type="checkbox"> Panel katmanını göster</label>
     <label><input id="fight" type="checkbox"> Savaş fazı (craft gizlenmeli)</label>
     <label><input id="noscreen" type="checkbox"> screen: null (konum yok)</label>
+    <label>Dil / Language <select id="lang"><option value="auto">auto</option><option value="en">English</option><option value="tr">Türkçe</option></select></label>
   </div>
   <output id="result" aria-live="polite">Henüz kart seçilmedi.</output>
 </header>
@@ -94,7 +95,13 @@
 <aside id="panel-preview" hidden>Panel önizlemesi<br><small>z-index: 2147483646<br>Çerçevelerin üstünde kalır.</small></aside>
 <script>
   const listeners = []
-  const store = { settings: { overlay: true }, meta: { pokemons: {}, items: {}, clusters: [] } }
+  // ?raf=timer: arka planda / gizli sekmede requestAnimationFrame çalışmaz; otomatik denemede zamanlayıcıyla taklit et
+  if (new URLSearchParams(location.search).get("raf") === "timer") {
+    window.requestAnimationFrame = (callback) => setTimeout(() => callback(performance.now()), 16)
+    window.cancelAnimationFrame = (id) => clearTimeout(id)
+  }
+  // ?lang=en|tr|auto → settings.uiLang (popup'taki dil seçicinin yerine)
+  const store = { settings: { overlay: true, uiLang: new URLSearchParams(location.search).get("lang") || "auto" }, meta: { pokemons: {}, items: {}, clusters: [] } }
   window.chrome = {
     runtime: { id: "harness", getURL: (path) => `../extension/${path}`, sendMessage: async () => ({ meta: store.meta }) },
     storage: {
@@ -119,6 +126,7 @@
     }
   }
 </script>
+<script src="../extension/content/i18n.js"></script>
 <script src="../extension/content/advisor.js"></script>
 <script>
   // Görsel denemeyi meta indirmesine bağlamamak için sabit kararlar kullanırız.
@@ -176,7 +184,10 @@
     window.postMessage({ type: "pac-yardimci:game", snapshot }, "*")
   }
   document.querySelectorAll("[data-scene]").forEach((button) => button.addEventListener("click", () => renderScene(button.dataset.scene)))
-  document.getElementById("enabled").addEventListener("change", (event) => chrome.storage.local.set({ settings: { overlay: event.target.checked } }))
+  document.getElementById("enabled").addEventListener("change", (event) => chrome.storage.local.set({ settings: { ...store.settings, overlay: event.target.checked } }))
+  const langSelect = document.getElementById("lang")
+  langSelect.value = store.settings.uiLang
+  langSelect.addEventListener("change", (event) => chrome.storage.local.set({ settings: { ...store.settings, uiLang: event.target.value } }))
   document.getElementById("fight").addEventListener("change", () => renderScene(scene))
   // game-hook.js'in 250 ms "pac-yardimci:screen" mesajını taklit eder: sahte canvas öğelerinin sayfa dikdörtgenleri
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) } }

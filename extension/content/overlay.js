@@ -15,7 +15,10 @@
   }
 
   const defaults = { overlay: true, tier: "LEVEL_BALL", minGames: 50 }
-  const state = { settings: defaults, meta: null, tr: null, data: null, snap: null, screen: null, screenAt: -Infinity }
+  // text: seçili dildeki oyun metinleri (Pokémon / item / sinerji adları)
+  const state = { settings: defaults, meta: null, text: null, data: null, snap: null, screen: null, screenAt: -Infinity }
+  const I18n = window.PacI18n
+  const t = (key, vars) => I18n.t(key, vars)
   const host = document.createElement("div")
   host.id = "pac-board-overlay"
   host.style.cssText = "all:initial;position:fixed;inset:0;pointer-events:none;z-index:2147483000"
@@ -35,7 +38,9 @@
   root.append(sheet, layer, tooltip, toast)
   document.documentElement.append(host)
 
-  const verdicts = { best: "✓ Önerilen", good: "İyi seçenek", avoid: "✗ Kaçın" }
+  // Rozet metinleri: overlay.best / overlay.good / overlay.avoid (neutral rozet almaz)
+  const VERDICTS = new Set(["best", "good", "avoid"])
+  const verdictText = (verdict) => t(`overlay.${verdict}`)
   // Birden çok tarif: her tarifin kendi rengi ve numara çifti (①②, ③④, ...)
   const craftColors = ["#ffd166", "#7cc8ff", "#ff9ff3", "#b9ff8a"]
   const circled = (n) => (n >= 1 && n <= 20 ? String.fromCodePoint(0x245f + n) : `(${n})`)
@@ -56,9 +61,9 @@
   let dead = false
 
   const names = {
-    pkm: (key) => state.tr?.pkm?.[key] ?? key,
-    item: (key) => state.tr?.item?.[key] ?? key,
-    syn: (key) => state.tr?.synergy?.[key] ?? key
+    pkm: (key) => state.text?.pkm?.[key] ?? I18n.humanize(key),
+    item: (key) => state.text?.item?.[key] ?? I18n.humanize(key),
+    syn: (key) => state.text?.synergy?.[key] ?? I18n.humanize(key)
   }
 
   const pctOf = (option) => {
@@ -67,7 +72,7 @@
   }
   const pctText = (option) => {
     const p = pctOf(option)
-    return p === null ? "" : ` · %${p}`
+    return p === null ? "" : ` · ${t("num.pct", { n: p })}`
   }
 
   function visibleRect(element) {
@@ -112,7 +117,7 @@
       if (indices.size !== options.length || options.some((option) =>
         !Number.isInteger(option.index) || option.index < 0 || option.index >= elements.length)) return
       for (const option of options) {
-        if (!verdicts[option.verdict]) continue
+        if (!VERDICTS.has(option.verdict)) continue
         const element = elements[option.index]
         if (element.classList.contains("empty")) continue
         const rect = visibleRect(element)
@@ -128,10 +133,10 @@
           className: `mark ${option.verdict}${shop ? " shop" : ""}`,
           // Dükkan rozeti dar: "★ %82"; seçim kartı: "✓ Önerilen · %82"
           badge: shop
-            ? (option.verdict === "best" ? "★" : "✓") + (pctOf(option) === null ? "" : ` %${pctOf(option)}`)
-            : verdicts[option.verdict] + pctText(option),
+            ? (option.verdict === "best" ? "★" : "✓") + (pctOf(option) === null ? "" : ` ${t("num.pct", { n: pctOf(option) })}`)
+            : verdictText(option.verdict) + pctText(option),
           reason: shop ? "" : (option.reasons?.[0] ?? ""),
-          title: `${name ?? ""} · ${verdicts[option.verdict]}${pctText(option)}${tag}`,
+          title: `${name ?? ""} · ${verdictText(option.verdict)}${pctText(option)}${tag}`,
           lines: [...(chain ? [chain] : []), ...(option.reasons ?? [])]
         })
       }
@@ -200,7 +205,7 @@
       const targetName = unit ? names.pkm(unit.name) : (typeof recipe.target === "string" ? names.pkm(recipe.target) : null)
       const title = `${names.item(a)} + ${names.item(b)} → ${itemName}${pctText(recipe)}`
       const lines = [
-        targetName ? `İki parçayı da ${targetName} üstüne sürükle.` : "İki parçayı birleştir.",
+        targetName ? t("overlay.dragOnto", { name: targetName }) : t("overlay.combine"),
         ...(typeof recipe.reason === "string" && recipe.reason ? [recipe.reason] : [])
       ]
       ;[a, b].forEach((component, j) => {
@@ -279,7 +284,8 @@
             clusters: state.meta?.clusters ?? [],
             minGames: state.settings.minGames,
             thresholds: state.meta?.thresholds,
-            names
+            names,
+            t
           }, state.snap)
           dirty = false
         } catch {
@@ -380,12 +386,12 @@
     if (event.repeat) return
     if (event.code === "KeyI") {
       craftOn = !craftOn
-      flash(`Item birleştirme ipuçları: ${craftOn ? "açık" : "kapalı"} (Alt+I)`)
+      flash(t("overlay.toast.craft", { state: t(craftOn ? "overlay.state.on" : "overlay.state.off") }))
     } else {
       hiddenAll = !hiddenAll
       layer.hidden = hiddenAll
       if (hiddenAll) tooltip.hidden = true
-      flash(`PAC Koç işaretleri: ${hiddenAll ? "gizli" : "görünür"} (Alt+O)`)
+      flash(t("overlay.toast.layer", { name: t("app.name"), state: t(hiddenAll ? "overlay.state.hidden" : "overlay.state.visible") }))
     }
     schedule()
   }
@@ -407,6 +413,19 @@
   try {
     if (extAlive()) chrome.storage.onChanged.addListener(onStorage)
   } catch {}
+  // Dil değişince adları yeni dilde yükle; gerekçeler bir sonraki ölçümde yeniden hesaplanır.
+  const offLang = I18n.onChange(async (lang) => {
+    if (dead) return
+    try {
+      if (!extAlive()) return teardown()
+      const text = await I18n.gameText(lang)
+      if (!dead && lang === I18n.lang) state.text = text
+    } catch {
+      if (!extAlive()) return teardown()
+    }
+    dirty = true
+    schedule()
+  })
 
   // Eklenti bağlamı geçersizse: katmanı kaldır, zamanlayıcıları ve dinleyicileri durdur
   function teardown() {
@@ -423,13 +442,14 @@
     document.removeEventListener("pointerleave", hideTip)
     window.removeEventListener("blur", hideTip)
     window.removeEventListener("keydown", onKey, true)
+    offLang()
     try {
       chrome.storage?.onChanged?.removeListener(onStorage)
     } catch {}
     nodes.clear()
     host.remove()
     window.__pacOverlay = false
-    console.info("[PAC Koç] Eklenti yeniden yüklendi; eski tahta katmanı kapatıldı. Sayfayı yenileyin.")
+    console.info("[PACC] Eklenti yeniden yüklendi; eski tahta katmanı kapatıldı. Sayfayı yenileyin.")
   }
 
   async function init() {
@@ -437,14 +457,16 @@
       if (!extAlive()) return teardown()
       const url = (path) => chrome.runtime.getURL(path)
       const json = (path) => fetch(url(path)).then((res) => res.json())
-      const [css, tr, data, stored] = await Promise.all([
+      await I18n.ready
+      if (!extAlive()) return teardown()
+      const [css, text, data, stored] = await Promise.all([
         fetch(url("content/overlay.css")).then((res) => res.text()),
-        json("locales/tr/translation.json"), json("data/static.json"),
+        I18n.gameText(I18n.lang), json("data/static.json"),
         chrome.storage.local.get(["settings", "meta"])
       ])
       if (!extAlive()) return teardown()
       sheet.textContent = css
-      state.tr = tr
+      state.text = text
       state.data = data
       state.settings = { ...defaults, ...stored.settings }
       state.meta = stored.meta ?? null

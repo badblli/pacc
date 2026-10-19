@@ -2,7 +2,7 @@
 <html lang="tr">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PAC Koç · Panel deneme tahtası</title>
+<title>PACC · Panel deneme tahtası</title>
 <!--
   Paneli (extension/content/panel.js) eklenti olmadan dener: chrome.* yerine küçük bir taklit, gerçek
   static.json + çeviri dosyası ve sahte meta verisi kullanır.
@@ -13,6 +13,7 @@
 
   Adres parametreleri:  ?autotest=1  otomatik senaryoları çalıştırır, sonuç #report içinde ve başlıkta
                         ?open=pokemon|comps|items|game&q=charmander  paneli o sekmede açar
+                        ?lang=en|tr|auto  arayüz dili (settings.uiLang); yoksa kayıtlı ayar / tarayıcı dili
 -->
 <style>
   :root { color-scheme: dark; font: 15px/1.5 system-ui, "Segoe UI", sans-serif; color: #e5eceb; background: #0f1a22; }
@@ -28,7 +29,7 @@
   .pass { color: #8cf2a4; } .fail { color: #ff8c7d; }
   .fake-overlay { position: fixed; z-index: 2147483640; left: 20px; top: 120px; width: 220px; padding: 16px; border: 2px solid #8cf2a4; background: #14212bf5; }
 </style>
-<h1>PAC Koç · panel deneme tahtası</h1>
+<h1>PACC · panel deneme tahtası</h1>
 <p>Sağ alttaki simgeye tıkla ya da aşağıdan aç. Panelde bir şey yazarken oyunun kısayolları (aşağıdaki satır) tetiklenmemeli.</p>
 <div class="bar">
   <button data-open="pokemon">Pokémon sekmesi</button>
@@ -50,6 +51,9 @@
   const persist = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(mem)) } catch {} }
   const listeners = { storage: [], message: [] }
   let alive = true
+  // ?lang=en|tr|auto → settings.uiLang (popup'taki dil seçicinin yerine)
+  const langParam = new URLSearchParams(location.search).get("lang")
+  if (langParam) mem.settings = { ...(mem.settings ?? {}), uiLang: langParam }
 
   const guard = () => { if (!alive) throw new Error("Extension context invalidated.") }
   window.chrome = {
@@ -134,6 +138,7 @@
   // Oyun kısayolu testi: sayfaya ulaşan her tuşu göster
   addEventListener("keydown", (e) => { document.getElementById("keys").textContent += e.key + " " })
 </script>
+<script src="../extension/content/i18n.js"></script>
 <script src="../extension/content/advisor.js"></script>
 <script src="../extension/content/panel.js"></script>
 <script>
@@ -203,6 +208,13 @@
       document.getElementById("report").innerHTML = out.map((r) => `<div class="${r.ok ? "pass" : "fail"}">${r.ok ? "GEÇTİ" : "KALDI"}  ${r.name}${r.extra ? "  — " + r.extra : ""}</div>`).join("") + `<div>${failed ? "HATA: " + failed : "TÜMÜ GEÇTİ"} (${out.length} kontrol)</div>`
       document.title = failed ? `FAIL ${failed}` : "PASS " + out.length
     }
+    // Dile bağlı beklentiler (Pokémon adları iki dilde de oyunun İngilizce adları)
+    await window.PacI18n.ready
+    const L = window.PacI18n.lang
+    const X = {
+      tr: { noMeta: /Meta verisi yok/, otherTier: /ve üstünde 184 oyun var/, stats: /5\.766 oyun/, none: /sonuç yok/, shop: /dükkanda: Charmander/, compsTab: "Dizilimler", other: "en", otherCompsTab: "Comps" },
+      en: { noMeta: /No meta data/, otherTier: /and above: 184 games/, stats: /5,766 games/, none: /No results/, shop: /in shop: Charmander/, compsTab: "Comps", other: "tr", otherCompsTab: "Dizilimler" }
+    }[L]
     try {
       if (sessionStorage.getItem("phase2")) {
         sessionStorage.removeItem("phase2")
@@ -215,6 +227,9 @@
         return
       }
       delete mem.panelBox; persist()
+      // Sahte oyun mesajı ilk gelişte paneli "Oyunum"a çevirir; arama adımları bitene kadar kapalı (aşağıda yeniden açılır)
+      window.__gameOn = false
+      check(`arayüz dili: ${L}`, ["en", "tr"].includes(L))
       await openPanel("pokemon")
       const input = await search("chari")
       check("'chari' → Charizard bulunur", names().includes("Charizard"), names().join(", "))
@@ -222,10 +237,10 @@
       await search("Charmander")
       const nm = $$('[data-role="results"] > .card.nometa .name').map((n) => n.firstChild.textContent.trim())
       check("'Charmander' → Charmander + evrimleri listelenir", ["Charmander", "Charmeleon", "Charizard"].every((n) => names().includes(n)), names().join(", "))
-      check("meta kaydı olmayan Pokémon 'Meta verisi yok' notuyla görünür", nm.includes("Charmander") && $$(".card.nometa .stat.warn").some((e) => /Meta verisi yok/.test(e.textContent)))
-      check("başka elo ipucu gösterilir", /ve üstünde 184 oyun var/.test($(".card.nometa .note-line")?.textContent ?? ""), $(".card.nometa .note-line")?.textContent)
+      check("meta kaydı olmayan Pokémon 'Meta verisi yok' notuyla görünür", nm.includes("Charmander") && $$(".card.nometa .stat.warn").some((e) => X.noMeta.test(e.textContent)))
+      check("başka elo ipucu gösterilir", X.otherTier.test($(".card.nometa .note-line")?.textContent ?? ""), $(".card.nometa .note-line")?.textContent)
       await search("GYARADOS")
-      check("'GYARADOS' → sonuç + istatistik satırı", names()[0] === "Gyarados" && /5\.766 oyun/.test($(".card .stats")?.textContent ?? ""), $(".card .stats")?.textContent.trim().replace(/\s+/g, " "))
+      check("'GYARADOS' → sonuç + istatistik satırı", names()[0] === "Gyarados" && X.stats.test($(".card .stats")?.textContent ?? ""), $(".card .stats")?.textContent.trim().replace(/\s+/g, " "))
       await search("charizard")
       check("'charizard' → aile gelir, aranan aşama vurgulanır", names().includes("Charmander") && $$(".evo-mon.hit").length >= 1 && $(".evo-mon.hit .evo-name").textContent === "Charizard")
       const strip = $(".card .evo")
@@ -235,7 +250,7 @@
       await search("mr mime")
       check("'mr mime' (ayraçlı) → Mr. Mime", names().some((n) => /mime/i.test(n)), names().join(", "))
       await search("zzzzqq")
-      check("sonuçsuz arama boş durum gösterir", /sonuç yok/.test($('[data-role="results"]').textContent))
+      check("sonuçsuz arama boş durum gösterir", X.none.test($('[data-role="results"]').textContent))
       await search("")
       check("boş arama → en çok oynanan liste", names().length === 9 && names()[0] === "Gyarados", names().join(", "))
       // klavye yalıtımı: panelde yazılan tuş sayfaya ulaşmamalı
@@ -247,7 +262,16 @@
       // Dizilimler
       await openPanel("comps")
       check("dizilim başlığında sinerji ikonları + sayı var", $$(".syn-badge").length >= 3 && $(".syn-badge img").alt !== "" && /8/.test($(".syn-badge b").textContent))
-      check("dizilimde Charizard altında 'dükkanda: Charmander'", $$(".member .shop-hint").some((h) => /dükkanda: Charmander/.test(h.textContent)))
+      check("dizilimde Charizard altında 'dükkanda: Charmander'", $$(".member .shop-hint").some((h) => X.shop.test(h.textContent)))
+      // Dil canlı değişir (popup'taki seçici gibi storage üzerinden) ve geri alınır
+      const tabText = () => $('nav button[data-tab="comps"]').textContent
+      check("sekme adı seçili dilde", tabText() === X.compsTab, tabText())
+      await chrome.storage.local.set({ settings: { ...mem.settings, uiLang: X.other } })
+      await sleep(400)
+      check(`dil canlı değişir (${L} → ${X.other})`, tabText() === X.otherCompsTab && $$(".syn-badge").length >= 3, tabText())
+      await chrome.storage.local.set({ settings: { ...mem.settings, uiLang: L } })
+      await sleep(400)
+      check(`dil geri döner (${X.other} → ${L})`, tabText() === X.compsTab, tabText())
       // Oyunum
       window.__gameOn = true; sendGame(true)
       await sleep(900)

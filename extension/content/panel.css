@@ -1,4 +1,4 @@
-/* PAC Koç paneli — koyu, oyun havalı tema. Renk çiftleri WCAG AA (>= 4.5:1) kontrastı sağlar:
+/* PACC paneli — koyu, oyun havalı tema. Renk çiftleri WCAG AA (>= 4.5:1) kontrastı sağlar:
    metin/arka plan oranları --fg ~14:1, --muted ~8:1 (--bg2 üstünde), vurgu renkleri >= 5.9:1 (--bg3 üstünde). */
 :host {
   all: initial;

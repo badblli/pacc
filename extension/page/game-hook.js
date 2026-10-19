@@ -349,7 +349,7 @@
       snap = snapshot()
     } catch (err) {
       failed = true
-      console.debug("[PAC Koç] durum okunamadı", err)
+      console.debug("[PACC] durum okunamadı", err)
     }
     const json = JSON.stringify(snap)
     if (json !== last) {

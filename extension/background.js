@@ -4,7 +4,25 @@
 
 const API = "https://pokemon-auto-chess.com"
 const CHECK_MINUTES = 6 * 60
-const DEFAULT_SETTINGS = { translation: true, panel: true, overlay: true, poolTracking: false, tier: "LEVEL_BALL", minGames: 50 }
+const DEFAULT_SETTINGS = { uiLang: "auto", panel: true, overlay: true, poolTracking: false, tier: "LEVEL_BALL", minGames: 50 }
+
+// content/i18n.js'teki resolveLang ile aynı kural (service worker o dosyayı yüklemiyor):
+// "auto" → tarayıcı dili "tr" ile başlıyorsa Türkçe, değilse İngilizce.
+function resolveLang(preference) {
+  if (preference === "en" || preference === "tr") return preference
+  let ui = ""
+  try {
+    ui = chrome.i18n.getUILanguage() || ""
+  } catch {}
+  return ui.toLowerCase().startsWith("tr") ? "tr" : "en"
+}
+
+// Oyunun Türkçe çevirisi (tr_redirect) varsayılan olarak yalnız Türkçe arayüzde açık.
+function withDefaults(settings) {
+  const s = { ...DEFAULT_SETTINGS, ...settings }
+  if (typeof s.translation !== "boolean") s.translation = resolveLang(s.uiLang) === "tr"
+  return s
+}
 
 async function getJson(path) {
   const res = await fetch(API + path)
@@ -86,7 +104,7 @@ async function refresh(force = false) {
     })
   })()
     .catch(async (err) => {
-      console.warn("[PAC Koç] meta verisi alınamadı", err)
+      console.warn("[PACC] meta verisi alınamadı", err)
       await chrome.storage.local.set({ metaError: String(err.message ?? err) })
       throw err
     })
@@ -98,7 +116,7 @@ async function refresh(force = false) {
 
 async function applySettings() {
   const { settings } = await chrome.storage.local.get("settings")
-  const s = { ...DEFAULT_SETTINGS, ...settings }
+  const s = withDefaults(settings)
   await chrome.declarativeNetRequest.updateEnabledRulesets(
     s.translation ? { enableRulesetIds: ["tr_redirect"] } : { disableRulesetIds: ["tr_redirect"] }
   )
@@ -106,7 +124,7 @@ async function applySettings() {
 
 chrome.runtime.onInstalled.addListener(async () => {
   const { settings } = await chrome.storage.local.get("settings")
-  await chrome.storage.local.set({ settings: { ...DEFAULT_SETTINGS, ...settings } })
+  await chrome.storage.local.set({ settings: withDefaults(settings) })
   await applySettings()
   chrome.alarms.create("meta-check", { periodInMinutes: CHECK_MINUTES })
   refresh().catch(() => {})

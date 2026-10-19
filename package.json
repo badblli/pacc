@@ -1,9 +1,9 @@
 {
-  "name": "pac-koc",
+  "name": "pacc",
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Pokémon Auto Chess için Türkçe çeviri + item/meta paneli (Chrome eklentisi)",
+  "description": "PACC — Poké Auto Chess Coach: on-board advice overlay, coach panel and Turkish translation for Pokémon Auto Chess (Chrome extension)",
   "scripts": {
     "build:tr": "node scripts/build-translation.mjs",
     "build:data": "node scripts/build-static-data.mjs",

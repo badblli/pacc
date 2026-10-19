@@ -1,93 +1,120 @@
-# Tahta Koçu
+# PACC — Auto Chess Coach
 
-<img src="extension/icons/icon-128.png" width="96" alt="Tahta Koçu logosu: boynuzlu pokéball">
+<img src="extension/icons/icon-128.png" width="96" alt="PACC logo: a horned poké ball">
 
-[Pokémon Auto Chess](https://pokemon-auto-chess.com) için Türkçe çeviri ve oyun içi koç eklentisi (Chrome). Resmi bir ürün değildir; oyunun yapımcılarıyla bağlantısı yoktur.
+**English** · [Türkçe](README.tr.md)
 
-**Yapan:** [badblli](https://github.com/badblli) · **Depo:** [github.com/badblli/tahta-kocu](https://github.com/badblli/tahta-kocu)
+PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](https://pokemon-auto-chess.com): an in-game coach panel, on-board recommendations, and an optional Turkish translation of the game. It is not an official product and is not affiliated with the game's developers.
 
-İsim ve logo seçimi için [docs/branding.md](docs/branding.md) dosyasına bak. Logo `node scripts/build-icons.mjs` ile yeniden üretilir.
+**Author:** [badblli](https://github.com/badblli) · **Repository:** [github.com/badblli/pacc](https://github.com/badblli/pacc)
 
-Özellikler:
+<!-- Screenshot: add docs/screenshot.png (panel + on-board badges) and uncomment the line below. -->
+<!-- ![PACC in a game](docs/screenshot.png) -->
 
-- **Türkçe çeviri:** Oyunun İngilizce dil dosyasını eklentideki Türkçe dosyayla değiştirir.
-- **Oyun içi panel.** Dört sekmesi var:
-  - **Oyunum:** Oyundayken tahtanı, yedeğini, dükkanını ve elindeki item parçalarını okuyup otomatik öneri yapar:
-    - **Pokémon seçimi:** ek / eşsiz / efsanevi seçimlerde hangisinin takımına daha çok yarayacağı,
-    - **Item seçimi:** karusel ya da ödül seçiminde hangi itemi alman gerektiği,
-    - **Hemen yap:** elindeki parçalarla yapabileceğin itemler ve kime takacağın,
-    - **Ekonomi:** sonraki tur geliri, faiz eşikleri, seviye atlama maliyeti, can azken uyarı, seviyene göre dükkan oranları,
-    - **Sinerjiler:** her sinerjinin eşikleri, bir sonraki seviyeye kaç Pokémon kaldığı, yedekten ya da dükkandan hangisinin tamamlayacağı,
-    - **Dükkan:** takımına yarayan Pokémonlar,
-    - **Rakip:** sıradaki rakibinin aktif sinerjileri ve en çok itemli Pokémonları,
-    - **Sana uyan dizilimler:** elindeki Pokémonlarla (evrimleri dahil) en çok örtüşen meta dizilimler,
-    - **Havuz ve ihtimal** (popup'tan açılır, varsayılan kapalı): aradığın Pokémondan havuzda kaç kopya kaldığı ve yenileme başına dükkanda çıkma ihtimali,
-    - **Bölgesel Pokémonlar:** bulunduğun bölgenin Pokémonlarından takımına uyanlar,
-    - **Item önerisi:** her Pokémonun için önerilen itemler ve "hazır / 1 parça eksik" durumu,
-    - **Oyun sonu özeti:** oyun bitince sıralaman, en çok benzeyen meta dizilim ve itemlerinin meta ile karşılaştırması.
-  - **Pokémon:** Bir Pokémon'u ara; en çok kullanılan 3 itemi, tariflerini ve Türkçe açıklamalarını gör.
-  - **Dizilimler:** Son oyunlardaki takım dizilimleri, ortalama sıralamaya göre dizili. Her dizilimde ana kadro, itemler ve örnek bir takım var.
-  - **Itemler:** 10×10 tarif tablosu, item detayları ve taşıyanını en iyi bitiren itemler.
+## Features
 
-Veriler oyunun kendi meta raporundan gelir (`/meta-v2`, `/meta/pokemons`, `/meta/items`). Rapor son ~100.000 oyundan oluşur ve günde bir kez yenilenir.
+- **English and Turkish interface.** The language follows your browser (Turkish if the browser language starts with `tr`, English otherwise). You can change it at any time from the popup (Automatic / English / Türkçe); the panel and the on-board markers switch live. In English, Pokémon, item and synergy names are the game's own English names.
+- **On-board recommendations.** In pick windows (starter, additional / unique / legendary Pokémon, item carousel and rewards) and in the shop, the suggested option gets a green frame with a fit percentage and the options to avoid get a red one. Hover a frame to read why. Item crafting hints mark the two components on the board and the Pokémon to drag them onto. **Alt+I** toggles the crafting hints, **Alt+O** hides or shows all markers.
+- **In-game panel** (logo button at the bottom right, or **Alt+P**), with four tabs:
+  - **My game:** reads your board, bench, shop and components while you play and suggests:
+    - **Pokémon pick:** which option helps your team most,
+    - **Item pick:** which item to take from the carousel or a reward,
+    - **Craft now:** items you can build from your components, and who should hold them,
+    - **Economy:** next round income, interest thresholds, level-up cost, a warning when your HP is low, and shop odds for your level,
+    - **Synergies:** thresholds, how many units you need for the next level, and which bench or shop unit completes it,
+    - **Shop:** Pokémon in the shop that fit your team,
+    - **Opponent:** your next opponent's active synergies and most itemized Pokémon,
+    - **Comps that fit you:** meta comps that overlap most with your Pokémon (including evolutions),
+    - **Pool and odds** (off by default, enable it in the popup): copies left in the pool and the chance to see one per refresh,
+    - **Regional Pokémon:** which of your region's Pokémon fit your team,
+    - **Item suggestions:** recommended items for each Pokémon with "ready / 1 component missing" status,
+    - **Game summary:** after a game, your placement, the closest meta comp and how your items compare to the meta.
+  - **Pokémon:** search any Pokémon (partial names work, e.g. "chari"); see its top 3 items, recipes, descriptions and evolution chain.
+  - **Comps:** recent team comps sorted by average placement, each with a core lineup, items and an example team.
+  - **Items:** the 10×10 recipe table, item details, and the items whose holders place best.
+- **Turkish game translation** (optional): replaces the game's English language file with a Turkish one. It is on by default only when the interface language is Turkish.
 
-## Kurulum (geliştirici modu)
+All data comes from the game's own public meta report (`/meta-v2`, `/meta/pokemons`, `/meta/items`), built from the last ~100,000 games and refreshed daily.
 
-1. Chrome'da `chrome://extensions` sayfasını aç.
-2. Sağ üstten **Geliştirici modu**nu aç.
-3. **Paketlenmemiş öğe yükle** düğmesine bas ve bu projedeki `extension` klasörünü seç.
-4. pokemon-auto-chess.com'u aç. Oyunun ayarlarında dil **English** olmalı.
-5. Sağ alttaki sarı oklu logoya ya da **Alt+P** kısayoluna basınca panel açılır.
+## Installation (developer mode)
 
-Kodu değiştirdikten sonra `chrome://extensions` sayfasında eklentinin ⟳ düğmesine bas, ardından oyun sekmesini yenile.
+1. Open `chrome://extensions` in Chrome.
+2. Turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select this project's `extension` folder.
+4. Open pokemon-auto-chess.com. If you use the Turkish game translation, the game's own language setting must be **English**.
+5. Click the logo button at the bottom right or press **Alt+P** to open the panel.
 
-## Nasıl çalışıyor?
+After changing the code, press the ⟳ button on the extension's card in `chrome://extensions`, then reload the game tab.
 
-| Dosya | Görevi |
+## How it works
+
+| File | Purpose |
 |---|---|
-| `extension/rules/tr_redirect.json` | `declarativeNetRequest` kuralı. `locales/en/translation.json` isteğini eklentideki `locales/tr/translation.json` dosyasına yönlendirir. |
-| `extension/background.js` | Meta verisini 6 saatte bir kontrol eder. Rapor değiştiyse indirir, ~40 MB'ı ~1 MB'a küçültüp `chrome.storage`'a kaydeder. |
-| `extension/page/game-hook.js` | Sayfanın kendi JS ortamında çalışır. Oyunun Redux store'unu ve Colyseus oyun durumunu yakalar, saniyede bir sadece **senin** takımının özetini panele yollar. Oyuna hiçbir mesaj göndermez. |
-| `extension/content/advisor.js` | Öneri motoru: oyun özeti + meta verisinden dizilim, item, dükkan, karusel, sinerji, ekonomi, havuz, rakip ve bölge önerilerini hesaplar. Oyunun kurallarını (dükkan oranları, havuz boyutları, faiz) birebir kullanır. |
-| `extension/content/panel.js` | Oyun sayfasına shadow DOM içinde paneli ekler. Panelde yazarken oyunun kısayolları tetiklenmez. |
-| `extension/popup/` | Eklenti simgesine tıklayınca açılan ayarlar (çeviri / panel aç-kapa, veri durumu). |
-| `extension/data/static.json` | Oyun kodundan çıkarılan item tarifleri, Pokémon portre numaraları, evrim aileleri, tipler, duolar ve dükkan kuralları (üretilen dosya). |
-| `extension/locales/tr/translation.json` | Birleştirilmiş Türkçe dil dosyası (üretilen dosya). |
-| `extension/icons/` | Logo (`logo.svg` ve PNG'ler `scripts/build-icons.mjs` ile üretilir). |
+| `extension/manifest.json`, `extension/_locales/` | Manifest; the name and description are localized (`default_locale: "en"`). |
+| `extension/rules/tr_redirect.json` | `declarativeNetRequest` rule that redirects the game's `locales/en/translation.json` to the extension's Turkish file. |
+| `extension/background.js` | Checks the meta report every 6 hours, downloads it if it changed, shrinks ~40 MB to ~1 MB and stores it in `chrome.storage`. Sets the translation default from the interface language on install. |
+| `extension/page/game-hook.js` | Runs in the page's own JS context. Reads the game's Redux store and Colyseus state and posts a summary of **your** team once a second. Never sends anything to the game. |
+| `extension/content/i18n.js` | Interface language helper (`PacI18n.t`), loaded before the other content scripts and in the popup. |
+| `extension/i18n/en.json`, `extension/i18n/tr.json` | Interface strings (panel, on-board markers, popup, advice reasons). Both catalogs must have the same keys. |
+| `extension/i18n/game.en.json` | The game's English names and item descriptions for the English interface (generated, see below). |
+| `extension/content/advisor.js` | Advice engine: comps, items, shop, carousel, synergies, economy, pool, opponent and region advice from the game summary + meta data. Uses the game's real rules (shop odds, pool sizes, interest). |
+| `extension/content/overlay.js` | Draws the on-board frames, badges and crafting hints in a separate shadow DOM layer. Never clicks or drags. |
+| `extension/content/panel.js` | Adds the panel to the page in a shadow DOM. Typing in the panel does not trigger the game's shortcuts. |
+| `extension/popup/` | Settings popup (language, translation, panel, markers, pool tracking, data status). |
+| `extension/data/static.json` | Item recipes, portrait indexes, evolution families, types, duos and shop rules extracted from the game's code (generated). |
+| `extension/locales/tr/translation.json` | The merged Turkish game language file (generated). |
+| `extension/icons/` | Logo (`logo.svg` and PNGs generated by `scripts/build-icons.mjs`). See [docs/branding.md](docs/branding.md). |
 
-## Çeviri üzerinde çalışmak
+## Development
 
-Çeviriler `translations/tr.partial.json` dosyasında. Bu dosyanın yapısı oyunun `en/translation.json` dosyasıyla aynı, ama sadece çevrilmiş anahtarları içeriyor. Bir anahtarı buraya eklemezsen oyunda İngilizcesi görünür.
+```bash
+node tests/advice.test.mjs   # advice engine (Turkish catalog, strict keys)
+node tests/i18n.test.mjs     # catalogs, key usage, English/Turkish advice, hard-coded text scan
+```
+
+Browser harnesses (no extension needed) live in `tests/panel-harness.html` and `tests/overlay-harness.html`; open them from a local server at the repository root. Both accept `?lang=en|tr`; the panel harness runs its checks with `?autotest=1`.
+
+Adding interface text: add the key to **both** `extension/i18n/en.json` and `extension/i18n/tr.json`, then use `t("key", { var })` (plain text) or `h("key", { var })` (HTML-safe) in the code. Placeholders use `{{name}}`; plurals use `key_one` / `key_other` with a numeric `count`.
+
+Regenerating the English game names after a game update:
+
+```bash
+node scripts/build-i18n-game-en.mjs [path/to/en/translation.json]
+```
+
+## Working on the Turkish game translation
+
+Translations live in `translations/tr.partial.json`. It has the same structure as the game's `en/translation.json` but contains only the translated keys; any key not listed there stays in English in the game.
 
 ```bash
 npm run build:tr
 ```
 
-Bu komut güncel İngilizce dosyayı GitHub'dan çeker, Türkçe çevirileri üstüne yazar ve çevrilen metin oranını yazdırır. Bir çeviride oyunun kullandığı kalıplardan biri eksikse uyarı verir.
+This fetches the current English file from GitHub, applies the Turkish translations on top and prints the translated share. It warns when a translation is missing one of the game's placeholders.
 
-Kurallar:
-- `SHIELD`, `ON_HIT`, `ATK`, `BURN` gibi BÜYÜK_HARFLİ kelimeler, `{{değişken}}` ve `[50,LK]` gibi kalıplar **aynen** kalmalı. Oyun bunları ikona ve renkli etikete çeviriyor.
-- Bu kalıpların arkasına ek yapıştırma. `SHIELDı` yazarsan oyun kalıbı tanımaz; `SHIELD olarak` yaz.
-- Item ve Pokémon isimleri bilerek İngilizce bırakıldı (rehberler ve topluluk bu isimleri kullanıyor).
+Rules:
+- UPPER_CASE words such as `SHIELD`, `ON_HIT`, `ATK`, `BURN`, `{{variables}}` and patterns like `[50,LK]` must stay **as is**; the game turns them into icons and colored labels.
+- Don't attach Turkish suffixes to these tokens. The game won't recognize `SHIELDı`; write `SHIELD olarak`.
+- Item and Pokémon names are intentionally kept in English (guides and the community use them).
 
-Oyun güncellenip yeni item ya da Pokémon gelirse:
+When the game adds new items or Pokémon:
 
 ```bash
 npm run build
 ```
 
-> Uzun vadede en iyi yol, Türkçeyi doğrudan oyunun reposuna eklemek. Oyunun kendi çeviri sayfası var (https://pokemon-auto-chess.com/translations). Türkçe resmi olarak eklenirse herkes kullanabilir ve eklentiye gerek kalmaz.
+> In the long run the best option is adding Turkish to the game itself through its translation page (https://pokemon-auto-chess.com/translations), so everyone can use it without an extension.
 
-## Verileri okurken dikkat
+## Reading the data
 
-- Paneldeki "en çok kullanılan itemler", oyuncuların **en sık taktığı** itemler. Bunlar kanıtlanmış en iyi itemler değil; iyi bir başlangıç noktası.
-- **Ort. sıra** 1 ile 8 arasında, 1 en iyisi. Elo seçimi "bu seviye ve üstü" oyunları gösterir. Yüksek elo seviyelerinde örnek az olabilir; az veri varsa panel ⚠ ile uyarır.
-- "Taşıyanı en iyi bitiren itemler" listesi yanıltıcı olabilir: güçlü Pokémonlara takılan itemler doğal olarak daha iyi görünür.
+- "Most used items" in the panel are the items players **equip most often**. They are a good starting point, not proven best items.
+- **Avg. placement** runs from 1 to 8, 1 is best. The elo filter shows games "at this level and above". High elo levels can have few games; the panel marks a small sample with ⚠.
+- "Items whose holders place best" can be misleading: items that go to strong Pokémon naturally look better.
 
-## Oyunun kuralları
+## The game's rules
 
-Oyunun kullanım koşulları "izinsiz otomasyon / araç" kullanımını yasaklıyor. Bu eklenti oyunda tıklamaz, hamle yapmaz ve oyuna mesaj göndermez. "Oyunum" sekmesi senin tarayıcında zaten bulunan oyun bilgisini okuyup öneri gösterir. Rakip özeti, oyunda tahtasına tıklayarak görebildiğin bilgiyi özetler. "Havuz ve ihtimal" ise tüm oyuncuların tahtalarını saydığı için en gri özellik; bu yüzden varsayılan olarak kapalı. Yine de yaygınlaştırmadan önce oyunun Discord'unda geliştiricilere sormak iyi olur.
+The game's terms of use forbid unauthorized automation or tools. This extension never clicks, never makes moves and never sends messages to the game. The "My game" tab and the on-board markers only show advice based on information already in your browser. The opponent summary shows what you could see by clicking their board. "Pool and odds" counts every player's board, so it is the greyest feature and is off by default. Before sharing the extension widely, it is still a good idea to ask the developers on the game's Discord.
 
-## Lisans notu
+## License
 
-Oyun GPL-3.0 lisanslı. Eklenti oyunun kodunu içermiyor. Sadece dil dosyasını ve item tarif verisini oyunun reposundan türetiyor; eklentiyi yayınlarsan GPL-3.0 kullanmak en sorunsuz yol.
+The game is licensed under GPL-3.0. This extension contains no game code; it only derives the language file and item recipe data from the game's repository. If you publish the extension, GPL-3.0 is the simplest choice.

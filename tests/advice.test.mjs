@@ -5,9 +5,17 @@ import vm from "node:vm"
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const data = JSON.parse(read("extension/data/static.json"))
 globalThis.window = {}
+vm.runInThisContext(read("extension/content/i18n.js"), { filename: "i18n.js" })
 vm.runInThisContext(read("extension/content/advisor.js"), { filename: "advisor.js" })
 const advisor = window.PacAdvisor
+// Gerekçeler Türkçe katalogla üretilir; eksik anahtar / değişken hata fırlatır (İngilizce kapsam: i18n.test.mjs).
+const i18n = window.PacI18n
+i18n.register("en", JSON.parse(read("extension/i18n/en.json")))
+i18n.register("tr", JSON.parse(read("extension/i18n/tr.json")))
+i18n.strict = true
+await i18n.setLang("tr")
 const ctx = {
+  t: (key, vars) => i18n.t(key, vars),
   data,
   minGames: 20,
   thresholds: { FIRE: [2, 4, 6], DRAGON: [3, 6], WATER: [3, 6] },

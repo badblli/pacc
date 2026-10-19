@@ -54,29 +54,36 @@
     settings: { panel: true, tier: "LEVEL_BALL", minGames: 50, poolTracking: false },
     meta: null,
     metaError: null,
-    tr: null,
+    // Oyun metinleri (adlar, item açıklamaları): tr → locales/tr/translation.json, en → i18n/game.en.json
+    text: null,
     data: null
   }
+
+  // Arayüz metinleri (extension/i18n/*.json). t: düz metin, h: HTML'e güvenli; { html } değerleri olduğu gibi girer.
+  const I18n = window.PacI18n
+  const t = (key, vars) => I18n.t(key, vars)
+  const h = (key, vars) => I18n.html(key, vars)
+  const raw = (html) => ({ html })
 
   // ---------- yardımcılar ----------
 
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
 
-  const itemName = (k) => state.tr?.item?.[k] ?? k
-  const pkmName = (k) => state.tr?.pkm?.[k] ?? k
-  const synName = (k) => state.tr?.synergy?.[k] ?? k
-  const tierName = (k) => state.tr?.elorank?.[k] ?? k
+  const itemName = (k) => state.text?.item?.[k] ?? I18n.humanize(k)
+  const pkmName = (k) => state.text?.pkm?.[k] ?? I18n.humanize(k)
+  const synName = (k) => state.text?.synergy?.[k] ?? I18n.humanize(k)
+  const tierName = (k) => state.text?.elorank?.[k] ?? k
   const healthFresh = () => Date.now() - state.healthAt < 3500
   const gameReady = () => Boolean(state.game && state.health?.status === "ok" && healthFresh())
 
   function healthLabel() {
-    if (!healthFresh()) return state.healthAt ? "Oyun bağlantısı kesildi" : "Oyun bağlantısı bekleniyor"
-    if (state.health.status === "error") return "Oyun durumu okunamadı"
-    if (state.health.status === "idle") return state.health.inGame ? "Tahta henüz okunamadı" : "Oyun bekleniyor"
-    if (!state.game) return "Tahta henüz okunamadı"
+    if (!healthFresh()) return t(state.healthAt ? "panel.health.lost" : "panel.health.waiting")
+    if (state.health.status === "error") return t("panel.health.error")
+    if (state.health.status === "idle") return t(state.health.inGame ? "panel.health.noBoard" : "panel.health.idle")
+    if (!state.game) return t("panel.health.noBoard")
     const active = state.game.board?.filter((p) => p.y > 0).length ?? 0
-    return `Tahta okundu · ${active} Pokémon · ${Math.floor((Date.now() - state.healthAt) / 1000)} sn önce`
+    return t("panel.health.ok", { count: active, sec: Math.floor((Date.now() - state.healthAt) / 1000) })
   }
 
   const itemIcon = (k, cls = "item-icon") =>
@@ -90,15 +97,17 @@
 
   function place(rank) {
     const cls = rank <= 3.5 ? "good" : rank <= 4.5 ? "mid" : "bad"
-    return `<span class="place ${cls}" title="Ortalama sıralama (1 en iyi, 8 en kötü)">${rank.toFixed(2)}</span>`
+    return `<span class="place ${cls}" title="${h("panel.placeTitle")}">${rank.toFixed(2)}</span>`
   }
 
-  const fmt = (n) => Number(n).toLocaleString("tr-TR")
+  const fmt = (n) => I18n.number(n)
+  const games = (n) => t("num.games", { count: Number(n), n: fmt(n) })
+  const pctLabel = (n) => t("num.pct", { n })
 
   // Oyunun açıklamalarındaki BÜYÜK_HARF kalıplarını okunur etiketlere çevirir.
   let tokenRe = null
   function buildTokenRe() {
-    const t = state.tr
+    const t = state.text
     const keys = [
       ...Object.keys(t.stat ?? {}),
       ...Object.keys(t.status ?? {}),
@@ -113,7 +122,7 @@
 
   function renderDesc(text) {
     if (!text) return ""
-    const t = state.tr
+    const t = state.text
     return esc(text).replace(tokenRe, (tok) => {
       if (tok.startsWith("[")) {
         const parts = tok.slice(1, -1).split(",")
@@ -128,12 +137,12 @@
       if (t.synergy?.[tok]) return `<span class="tok syn">${esc(t.synergy[tok])}</span>`
       if (t.technical_terms?.[tok]) return `<i>${esc(t.technical_terms[tok])}</i>`
       if (t.item?.[tok]) return `<span class="tok">${esc(t.item[tok])}</span>`
-      if (tok === "GOLD") return "altın"
+      if (tok === "GOLD") return h("panel.desc.gold")
       return tok
     })
   }
 
-  const itemDesc = (k) => renderDesc(state.tr?.item_description?.[k])
+  const itemDesc = (k) => renderDesc(state.text?.item_description?.[k])
 
   function recipeHtml(k) {
     const r = state.data?.recipes?.[k]
@@ -198,18 +207,18 @@
     const html = [...stages.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(
-        ([t, list]) => `<div class="evo-stage">${list
+        ([stage, list]) => `<div class="evo-stage">${list
           .map(
-            (m) => `<div class="evo-mon${m === k ? " cur" : ""}${nameHit(m, q) ? " hit" : ""}" data-pkm="${esc(m)}" title="${esc(pkmName(m))} — ${t}. aşama">
+            (m) => `<div class="evo-mon${m === k ? " cur" : ""}${nameHit(m, q) ? " hit" : ""}" data-pkm="${esc(m)}" title="${h("panel.evo.stage", { name: pkmName(m), stage })}">
               ${portrait(m, "portrait sm")}
               <div class="evo-name">${esc(pkmName(m))}</div>
-              <div class="stars">${"★".repeat(t)}</div>
+              <div class="stars">${"★".repeat(stage)}</div>
             </div>`
           )
           .join("")}</div>`
       )
       .join(`<span class="evo-arrow" aria-hidden="true">›</span>`)
-    return `<div class="evo" role="group" aria-label="Evrim zinciri">${html}</div>`
+    return `<div class="evo" role="group" aria-label="${h("panel.evo.chain")}">${html}</div>`
   }
   const pkmStars = (k) => state.data?.pokemons?.[k]?.[1] ?? 0
   const pkmTypes = (k) => state.data?.pokemons?.[k]?.[2] ?? []
@@ -252,7 +261,7 @@
         (a.score === 3
           ? fold(pkmName(familyRoot(a.k))).localeCompare(fold(pkmName(familyRoot(b.k)))) || pkmStars(a.k) - pkmStars(b.k)
           : (b.meta?.[1] ?? 0) - (a.meta?.[1] ?? 0)) ||
-        pkmName(a.k).localeCompare(pkmName(b.k), "tr")
+        pkmName(a.k).localeCompare(pkmName(b.k), I18n.lang)
     )
     return out
   }
@@ -265,18 +274,18 @@
   // Seçili elo'da kaydı olmayan Pokémon için: veri olan ilk (en düşük) elo seviyesini bul
   function otherTierHint(k) {
     for (const [tier, list] of Object.entries(state.meta?.pokemons ?? {})) {
-      if (tier !== state.settings.tier && list[k]?.[1] > 0) return `${esc(tierName(tier))} ve üstünde ${fmt(list[k][1])} oyun var.`
+      if (tier !== state.settings.tier && list[k]?.[1] > 0) return t("panel.pkm.otherTier", { tier: tierName(tier), games: games(list[k][1]) })
     }
     return ""
   }
 
   function pokemonCard({ k, score, meta }, q) {
     const stars = pkmStars(k)
-    const tag = score === 3 ? `<span class="tag">${esc(pkmName(familyRoot(k)))} ailesi</span>` : ""
+    const tag = score === 3 ? `<span class="tag">${h("panel.pkm.family", { name: pkmName(familyRoot(k)) })}</span>` : ""
     const head = (stat) => `<div class="row">
         ${portrait(k, "portrait lg")}
         <div class="grow">
-          <div class="name">${esc(pkmName(k))}${stars ? ` <span class="stars" title="${stars}. aşama">${"★".repeat(stars)}</span>` : ""} ${tag}</div>
+          <div class="name">${esc(pkmName(k))}${stars ? ` <span class="stars" title="${h("panel.pkm.stage", { stage: stars })}">${"★".repeat(stars)}</span>` : ""} ${tag}</div>
           <div class="chips tight">${typeChips(k)}</div>
           ${stat}
         </div>
@@ -285,8 +294,8 @@
 
     if (!meta) {
       const hint = otherTierHint(k)
-      return `<div class="card nometa">${head(`<div class="stats"><span class="stat warn">Meta verisi yok</span></div>`)}
-        <div class="note-line">${state.meta ? `Bu elo seviyesinde yeterli oyunu yok. ${hint}` : "Meta verisi henüz yüklenmedi."}</div>
+      return `<div class="card nometa">${head(`<div class="stats"><span class="stat warn">${h("panel.pkm.noMeta")}</span></div>`)}
+        <div class="note-line">${state.meta ? h("panel.pkm.lowElo", { hint }) : h("panel.meta.notLoaded")}</div>
       </div>`
     }
 
@@ -297,10 +306,10 @@
       .sort((a, b) => a.rank - b.rank)
       .slice(0, 3)
     const stat = `<div class="stats">
-        <span class="stat" title="Ortalama sıralama (1 en iyi, 8 en kötü)">Sıra ${place(rank)}</span>
-        <span class="stat">${fmt(count)} oyun</span>
-        <span class="stat">ort. ${itemCount.toFixed(1)} item</span>
-        ${lowSample ? `<span class="stat warn">⚠ az veri</span>` : ""}
+        <span class="stat" title="${h("panel.placeTitle")}">${h("panel.pkm.rank", { place: raw(place(rank)) })}</span>
+        <span class="stat">${esc(games(count))}</span>
+        <span class="stat">${h("panel.pkm.avgItems", { n: itemCount.toFixed(1) })}</span>
+        ${lowSample ? `<span class="stat warn">${h("panel.pkm.lowSample")}</span>` : ""}
       </div>`
     return `<div class="card">
       ${head(stat)}
@@ -314,14 +323,14 @@
                     <div class="desc">${itemDesc(it)}</div></div></div>`
                 )
                 .join("")
-            : `<div class="muted">Bu Pokémon'a genelde item verilmiyor.</div>`
+            : `<div class="muted">${h("panel.pkm.noItems")}</div>`
         }
       </div>
       ${
         comps.length
-          ? `<div class="muted spaced">Sık görüldüğü dizilimler: ${comps
+          ? `<div class="muted spaced">${h("panel.pkm.comps", { comps: raw(comps
               .map((c) => `<a href="#" data-cluster="${esc(c.id)}">${clusterBadges(c)}</a>`)
-              .join(" ")}</div>`
+              .join(" ")) })}</div>`
           : ""
       }
     </div>`
@@ -329,10 +338,12 @@
 
   function metaStatusNote() {
     if (state.meta) return ""
-    return state.metaError
-      ? `<div class="empty err">Meta verisi alınamadı: ${esc(state.metaError)}</div>`
-      : `<div class="empty">Meta verisi indiriliyor (ilk seferde ~40 MB, biraz sürebilir)...</div>`
+    return metaMissingHtml()
   }
+
+  const metaMissingHtml = () => state.metaError
+    ? `<div class="empty err">${h("panel.meta.error", { error: state.metaError })}</div>`
+    : `<div class="empty">${h("panel.meta.downloading")}</div>`
 
   // Sadece sonuç alanı; arama kutusu yeniden çizilmez, böylece yazarken odak kaybolmaz.
   function pokemonResults() {
@@ -351,14 +362,17 @@
       total = list.length
     }
     const intro = q
-      ? `${total} sonuç${total > list.length ? ` (ilk ${list.length} gösteriliyor, aramayı daralt)` : ""}. Meta'sı olmayanlar notla birlikte listelenir.`
-      : "Seçili elo seviyesinde en çok kullanılan 3 item. Arama yoksa en çok oynanan 20 Pokémon gösterilir."
+      ? h("panel.search.intro", {
+          results: t("panel.search.results", { count: total, n: fmt(total) }),
+          truncated: total > list.length ? t("panel.search.truncated", { shown: list.length }) : ""
+        })
+      : h("panel.search.introDefault")
     return `${metaStatusNote()}<div class="note">${intro}</div>
-      ${list.map((r) => pokemonCard(r, q)).join("") || `<div class="empty">"${esc(state.query.trim())}" için sonuç yok</div>`}`
+      ${list.map((r) => pokemonCard(r, q)).join("") || `<div class="empty">${h("panel.search.none", { q: state.query.trim() })}</div>`}`
   }
 
   function viewPokemon() {
-    return `<input type="search" placeholder="Pokémon ara (ör. Gyarados, chari, Charmander)" value="${esc(state.query)}" data-role="query" autocomplete="off" spellcheck="false" aria-label="Pokémon ara">
+    return `<input type="search" placeholder="${h("panel.search.placeholder")}" value="${esc(state.query)}" data-role="query" autocomplete="off" spellcheck="false" aria-label="${h("panel.search.label")}">
       <div data-role="results">${pokemonResults()}</div>`
   }
 
@@ -375,7 +389,7 @@
     const top = Object.entries(c.synergies ?? {})
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
-    if (!top.length) return `<span class="syn-badges">Dizilim</span>`
+    if (!top.length) return `<span class="syn-badges">${h("panel.comp.fallback")}</span>`
     return `<span class="syn-badges" title="${esc(clusterTitle(c))}">${top
       .map(
         ([s, n]) =>
@@ -399,13 +413,13 @@
         const shown = current?.name ?? family
         const hint = showHint && shown !== m.name
         const path = shown === m.name ? pkmName(shown) : `${pkmName(shown)} → ${pkmName(m.name)}`
-        return `<div class="member${owned?.(m.name) ? " owned" : ""}" data-pkm="${esc(m.name)}" title="${esc(path)}${m.frequency ? ` — takımların %${Math.round(m.frequency * 100)}'inde` : ""}">
+        return `<div class="member${owned?.(m.name) ? " owned" : ""}" data-pkm="${esc(m.name)}" title="${esc(path)}${m.frequency ? h("panel.team.freq", { pct: pctLabel(Math.round(m.frequency * 100)) }) : ""}">
           ${portrait(m.name, "portrait sm")}
           <div class="mini-items">${(m.items ?? []).slice(0, 3).map((it) => itemIcon(it)).join("")}</div>
           <div class="label">${esc(pkmName(m.name))}</div>
           ${
             hint
-              ? `<div class="shop-hint">${portrait(shown, "portrait xs")}<span>${current ? "elinde" : "dükkanda"}: ${esc(pkmName(shown))}</span></div>`
+              ? `<div class="shop-hint">${portrait(shown, "portrait xs")}<span>${h(current ? "panel.team.have" : "panel.team.shop", { name: pkmName(shown) })}</span></div>`
               : ""
           }
         </div>`
@@ -429,20 +443,20 @@
       return `<div class="card" id="cluster-${esc(c.id)}">
         <div class="row wrap">
           <div class="grow"><b class="comp-title">#${i + 1}</b> ${clusterBadges(c)}</div>
-          <div class="muted">Ort. ${place(c.rank)} · 1.lik %${c.winrate.toFixed(0)} · ${fmt(c.count)} oyun</div>
+          <div class="muted">${h("panel.comps.stats", { place: raw(place(c.rank)), win: pctLabel(c.winrate.toFixed(0)), games: games(c.count) })}</div>
         </div>
         <div class="chips">${syn}</div>
         ${teamHtml(core, null, [])}
         ${
           top
-            ? `<details><summary>Örnek takım (${esc(top.rank)}. bitirdi, ${esc(top.elo)} elo)</summary>${teamHtml(top.pokemons, null, [])}</details>`
+            ? `<details><summary>${h("panel.comps.example", { rank: top.rank, elo: top.elo })}</summary>${teamHtml(top.pokemons, null, [])}</details>`
             : ""
         }
       </div>`
     })
 
-    return `<div class="note">Son oyunlardaki takımlar sinerjilerine göre gruplanmış. Ortalama sırası en iyiden kötüye. Ana kadroda o gruptaki takımların en az %45'inde olan Pokémonlar var; altlarında en çok kullanılan itemleri görürsün. En az ${state.settings.minGames} oyunu olan dizilimler listeleniyor.</div>
-      ${cards.join("") || `<div class="empty">Bu filtreyle dizilim yok</div>`}`
+    return `<div class="note">${h("panel.comps.intro", { min: state.settings.minGames })}</div>
+      ${cards.join("") || `<div class="empty">${h("panel.comps.empty")}</div>`}`
   }
 
   function viewItems() {
@@ -468,9 +482,9 @@
       const s = stats[k]
       detail = `<div class="card">
         <div class="row">${itemIcon(k, "item-icon lg")}<div class="grow"><div class="name">${esc(itemName(k))}</div>${recipeHtml(k)}</div>
-          ${s ? `<div class="muted">Ort. ${place(s[0])}<br>${fmt(s[1])} kullanım</div>` : ""}</div>
+          ${s ? `<div class="muted">${h("panel.items.avg", { place: raw(place(s[0])) })}<br>${h("num.uses", { count: s[1], n: fmt(s[1]) })}</div>` : ""}</div>
         <div class="desc" style="margin-top:6px">${itemDesc(k)}</div>
-        ${s?.[2]?.length ? `<div class="muted" style="margin-top:8px">En çok kullanan Pokémonlar:</div>${teamHtml(s[2].map((name) => ({ name })))}` : ""}
+        ${s?.[2]?.length ? `<div class="muted" style="margin-top:8px">${h("panel.items.topHolders")}</div>${teamHtml(s[2].map((name) => ({ name })))}` : ""}
       </div>`
     }
 
@@ -480,37 +494,32 @@
       .slice(0, 15)
       .map(
         ([k, s]) => `<div class="item-line" style="margin-bottom:6px">${itemIcon(k)}<div class="text">
-          <b>${esc(itemName(k))}</b> <span class="muted">· ort. ${place(s[0])} · ${fmt(s[1])} kullanım</span>
+          <b>${esc(itemName(k))}</b> <span class="muted">${h("panel.items.line", { place: raw(place(s[0])), uses: t("num.uses", { count: s[1], n: fmt(s[1]) }) })}</span>
           <div class="desc">${itemDesc(k)}</div></div></div>`
       )
       .join("")
 
     return `${detail}
-      <div class="note">Tarif tablosu: satır + sütun parçası = sonuç. Bir iteme tıklayınca detayı açılır.</div>
+      <div class="note">${h("panel.items.gridNote")}</div>
       <div class="grid">${grid}</div>
-      <div class="card"><b>Taşıyanı en iyi bitiren itemler</b>
-        <div class="note">Item taşıyan Pokémonların ortalama sırası. Güçlü taşıyıcılara giden itemler burada daha iyi görünür, bunu da hesaba kat.</div>
+      <div class="card"><b>${h("panel.items.bestTitle")}</b>
+        <div class="note">${h("panel.items.bestNote")}</div>
         ${best}</div>`
   }
 
   // ---------- Oyunum (canlı öneriler) ----------
 
-  const STATE_LABEL = {
-    have: ["Elinde hazır", "ok"],
-    craftable: ["Şimdi yapabilirsin", "ok"],
-    "one-missing": ["1 parça eksik", "warn"],
-    far: ["2 parça eksik", "muted"],
-    none: ["Özel item", "muted"]
-  }
+  // Etiket metni: panel.craft.<durum>
+  const STATE_CLASS = { have: "ok", craftable: "ok", "one-missing": "warn", far: "muted", none: "muted" }
 
-  const RARITY_SHORT = { COMMON: "Yaygın", UNCOMMON: "Az yaygın", RARE: "Nadir", EPIC: "Epik", ULTRA: "Ultra" }
+  const rarityName = (r) => (I18n.has(`rarity.${r}`) ? t(`rarity.${r}`) : r)
 
-  const pct = (p) => (p >= 0.995 ? "%100" : p < 0.005 && p > 0 ? "<%1" : `%${Math.round(p * 100)}`)
+  const pct = (p) => (p >= 0.995 ? pctLabel(100) : p < 0.005 && p > 0 ? t("num.pctBelow1") : pctLabel(Math.round(p * 100)))
 
   function reasonText(r) {
-    if (r.kind === "next") return `${synName(r.syn)} bir sonraki seviyeye çıkar`
-    if (r.kind === "syn") return `${synName(r.syn)} sinerjine katkı`
-    return "önerilen dizilimde var"
+    if (r.kind === "next") return t("panel.reason.next", { syn: synName(r.syn) })
+    if (r.kind === "syn") return t("panel.reason.syn", { syn: synName(r.syn) })
+    return t("panel.reason.comp")
   }
 
   // Açılır bölüm. Panel her saniye yeniden çizildiği için açık/kapalı durumunu state.open'da tutuyoruz.
@@ -535,7 +544,8 @@
       clusters: state.meta?.clusters ?? [],
       minGames: state.settings.minGames,
       thresholds: state.meta?.thresholds ?? null,
-      names: { pkm: pkmName, syn: synName, item: itemName }
+      names: { pkm: pkmName, syn: synName, item: itemName },
+      t
     }
   }
 
@@ -546,22 +556,22 @@
     if (best?.reasons.length) {
       const key = choice.kind === "pokemon" ? snap.choices[0].pokemons[best.index] : snap.choices[0].items[best.index]
       const name = choice.kind === "pokemon" ? pkmName(key) : itemName(key)
-      return `<div class="quick-reason"><b>Öneri: ${esc(name)}</b><span>${best.reasons.slice(0, 2).map(esc).join(" · ")}</span></div>`
+      return `<div class="quick-reason"><b>${h("panel.quick.pick", { name })}</b><span>${best.reasons.slice(0, 2).map(esc).join(" · ")}</span></div>`
     }
     const shop = advice.shop.find((option) => option.verdict === "good" && option.reasons.length)
     if (!shop) return ""
-    return `<div class="quick-reason"><b>Dükkanda: ${esc(pkmName(snap.shop[shop.index]))}</b><span>${shop.reasons.slice(0, 2).map(esc).join(" · ")}</span></div>`
+    return `<div class="quick-reason"><b>${h("panel.quick.shop", { name: pkmName(snap.shop[shop.index]) })}</b><span>${shop.reasons.slice(0, 2).map(esc).join(" · ")}</span></div>`
   }
 
   function viewLastGame() {
     const last = state.lastGame
     if (!last?.snap) return ""
     const s = window.PacAdvisor.summarize(advisorCtx(), last.snap)
-    const date = new Date(last.at).toLocaleString("tr-TR")
-    const rankText = s.rank ? `${s.rank}. oldun` : "sıralama okunamadı"
+    const date = new Date(last.at).toLocaleString(I18n.locale())
+    const rankText = s.rank ? t("panel.last.placed", { rank: s.rank }) : t("panel.last.noRank")
     const compLine = s.comp
-      ? `<div class="row"><div class="grow">En çok benzeyen dizilim: <a href="#" data-cluster="${esc(s.comp.cluster.id)}">${clusterBadges(s.comp.cluster, true)}</a></div>
-         <div class="muted">bu dizilim ort. ${place(s.comp.cluster.rank)} bitiriyor</div></div>`
+      ? `<div class="row"><div class="grow">${h("panel.last.comp", { comp: raw(`<a href="#" data-cluster="${esc(s.comp.cluster.id)}">${clusterBadges(s.comp.cluster, true)}</a>`) })}</div>
+         <div class="muted">${h("panel.last.compAvg", { place: raw(place(s.comp.cluster.rank)) })}</div></div>`
       : ""
     const units = s.units
       .map((u) => {
@@ -570,30 +580,30 @@
           <span class="muted">${"★".repeat(u.unit.stars || 1)}</span></div><div class="held">${u.unit.items.map((it) => itemIcon(it)).join("")}</div></div>
           ${
             missing.length && u.unit.items.length < 3
-              ? `<div class="muted indent">Meta'da sık kullanılan: ${missing.map((it) => itemIcon(it)).join("")}</div>`
+              ? `<div class="muted indent">${h("panel.last.metaItems", { items: raw(missing.map((it) => itemIcon(it)).join("")) })}</div>`
               : ""
           }</div>`
       })
       .join("")
-    return `<div class="card hl"><b>Son oyunun — ${esc(rankText)}</b> <span class="muted">(${esc(date)})</span>
+    return `<div class="card hl"><b>${h("panel.last.title", { rank: rankText })}</b> <span class="muted">(${esc(date)})</span>
       ${compLine}
-      <div class="note">Taktığın ${s.held} itemin ${s.matched} tanesi o Pokémon için meta'da en çok kullanılan 3 item arasında.</div>
+      <div class="note">${h("panel.last.note", { held: s.held, matched: s.matched })}</div>
       ${units}</div>`
   }
 
   function viewGame() {
     const snap = state.game
     if (!gameReady()) {
-      return `${viewLastGame()}<div class="empty">${esc(healthLabel())}.<br><br>Tahta yeniden okununca öneriler otomatik görünecek.</div>`
+      return `${viewLastGame()}<div class="empty">${esc(healthLabel())}.<br><br>${h("panel.game.waitHint")}</div>`
     }
     const a = window.PacAdvisor.analyze(advisorCtx(), snap)
     const owned = (p) => a.mineFamilies.has(a.familyOf(p))
     const onBoard = snap.board.filter((p) => p.y > 0).length
     const parts = []
 
-    parts.push(`<div class="status">Aşama ${esc(snap.stage)} · Seviye ${esc(snap.level ?? "?")} · ${esc(snap.money)} altın · ❤ ${esc(snap.life ?? "?")} · Tahtada ${onBoard}, yedekte ${
-      snap.board.length - onBoard
-    }${snap.inventory ? ` · Elde ${snap.inventory.length} item` : ""}</div>`)
+    parts.push(`<div class="status">${h("panel.game.status", {
+      stage: snap.stage, level: snap.level ?? "?", money: snap.money, life: snap.life ?? "?", board: onBoard, bench: snap.board.length - onBoard
+    })}${snap.inventory ? h("panel.game.statusItems", { count: snap.inventory.length }) : ""}</div>`)
     parts.push(quickReason(snap))
 
     // --- acil seçimler en üstte ---
@@ -601,16 +611,16 @@
       parts.push(
         section(
           "pick",
-          "Pokémon seçimi — önerilen sıra",
+          h("panel.sec.pick"),
           a.pokemonPropositions
             .map((p, i) => {
-              const best = p.best ? `meta'da ${esc(pkmName(p.best.name))} ort. ${place(p.best.rank)}` : ""
+              const best = p.best ? h("panel.pick.meta", { name: pkmName(p.best.name), place: raw(place(p.best.rank)) }) : ""
               const why = [best, ...p.reasons.map((r) => esc(reasonText(r)))].filter(Boolean).join(" · ")
               return `<div class="item-line">${p.members.map((m) => portrait(m, "portrait sm")).join("")}<div class="text">
-                <b>${i + 1}. ${p.members.map((m) => esc(pkmName(m))).join(" & ")}</b><div class="desc">${why || "Takımına belirgin bir katkısı yok"}</div></div></div>`
+                <b>${i + 1}. ${p.members.map((m) => esc(pkmName(m))).join(" & ")}</b><div class="desc">${why || h("panel.pick.noFit")}</div></div></div>`
             })
             .join(""),
-          { open: true, hl: true, badge: "Şimdi seç" }
+          { open: true, hl: true, badge: h("panel.badge.pickNow") }
         )
       )
     }
@@ -619,16 +629,16 @@
       parts.push(
         section(
           "itempick",
-          "Item seçimi — önerilen sıra",
+          h("panel.sec.itemPick"),
           `<div class="items">${a.propositions
             .map(
               (p, i) => `<div class="item-line">${itemIcon(p.item)}<div class="text">
                 <b>${i + 1}. ${esc(itemName(p.item))}</b>
-                <div class="desc">${p.reason ? esc(p.reason) : "Tahtandaki Pokémonlar için hazır kullanım bulunamadı"}</div>
+                <div class="desc">${p.reason ? esc(p.reason) : h("advice.noUse")}</div>
                 <div class="desc">${itemDesc(p.item)}</div></div></div>`
             )
             .join("")}</div>`,
-          { open: true, hl: true, badge: "Şimdi seç" }
+          { open: true, hl: true, badge: h("panel.badge.pickNow") }
         )
       )
     }
@@ -637,7 +647,7 @@
       parts.push(
         section(
           "craft",
-          "Elindeki parçalarla hemen yap",
+          h("panel.sec.craft"),
           `<div class="items">${a.craft
             .map(
               (c) => `<div class="item-line">${itemIcon(c.item)}<div class="text"><b>${esc(itemName(c.item))}</b>
@@ -653,18 +663,18 @@
     const e = a.economy
     const odds = (probs) =>
       probs
-        .map((p, i) => (p > 0 ? `<span class="chip">${RARITY_SHORT[state.data.rules.shopRarities[i]]} ${pct(p)}</span>` : ""))
+        .map((p, i) => (p > 0 ? `<span class="chip">${esc(rarityName(state.data.rules.shopRarities[i]))} ${esc(pct(p))}</span>` : ""))
         .join("")
     parts.push(
       section(
         "eco",
-        "Ekonomi",
-        `<div class="muted">Sonraki tur geliri: <b>+${e.income}</b> (5 taban + ${e.interest} faiz + ${e.streakBonus} seri)${
-          e.xpLeft ? ` · Seviye için ${e.xpLeft} XP (${e.levelCost} altın)` : ""
+        h("panel.sec.eco"),
+        `<div class="muted">${h("panel.eco.income", { income: raw(`<b>+${esc(e.income)}</b>`), interest: e.interest, streak: e.streakBonus })}${
+          e.xpLeft ? h("panel.eco.level", { xp: e.xpLeft, gold: e.levelCost }) : ""
         }</div>
         ${e.tips.map(([kind, text]) => `<div class="tip ${kind}">${esc(text)}</div>`).join("")}
-        <div class="muted" style="margin-top:6px">Seviye ${esc(snap.level)} dükkan oranları:</div><div class="chips">${odds(e.probs)}</div>
-        ${e.nextProbs.length && snap.level < (snap.maxLevel ?? 9) ? `<div class="muted">Seviye ${snap.level + 1} olunca:</div><div class="chips">${odds(e.nextProbs)}</div>` : ""}`,
+        <div class="muted" style="margin-top:6px">${h("panel.eco.odds", { level: snap.level })}</div><div class="chips">${odds(e.probs)}</div>
+        ${e.nextProbs.length && snap.level < (snap.maxLevel ?? 9) ? `<div class="muted">${h("panel.eco.nextOdds", { level: snap.level + 1 })}</div><div class="chips">${odds(e.nextProbs)}</div>` : ""}`,
         { open: true, badge: `+${e.income}` }
       )
     )
@@ -677,25 +687,25 @@
         .map((s) => {
           const bar = s.steps.map((t) => `<span class="step${t <= s.count ? " on" : ""}">${t}</span>`).join("")
           const hint = s.need
-            ? `${s.need} ${synName(s.syn)} daha → seviye ${s.tier + 1}${
-                s.fromBench.length ? ` · yedekten sahaya koy: ${s.fromBench.map((p) => esc(pkmName(p))).join(", ")}` : ""
-              }${s.fromShop.length ? ` · dükkanda: ${s.fromShop.map((p) => esc(pkmName(p))).join(", ")}` : ""}`
-            : "en üst seviyede"
+            ? `${h("panel.syn.need", { need: s.need, syn: synName(s.syn), tier: s.tier + 1 })}${
+                s.fromBench.length ? h("panel.syn.fromBench", { list: s.fromBench.map(pkmName).join(", ") }) : ""
+              }${s.fromShop.length ? h("panel.syn.fromShop", { list: s.fromShop.map(pkmName).join(", ") }) : ""}`
+            : h("panel.syn.max")
           return `<div class="syn-row"><img src="/assets/types/${esc(s.syn)}.svg" alt=""><b>${esc(synName(s.syn))} ${s.count}</b>
             <span class="steps">${bar}</span><div class="desc">${hint}</div></div>`
         })
         .join("")
-      if (rows) parts.push(section("syn", "Sinerjiler", rows, { open: true }))
+      if (rows) parts.push(section("syn", h("panel.sec.syn"), rows, { open: true }))
     } else if (!state.meta?.thresholds) {
-      parts.push(`<div class="note">Sinerji eşikleri henüz yüklenmedi; panelin altındaki ⟳ ile veriyi yenile.</div>`)
+      parts.push(`<div class="note">${h("panel.syn.noThresholds")}</div>`)
     }
 
     if (a.shop.length) {
       parts.push(
         section(
           "shop",
-          "Dükkanda işine yarayanlar",
-          `<div class="items">${a.shop.map((s) => unitLine(s.pkm, `(${s.slot + 1}. sıra) — ${esc(s.reasons.join(", "))}`)).join("")}</div>`,
+          h("panel.sec.shop"),
+          `<div class="items">${a.shop.map((s) => unitLine(s.pkm, h("panel.shop.slot", { n: s.slot + 1, reasons: s.reasons.join(", ") }))).join("")}</div>`,
           { open: true, badge: a.shop.length }
         )
       )
@@ -707,12 +717,12 @@
       parts.push(
         section(
           "opp",
-          `Rakip: ${esc(o.name || "?")}`,
-          `<div class="muted">❤ ${esc(o.life ?? "?")} · Tahtada ${o.size} Pokémon</div>
+          h("panel.sec.opp", { name: o.name || "?" }),
+          `<div class="muted">${h("panel.opp.line", { life: o.life ?? "?", size: o.size })}</div>
           <div class="chips">${o.synergies
             .map((s) => `<span class="chip"><img src="/assets/types/${esc(s.syn)}.svg" alt="">${esc(synName(s.syn))} ${s.count}</span>`)
             .join("")}</div>
-          ${o.carries.length ? `<div class="muted">En çok itemli Pokémonları:</div>${teamHtml(o.carries, null, null, false)}` : ""}`,
+          ${o.carries.length ? `<div class="muted">${h("panel.opp.carries")}</div>${teamHtml(o.carries, null, null, false)}` : ""}`,
           { open: false, badge: o.synergies[0] ? esc(synName(o.synergies[0].syn)) : "" }
         )
       )
@@ -722,13 +732,13 @@
       parts.push(
         section(
           "comps",
-          "Sana uyan dizilimler",
-          `<div class="note">Elindeki Pokémonlar (evrimleri dahil) ve dükkanın meta dizilimlerle eşleştirildi. ✓ işaretliler elinde var.</div>
+          h("panel.sec.comps"),
+          `<div class="note">${h("panel.comps.fitNote")}</div>
           ${a.comps
             .map(
               (r) => `<div class="sub">
                 <div class="row"><div class="grow"><a href="#" data-cluster="${esc(r.cluster.id)}">${clusterBadges(r.cluster, true)}</a></div>
-                <div class="muted">%${Math.round(r.overlap * 100)} eşleşme · ort. ${place(r.cluster.rank)}</div></div>
+                <div class="muted">${h("panel.comps.match", { pct: pctLabel(Math.round(r.overlap * 100)), place: raw(place(r.cluster.rank)) })}</div></div>
                 ${teamHtml(r.core.slice(0, 9), owned, snap.board)}
               </div>`
             )
@@ -743,32 +753,36 @@
       parts.push(
         section(
           "pool",
-          "Havuz ve dükkanda çıkma ihtimali",
+          h("panel.sec.pool"),
           a.pool.length
-            ? `<div class="note">Her yenilemede dükkanda en az bir tane çıkma ihtimali. Tüm oyuncuların tahtaları sayıldı; başkalarının dükkanındakiler görünmediği için yaklaşık.</div>
+            ? `<div class="note">${h("panel.pool.note")}</div>
               ${a.pool
                 .map((r) =>
                   unitLine(
                     r.base,
-                    `${r.why === "elinde" ? `elinde ${r.mine}/${r.need} kopya` : "dizilim için"} · havuzda ${r.remaining}/${r.size} · ${r.possible ? `yenileme başına <b>${pct(r.pShop)}</b>` : `${esc(RARITY_SHORT[r.rarity] ?? r.rarity)}: bu seviyede çıkmaz`}`
+                    `${r.why === "have" ? h("panel.pool.have", { mine: r.mine, need: r.need }) : h("panel.pool.forComp")} · ${h("panel.pool.left", { left: r.remaining, size: r.size })} · ${
+                      r.possible
+                        ? h("panel.pool.perRefresh", { pct: raw(`<b>${esc(pct(r.pShop))}</b>`) })
+                        : h("panel.pool.notAtLevel", { rarity: rarityName(r.rarity) })
+                    }`
                   )
                 )
                 .join("")}`
-            : `<div class="muted">Takip edilecek Pokémon yok.</div>`
+            : `<div class="muted">${h("panel.pool.empty")}</div>`
         )
       )
     }
 
     // --- bölge ---
     if (a.regional.length) {
-      const mapName = state.tr?.map?.[snap.map] ?? snap.map ?? ""
+      const mapName = state.text?.map?.[snap.map] ?? snap.map ?? ""
       parts.push(
         section(
           "region",
-          `Bölgesel Pokémonlar${mapName ? ` — ${esc(mapName)}` : ""}`,
+          mapName ? h("panel.sec.regionMap", { map: mapName }) : h("panel.sec.region"),
           a.regional
             .map((r) => {
-              const best = r.best ? `meta'da ort. ${place(r.best.rank)}` : ""
+              const best = r.best ? h("panel.region.meta", { place: raw(place(r.best.rank)) }) : ""
               return unitLine(r.pkm, [best, ...r.reasons.map((x) => esc(reasonText(x)))].filter(Boolean).join(" · "))
             })
             .join("")
@@ -781,28 +795,28 @@
       parts.push(
         section(
           "items",
-          "Pokémonlarına item önerisi",
-          `${snap.inventory ? "" : `<div class="note">Elindeki parçalar okunamadı, sadece öneriler gösteriliyor.</div>`}
+          h("panel.sec.items"),
+          `${snap.inventory ? "" : `<div class="note">${h("panel.items.noInventory")}</div>`}
           ${a.items
             .map((u) => {
               const held = u.unit.items.map((it) => itemIcon(it)).join("")
               return `<div class="unit${u.unit.y === 0 ? " bench" : ""}">
                 <div class="row">${portrait(u.unit.name, "portrait sm")}
-                  <div class="grow"><b>${esc(pkmName(u.unit.name))}</b> <span class="muted">${"★".repeat(u.unit.stars || 1)}${u.unit.y === 0 ? " · yedek" : ""}${
-                    u.source && u.source !== u.unit.name ? ` · ${esc(pkmName(u.source))} verisi` : ""
+                  <div class="grow"><b>${esc(pkmName(u.unit.name))}</b> <span class="muted">${"★".repeat(u.unit.stars || 1)}${u.unit.y === 0 ? h("panel.items.bench") : ""}${
+                    u.source && u.source !== u.unit.name ? h("panel.items.source", { name: pkmName(u.source) }) : ""
                   }</span></div>
                   <div class="held">${held}</div></div>
                 ${
                   u.recs.length
                     ? `<div class="recs">${u.recs
                         .map((r) => {
-                          const [label, cls] = STATE_LABEL[r.state]
+                          const cls = STATE_CLASS[r.state]
                           return `<span class="rec ${cls}" title="${esc(itemName(r.item))}${
-                            r.missing ? ` — eksik: ${r.missing.map(itemName).join(", ")}` : ""
-                          }">${itemIcon(r.item)}<span><b>${esc(itemName(r.item))}</b> · ${esc(label)}</span></span>`
+                            r.missing ? h("panel.items.missing", { list: r.missing.map(itemName).join(", ") }) : ""
+                          }">${itemIcon(r.item)}<span><b>${esc(itemName(r.item))}</b> · ${h(`panel.craft.${r.state}`)}</span></span>`
                         })
                         .join("")}</div>`
-                    : `<div class="muted">Veri yok ya da önerilen itemlerin hepsi takılı.</div>`
+                    : `<div class="muted">${h("panel.items.none")}</div>`
                 }
               </div>`
             })
@@ -831,24 +845,25 @@
     host.addEventListener(type, (e) => e.stopPropagation())
   }
 
+  // Sabit kabuk; metinleri applyShellText() seçili dile göre yazar (dil değişince yeniden).
   root.innerHTML = `<style id="css"></style>
-    <button class="launcher" title="PAC Koç (Alt+P)"><img src="${ext("icons/icon-48.png")}" alt="PAC Koç"></button>
+    <button class="launcher"><img src="${ext("icons/icon-48.png")}" alt=""></button>
     <section class="panel" hidden>
       <header>
-        <img class="logo" src="${ext("icons/icon-48.png")}" alt=""><span class="title">PAC Koç</span>
+        <img class="logo" src="${ext("icons/icon-48.png")}" alt=""><span class="title"></span>
         <span class="health" data-role="health"></span>
-        <button class="icon-btn" data-role="close" title="Kapat" aria-label="Kapat">✕</button>
+        <button class="icon-btn" data-role="close">✕</button>
       </header>
       <nav>
-        <button data-tab="game">Oyunum</button>
-        <button data-tab="pokemon">Pokémon</button>
-        <button data-tab="comps">Dizilimler</button>
-        <button data-tab="items">Itemler</button>
+        <button data-tab="game"></button>
+        <button data-tab="pokemon"></button>
+        <button data-tab="comps"></button>
+        <button data-tab="items"></button>
       </nav>
       <main></main>
       <footer></footer>
-      <div class="grip nw" data-grip="nw" title="Boyutlandır"></div>
-      <div class="grip se" data-grip="se" title="Boyutlandır"></div>
+      <div class="grip nw" data-grip="nw"></div>
+      <div class="grip se" data-grip="se"></div>
     </section>`
 
   // Bulunamayan portre / ikonları gizle (sayfanın CSP kuralı inline onerror'a izin vermeyebilir)
@@ -861,6 +876,19 @@
   const main = root.querySelector("main")
   const footer = root.querySelector("footer")
   const health = root.querySelector('[data-role="health"]')
+
+  function applyShellText() {
+    const name = t("app.name")
+    launcher.title = t("panel.launcher", { name })
+    launcher.querySelector("img").alt = name
+    root.querySelector("header .title").textContent = name
+    const close = root.querySelector('[data-role="close"]')
+    close.title = t("panel.close")
+    close.setAttribute("aria-label", t("panel.close"))
+    for (const b of root.querySelectorAll("nav button")) b.textContent = t(`panel.tab.${b.dataset.tab}`)
+    for (const g of root.querySelectorAll(".grip")) g.title = t("panel.resize")
+  }
+  applyShellText()
 
   function updateHealth() {
     health.textContent = healthLabel()
@@ -887,15 +915,13 @@
     if (dead) return
     updateHealth()
     for (const b of root.querySelectorAll("nav button")) b.classList.toggle("active", b.dataset.tab === state.tab)
-    if (!state.tr || !state.data) {
-      main.innerHTML = `<div class="empty">Yükleniyor...</div>`
+    if (!state.text || !state.data) {
+      main.innerHTML = `<div class="empty">${h("panel.loading")}</div>`
       return
     }
     // Pokémon araması meta olmadan da çalışır (static.json'daki tüm Pokémonlar listelenir)
     if (!state.meta && state.tab !== "pokemon") {
-      main.innerHTML = state.metaError
-        ? `<div class="empty err">Meta verisi alınamadı: ${esc(state.metaError)}</div>`
-        : `<div class="empty">Meta verisi indiriliyor (ilk seferde ~40 MB, biraz sürebilir)...</div>`
+      main.innerHTML = metaMissingHtml()
     } else {
       const scroll = main.scrollTop
       const keep = queryFocus()
@@ -909,17 +935,17 @@
 
   function renderFooter() {
     const tiers = Object.keys(state.meta?.pokemons ?? {})
-    const date = state.meta?.createdAt ? new Date(state.meta.createdAt).toLocaleDateString("tr-TR") : "—"
+    const date = state.meta?.createdAt ? new Date(state.meta.createdAt).toLocaleDateString(I18n.locale()) : "—"
     footer.innerHTML = `
-      <label>Elo: <select data-role="tier">${tiers
-        .map((t) => `<option value="${esc(t)}"${t === state.settings.tier ? " selected" : ""}>${esc(tierName(t))} ve üstü</option>`)
+      <label>${h("panel.footer.elo")} <select data-role="tier">${tiers
+        .map((tier) => `<option value="${esc(tier)}"${tier === state.settings.tier ? " selected" : ""}>${h("panel.footer.tierOption", { tier: tierName(tier) })}</option>`)
         .join("")}</select></label>
-      <label>Min. oyun: <select data-role="min">${[10, 30, 50, 100, 200]
+      <label>${h("panel.footer.minGames")} <select data-role="min">${[10, 30, 50, 100, 200]
         .map((n) => `<option${n === state.settings.minGames ? " selected" : ""}>${n}</option>`)
         .join("")}</select></label>
       <span class="grow"></span>
-      <span title="Son ${fmt(state.meta?.games ?? 0)} oyundan">Veri: ${date}</span>
-      <button class="icon-btn" data-role="refresh" title="Veriyi yenile" aria-label="Veriyi yenile">⟳</button>`
+      <span title="${h("panel.footer.dataTitle", { n: fmt(state.meta?.games ?? 0) })}">${h("panel.footer.data", { date })}</span>
+      <button class="icon-btn" data-role="refresh" title="${h("panel.footer.refresh")}" aria-label="${h("panel.footer.refresh")}">⟳</button>`
   }
 
   async function saveSettings(patch) {
@@ -1173,6 +1199,19 @@
     shutdown()
   }
 
+  // Popup'tan dil değişince: o dilin oyun metnini yükle, kabuğu ve görünümü yeniden çiz.
+  const offLang = I18n.onChange(async (lang) => {
+    if (dead) return
+    applyShellText()
+    const text = await safeCall(() => I18n.gameText(lang), null)
+    if (dead || lang !== I18n.lang) return
+    if (text) {
+      state.text = text
+      buildTokenRe()
+    }
+    render()
+  })
+
   // Eklenti yeniden yüklendi / kaldırıldı: paneli sayfadan sök, zamanlayıcıları ve dinleyicileri bırak.
   function shutdown() {
     if (dead) return
@@ -1183,13 +1222,14 @@
     window.removeEventListener("message", onGameMessage)
     window.removeEventListener("message", onHealthMessage)
     window.removeEventListener("resize", onResize)
+    offLang()
     try {
       chrome.runtime.onMessage.removeListener(onRuntimeMessage)
       chrome.storage.onChanged.removeListener(onStorageChanged)
     } catch {}
     host.remove()
     window.__pacYardimci = false
-    console.info("[PAC Koç] Eklenti yeniden yüklendi; bu sekmedeki panel kaldırıldı. Sayfayı yenile.")
+    console.info("[PACC] Eklenti yeniden yüklendi; bu sekmedeki panel kaldırıldı. Sayfayı yenile.")
   }
 
   async function init() {
@@ -1198,9 +1238,12 @@
     window.postMessage({ type: "pac-yardimci:hello" }, location.origin)
     let loaded
     try {
+      await I18n.ready
+      if (dead) return
+      applyShellText()
       loaded = await Promise.all([
         fetch(ext("content/panel.css")).then((r) => r.text()),
-        loadJson("locales/tr/translation.json"),
+        I18n.gameText(I18n.lang),
         loadJson("data/static.json"),
         store.get(["settings", "meta", "metaError", "lastGame", "panelBox"])
       ])
@@ -1209,9 +1252,9 @@
       throw err
     }
     if (dead) return
-    const [css, tr, data, stored] = loaded
+    const [css, text, data, stored] = loaded
     root.getElementById("css").textContent = css
-    state.tr = tr
+    state.text = text
     state.data = data
     state.settings = { ...state.settings, ...stored.settings }
     state.meta = stored.meta ?? null

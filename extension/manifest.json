@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Tahta Koçu — Türkçe ve Oyun İçi Koç",
-  "short_name": "Tahta Koçu",
+  "name": "__MSG_extName__",
+  "short_name": "__MSG_extShortName__",
   "version": "0.3.0",
-  "description": "Pokémon Auto Chess için Türkçe çeviri ve oyun içi koç: takımına göre dizilim, item, dükkan ve karusel önerileri.",
-  "homepage_url": "https://github.com/badblli/tahta-kocu",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
+  "homepage_url": "https://github.com/badblli/pacc",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -50,6 +51,7 @@
         "https://pokemon-auto-chess.com/*"
       ],
       "js": [
+        "content/i18n.js",
         "content/advisor.js",
         "content/overlay.js",
         "content/panel.js"
@@ -61,6 +63,9 @@
     {
       "resources": [
         "locales/tr/translation.json",
+        "i18n/en.json",
+        "i18n/tr.json",
+        "i18n/game.en.json",
         "data/static.json",
         "content/panel.css",
         "content/overlay.css",
@@ -72,7 +77,7 @@
     }
   ],
   "action": {
-    "default_title": "PAC Koç",
+    "default_title": "__MSG_actionTitle__",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -84,7 +89,7 @@
       "suggested_key": {
         "default": "Alt+P"
       },
-      "description": "Item / meta panelini aç-kapat"
+      "description": "__MSG_cmdTogglePanel__"
     }
   }
 }

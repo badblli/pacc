@@ -1,29 +1,39 @@
 # Marka: isim ve logo
 
-## İsim önerileri
+## Seçilen isim: PACC
 
-Ortak kurallar: Türkçe, kısa, akılda kalır. "Pokémon" kelimesi isimde **geçmez** (ticari marka riski);
-sadece açıklamada "Pokémon Auto Chess için" denir. "Koç" hem "koç hayvanı" (oyunun satranç + at/boynuz
-imgesine yakın) hem "antrenör" demek; iki anlam da eklentinin işine uyuyor.
+Kullanıcının kararı: eklentinin adı **PACC** ("Poké Auto Chess Coach" kısaltması). Eklenti artık İngilizce
+ve Türkçe arayüzle global kullanılacağı için Türkçe bir ad yerine iki dilde de aynı kalan kısa bir ad seçildi.
+
+| Yer | İngilizce | Türkçe |
+|---|---|---|
+| Kısa ad (`short_name`, popup, panel başlığı, `action.default_title`) | PACC | PACC |
+| Uzun ad (`name`) | PACC — Auto Chess Coach | PACC — Auto Chess Koçu |
+| Açıklama | "… for Pokémon Auto Chess …" | "Pokémon Auto Chess için …" |
+
+Kural aynı kaldı: "Pokémon" kelimesi **isimde geçmez** (ticari marka riski); sadece açıklamada
+"for Pokémon Auto Chess" / "Pokémon Auto Chess için" denir.
+
+Ad şu yerlerde: `extension/_locales/{en,tr}/messages.json` (`extName`, `extShortName`, `actionTitle`),
+`extension/i18n/{en,tr}.json` (`app.name`: panel başlığı, popup, overlay bildirimi), konsol öneki `[PACC]`,
+`README.md`, `README.tr.md`, bu dosya. `package.json` paket adı: `pacc`.
+
+Hesap: GitHub `badblli`. Depo: `pacc`. `homepage_url`: `https://github.com/badblli/pacc`.
+
+## Tarihçe: ilk isim önerileri (Türkçe)
+
+İlk turda kurallar: Türkçe, kısa, akılda kalır. "Koç" hem "koç hayvanı" (oyunun satranç + at/boynuz
+imgesine yakın) hem "antrenör" demek. 1. öneri bir süre uygulandı (eski panel adı "PAC Koç" idi), sonra PACC'ye geçildi.
 
 | # | İsim | Depo adı | Gerekçe |
 |---|---|---|---|
-| 1 | **Tahta Koçu** (uygulandı) | `tahta-kocu` | Oyunun tahtası + onu yöneten koç. Kısa, net, eklentinin işini (tahta önerileri) söylüyor. |
+| 1 | **Tahta Koçu** (PACC'den önce uygulanmıştı) | `tahta-kocu` | Oyunun tahtası + onu yöneten koç. Kısa, net, eklentinin işini (tahta önerileri) söylüyor. |
 | 2 | **Koç Hamlesi** | `koc-hamlesi` | Satranç terimi "hamle" + koç. Önerilerin "sıradaki en iyi hamle" olduğunu vurgular. |
 | 3 | **Koçbaşı** | `kocbasi` | Hem "koçun başı" (logodaki boynuzlar) hem de koçbaşı (kuşatma aleti). En kısa ve en akılda kalıcı; ama tek başına neyle ilgili olduğunu anlatmaz. |
 
-Varsayılan olarak 1. öneri uygulandı (manifest `name` / `short_name`, popup, README). Kullanıcı başka
-birini seçerse değişecek yerler: `extension/manifest.json` (`name`, `short_name`, `homepage_url`),
-`extension/popup/popup.html` (başlık ve GitHub bağlantısı), `README.md`, bu dosya. Eski ad "PAC Koç"
-panelde (`extension/content/panel.js`) ve konsol mesajlarında hâlâ geçiyor; bu iş kapsamı dışında,
-panel işini yapan sonra güncelleyecek. `package.json` içindeki `pac-koc` paket adı da değişmedi.
-
-Hesap: GitHub `badblli`. Depo adı: `tahta-kocu` (isimden türetilmiş kebab-case, ASCII).
-`homepage_url`: `https://github.com/badblli/tahta-kocu`.
-
 ## Logo
 
-![Tahta Koçu logosu](../extension/icons/icon-128.png)
+![PACC logosu](../extension/icons/icon-128.png)
 
 Özgün çizim: 16x16 piksel ızgarası. Oyunun logosundan ya da varlıklarından hiçbir şey kopyalanmadı.
 
