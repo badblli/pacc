@@ -38,6 +38,18 @@ PACC (Poké Auto Chess Coach), [Pokémon Auto Chess](https://pokemon-auto-chess.
 
 Veriler oyunun kendi meta raporundan gelir (`/meta-v2`, `/meta/pokemons`, `/meta/items`). Rapor son ~100.000 oyundan oluşur ve günde bir kez yenilenir.
 
+## Güvenli mi?
+
+Eklentilere karşı dikkatli olmak doğru. PACC'ın neyi yapıp neyi yapamadığı ve bunu nasıl kendin kontrol edeceğin:
+
+- **Sadece tek sitede çalışır.** PACC'ın tek site izni `https://pokemon-auto-chess.com/*`. Başka hiçbir sekmeyi ya da siteyi göremez.
+- **Sadece tek sunucuyla konuşur.** Koddaki tek adres `https://pokemon-auto-chess.com`; oyunun herkese açık meta raporu için kullanılır. Analiz, takip, kendi sunucusu yok; senin hakkında hiçbir şey dışarı gönderilmez. Bkz. [PRIVACY.md](PRIVACY.md).
+- **Senin yerine oynamaz.** Hiçbir şeye tıklamaz, sürüklemez, satın almaz, oyuna bir şey göndermez. Sadece sayfanın üstüne rozet ve panel çizer.
+- **Gizli kod yok.** Her şey bu repoda (GPL-3.0). Uzaktan yüklenen ya da sıkıştırılmış kod yok; sürüm zip'i `extension/` klasöründen `npm run pack` ile üretilir.
+- **Az izin.** `storage` (ayarlar ve meta önbelleği), `alarms` (meta raporunu 6 saatte bir kontrol), `declarativeNetRequest` (sadece isteğe bağlı Türkçe çeviri için).
+
+**Kendin kontrol et:** `chrome://extensions` sayfasında PACC → *Ayrıntılar* bölümünde izinleri görürsün; ya da oynarken Geliştirici Araçları → *Ağ (Network)* sekmesini aç, sadece pokemon-auto-chess.com isteklerini görürsün.
+
 ## Kurulum (2 dakika)
 
 PACC Chrome, Edge, Brave ve Opera'da çalışır.

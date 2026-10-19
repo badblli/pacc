@@ -36,6 +36,18 @@ PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](ht
 
 All data comes from the game's own public meta report (`/meta-v2`, `/meta/pokemons`, `/meta/items`), built from the last ~100,000 games and refreshed daily.
 
+## Is it safe?
+
+Being careful with extensions is right. Here is exactly what PACC can and cannot do, and how to check it yourself:
+
+- **Runs on one site only.** PACC's only site permission is `https://pokemon-auto-chess.com/*`. It cannot see any other tab or website.
+- **Talks to one server only.** The only address in the code is `https://pokemon-auto-chess.com`, used for the game's public meta report. No analytics, no tracking, no server of its own, nothing about you is sent anywhere. See [PRIVACY.md](PRIVACY.md).
+- **Never plays for you.** It does not click, drag, buy or send anything to the game. It only draws badges and a panel on top of the page.
+- **No hidden code.** Everything is in this repo (GPL-3.0). There is no remote code and no minified bundle; the release zip is built from the `extension/` folder by `npm run pack`.
+- **Few permissions.** `storage` (settings and the meta cache), `alarms` (check the meta report every 6 hours), `declarativeNetRequest` (only for the optional Turkish translation).
+
+**Check it yourself:** on `chrome://extensions` open PACC → *Details* to see the permissions; or open DevTools → *Network* while playing and you will only see requests to pokemon-auto-chess.com.
+
 ## Installation (2 minutes)
 
 PACC works in Chrome, Edge, Brave and Opera.
