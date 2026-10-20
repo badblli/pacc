@@ -24,6 +24,8 @@ PACC (Poké Auto Chess Coach), [Pokémon Auto Chess](https://pokemon-auto-chess.
 
 - **İngilizce ve Türkçe arayüz.** Dil tarayıcı dilinden seçilir (tarayıcı dili `tr` ile başlıyorsa Türkçe, değilse İngilizce). Popup'tan istediğin an değiştirebilirsin (Otomatik / English / Türkçe); panel ve tahta üstü işaretler hemen yeni dilde çizilir. İngilizcede Pokémon, item ve sinerji adları oyunun kendi İngilizce adlarıdır.
 - **Tahta üstü öneriler.** Seçim pencerelerinde (başlangıç, ek / eşsiz / efsanevi Pokémon, item karuseli ve ödüller) ve dükkanda önerilen seçenek yeşil, kaçınılacak seçenek kırmızı çerçeve ve uyum yüzdesiyle işaretlenir. Çerçevenin üstüne gelince gerekçeyi okursun. Item birleştirme ipuçları tahtadaki iki parçayı ve sürükleyeceğin Pokémonu işaretler. **Alt+I** birleştirme ipuçlarını, **Alt+O** tüm işaretleri açıp kapatır.
+- **Takım Planlayıcı koçu.** Oyunun kendi Takım Planlayıcısı'nı açınca (**T** ya da lobideki planlayıcı simgesi) PACC başlık çubuğuna bir araç çubuğu ekler: **★ Önerilen** (planına uyan Pokémonlar, uyum yüzdesi ve gerekçesiyle), **Meta dizilimden başla** (meta raporundan bir dizilim seçip planlayıcıya yükle — oyun da dükkanında o Pokémonları kendi işaretiyle gösterir) ve **uyum kartı** (planının en iyi meta dizilime ne kadar yakın olduğu, eksik çekirdek birimler, item planı). Oyun sırasında küçük bir plan takip kartı ilerlemeni ve sıradaki adımları gösterir.
+- **Ortak Seçim ve bölge portalları.** Ortak Seçim (item karuseli) ve bölge portalı sahnelerinde bir kart, seçeneklerin önerilen sırasını kısa gerekçesiyle gösterir.
 - **Oyun içi panel** (sağ alttaki logo düğmesi ya da **Alt+P**). Dört sekmesi var:
   - **Oyunum:** Oyundayken tahtanı, yedeğini, dükkanını ve elindeki item parçalarını okuyup otomatik öneri yapar:
     - **Pokémon seçimi:** ek / eşsiz / efsanevi seçimlerde hangisinin takımına daha çok yarayacağı,
@@ -51,7 +53,7 @@ Eklentilere karşı dikkatli olmak doğru. PACC'ın neyi yapıp neyi yapamadığ
 
 - **Sadece tek sitede çalışır.** PACC'ın tek site izni `https://pokemon-auto-chess.com/*`. Başka hiçbir sekmeyi ya da siteyi göremez.
 - **Sadece tek sunucuyla konuşur.** Koddaki tek adres `https://pokemon-auto-chess.com`; oyunun herkese açık meta raporu için kullanılır. Analiz, takip, kendi sunucusu yok; senin hakkında hiçbir şey dışarı gönderilmez. Bkz. [PRIVACY.md](PRIVACY.md).
-- **Senin yerine oynamaz.** Hiçbir şeye tıklamaz, sürüklemez, satın almaz, oyuna bir şey göndermez. Sadece sayfanın üstüne rozet ve panel çizer.
+- **Senin yerine oynamaz.** Hiçbir şeye tıklamaz, sürüklemez, satın almaz, oyuna bir şey göndermez. Sadece sayfanın üstüne rozet ve panel çizer. Değiştirdiği tek şey kendi Takım Planlayıcın, o da yalnızca **Plana yükle**'ye bastığında (planlayıcı senin tarayıcında saklanır).
 - **Gizli kod yok.** Her şey bu repoda (GPL-3.0). Uzaktan yüklenen ya da sıkıştırılmış kod yok; sürüm zip'i `extension/` klasöründen `npm run pack` ile üretilir.
 - **Az izin.** `storage` (ayarlar ve meta önbelleği), `alarms` (meta raporunu 6 saatte bir kontrol), `declarativeNetRequest` (sadece isteğe bağlı Türkçe çeviri için).
 

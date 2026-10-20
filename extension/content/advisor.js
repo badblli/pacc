@@ -145,7 +145,8 @@
         const baseScore = (unit.stars ?? 1) * 0.2 - index * 0.2
         let plan = null
         if (rec.item === item) {
-          plan = { score: 7 + baseScore, reason: T(ctx, "advice.giveDirect", { target }) }
+          plan = { score: 7 + baseScore, reason: T(ctx, "advice.giveDirect", { target }),
+            carouselReason: { kind: "want", pkm: unit.name, item: rec.item } }
         } else if (Array.isArray(snap.inventory)) {
           const recipe = ctx.data.recipes[rec.item]
           if (!recipe?.includes(item)) continue
@@ -156,6 +157,7 @@
             plan = {
               score: 6 + baseScore,
               result: rec.item,
+              carouselReason: { kind: "craft", pkm: unit.name, item: other },
               reason: T(ctx, "advice.craftWith", { other: displayName(ctx, "item", other), result: displayName(ctx, "item", rec.item), target })
             }
           }
@@ -792,7 +794,320 @@
     return { choice, shop, craft: craftPlan(ctx, snap) }
   }
 
+  // ---------- 10) Takım planlayıcısı (DOM ve canlı oyun durumundan bağımsız) ----------
+  function plannerContext(ctx) {
+    if (!ctx?.data?.pokemons || typeof ctx.data.pokemons !== "object") return null
+    return {
+      ...ctx,
+      data: { ...ctx.data, family: ctx.data.family ?? {} },
+      tierPokemons: Object.fromEntries(Object.entries(ctx.tierPokemons ?? {}).filter(([, stat]) => Array.isArray(stat))),
+      clusters: Array.isArray(ctx.clusters) ? ctx.clusters : [],
+      minGames: Number.isFinite(ctx.minGames) ? Math.max(0, ctx.minGames) : 20
+    }
+  }
+
+  const plannerUnits = (plan) => Array.isArray(plan)
+    ? plan.filter((p) => p && typeof p.name === "string" && !EMPTY.has(p.name)) : []
+  const plannerHeld = (items) => Array.isArray(items) ? items.filter((it) => typeof it === "string" && !EMPTY.has(it)) : []
+
+  function plannerCore(ctx, cluster) {
+    const families = new Map()
+    for (const p of Array.isArray(cluster?.pokemons) ? cluster.pokemons : []) {
+      if (!p || EMPTY.has(p.name) || !ctx.data.pokemons[p.name] || !Number.isFinite(p.frequency) || p.frequency < 0.25) continue
+      const fam = familyOf(ctx.data, p.name)
+      const prior = families.get(fam)
+      // Aynı ailenin farklı formları tek hedef, frekansları toplam ağırlıktır.
+      families.set(fam, {
+        name: !prior || p.frequency > prior.frequency ? p.name : prior.name,
+        frequency: Math.max(p.frequency, prior?.frequency ?? 0),
+        weight: (prior?.weight ?? 0) + p.frequency
+      })
+    }
+    return [...families.values()].sort((a, b) => b.weight - a.weight || a.name.localeCompare(b.name))
+  }
+
+  function plannerSynergies(ctx, units) {
+    const families = new Map()
+    for (const unit of units) {
+      if (!(unit.y >= 1)) continue
+      const fam = familyOf(ctx.data, unit.name)
+      const types = families.get(fam) ?? new Set()
+      for (const type of typesOf(ctx, unit.name)) types.add(type)
+      // İsteğe bağlı statik eşleme: itemTypes[item] = tür veya tür dizisi.
+      for (const item of plannerHeld(unit.items)) {
+        const bonus = ctx.data.itemTypes?.[item]
+        for (const type of Array.isArray(bonus) ? bonus : typeof bonus === "string" ? [bonus] : []) types.add(type)
+      }
+      families.set(fam, types)
+    }
+    const counts = new Map()
+    for (const types of families.values()) {
+      for (const type of types) counts.set(type, (counts.get(type) ?? 0) + 1)
+    }
+    return [...counts].map(([syn, count]) => {
+      const steps = Array.isArray(ctx.thresholds?.[syn]) ? ctx.thresholds[syn].filter(Number.isFinite) : []
+      const next = steps.filter((n) => n > count).sort((a, b) => a - b)[0] ?? null
+      return { syn, count, next, need: next === null ? 0 : next - count }
+    }).sort((a, b) => (a.need || Infinity) - (b.need || Infinity) || b.count - a.count || a.syn.localeCompare(b.syn))
+  }
+
+  function planFit(ctx, plan) {
+    const empty = { best: [], synergies: [], missing: [] }
+    ctx = plannerContext(ctx)
+    if (!ctx || !Array.isArray(plan)) return empty
+    const units = plannerUnits(plan)
+    const mine = new Set(units.map((p) => familyOf(ctx.data, p.name)))
+    const best = []
+    for (const cluster of ctx.clusters) {
+      if (!cluster || !(cluster.count >= ctx.minGames)) continue
+      const core = plannerCore(ctx, cluster)
+      if (!core.length) continue
+      const owned = core.filter((p) => mine.has(familyOf(ctx.data, p.name)))
+      const missing = core.filter((p) => !mine.has(familyOf(ctx.data, p.name)))
+      const total = core.reduce((sum, p) => sum + p.weight, 0)
+      best.push({ cluster, fit: roundPct(100 * owned.reduce((sum, p) => sum + p.weight, 0) / total),
+        owned: owned.map((p) => p.name), missing: missing.map((p) => p.name) })
+    }
+    best.sort((a, b) => b.fit - a.fit || (a.cluster.rank ?? 8) - (b.cluster.rank ?? 8) || b.cluster.count - a.cluster.count)
+    // Eksikler en iyi dizilimindir; alternatif dizilimler birbirine karıştırılmaz.
+    return { best: best.slice(0, 3), synergies: plannerSynergies(ctx, units),
+      missing: (best[0]?.missing ?? []).map((pkm) => ({ pkm, why: "comp" })) }
+  }
+
+  function planRecommendations(ctx, plan, options = {}) {
+    ctx = plannerContext(ctx)
+    if (!ctx || !Array.isArray(plan)) return []
+    const limit = options?.limit ?? 10
+    if (!Number.isFinite(limit) || limit <= 0) return []
+    const mine = new Set(plannerUnits(plan).map((p) => familyOf(ctx.data, p.name)))
+    const fit = planFit(ctx, plan)
+    const candidates = new Map()
+    const add = (pkm) => {
+      const fam = familyOf(ctx.data, pkm)
+      if (mine.has(fam)) return
+      if (!candidates.has(fam)) candidates.set(fam, pkm)
+    }
+    for (const entry of fit.best) for (const pkm of entry.missing) add(pkm)
+    const rarities = ctx.data.rules?.shopRarities ?? ["COMMON", "UNCOMMON", "RARE", "EPIC", "ULTRA"]
+    for (const [pkm, d] of Object.entries(ctx.data.pokemons)) {
+      if (!Array.isArray(d) || d[1] !== 1 || d[3] || d[4] || !d[6] || !rarities.includes(d[0])) continue
+      if (fit.synergies.some((s) => s.need > 0 && typesOf(ctx, pkm).includes(s.syn))) add(pkm)
+    }
+    return [...candidates.values()].map((pkm) => {
+      const reasons = []
+      const fam = familyOf(ctx.data, pkm)
+      let comp = 0
+      for (const entry of fit.best) {
+        const core = plannerCore(ctx, entry.cluster)
+        const member = core.find((p) => familyOf(ctx.data, p.name) === fam)
+        if (member) comp = Math.max(comp, Math.min(1, member.weight) * (0.5 + entry.fit / 200))
+      }
+      if (comp) reasons.push({ kind: "comp" })
+      let synergy = 0
+      for (const s of fit.synergies) {
+        if (!s.need || !typesOf(ctx, pkm).includes(s.syn)) continue
+        synergy += 1 / s.need
+        reasons.push({ kind: s.need === 1 ? "next" : "syn", syn: s.syn })
+      }
+      const best = bestFamilyRank(ctx, pkm)
+      const meta = metaPct(best?.rank) ?? 0
+      if (best && Number.isFinite(best.rank)) reasons.push({ kind: "meta" })
+      // Sabit ölçek: dizilim %50, eşik yakınlığı %30, meta ortalama sırası %20.
+      // Aday kümesi değişince aynı Pokémonun yüzdesi değişmez.
+      return { pkm, fit: roundPct(50 * comp + 30 * Math.min(1, synergy) + 0.2 * meta),
+        reasons, rarity: ctx.data.pokemons[pkm]?.[0] ?? null }
+    }).sort((a, b) => b.fit - a.fit || a.pkm.localeCompare(b.pkm)).slice(0, Math.floor(limit))
+  }
+
+  function plannerItems(ctx, pkm) {
+    const source = statFor(ctx, pkm)
+    return plannerHeld(source?.stat[3]).slice(0, 3)
+  }
+
+  function planItems(ctx, plan) {
+    ctx = plannerContext(ctx)
+    if (!ctx || !Array.isArray(plan) || !Object.keys(ctx.tierPokemons).length) return []
+    return plannerUnits(plan).map((unit) => ({ pkm: unit.name, items: plannerItems(ctx, unit.name), have: plannerHeld(unit.items) }))
+  }
+
+  function plannerFinalForm(ctx, pkm) {
+    const chain = familyChain(ctx.data, pkm).filter((name) => ctx.data.pokemons[name])
+    const stars = (name) => ctx.data.pokemons[name][1] ?? 0
+    const highest = Math.max(...chain.map(stars))
+    // Önce son evrim; dallanmış son formlar arasında meta oyun sayısı belirleyicidir.
+    return chain.filter((name) => stars(name) === highest)
+      .sort((a, b) => (ctx.tierPokemons[b]?.[1] ?? 0) - (ctx.tierPokemons[a]?.[1] ?? 0) ||
+        (b === pkm) - (a === pkm) || a.localeCompare(b))[0] ?? pkm
+  }
+
+  function plannerFront(ctx, pkm) {
+    // İsteğe bağlı statik alan: pokemonStats[name] = {hp, def, range}.
+    const stats = ctx.data.pokemonStats?.[pkm]
+    if (stats) return stats.range === 1 || stats.hp >= 200 || stats.def >= 30
+    // Mevcut kompakt veri savaş istatistiği taşımıyor; savunmacı türler yaklaşık ön saftır.
+    return typesOf(ctx, pkm).some((type) => ["ROCK", "STEEL", "GROUND", "MONSTER", "FIGHTING"].includes(type))
+  }
+
+  function compToPlan(ctx, cluster, options = {}) {
+    ctx = plannerContext(ctx)
+    if (!ctx || !cluster) return []
+    const keep = options?.keepPlan
+    if (keep != null && !Array.isArray(keep)) return []
+    const out = []
+    const occupied = new Set()
+    for (const unit of keep ?? []) {
+      if (!unit || EMPTY.has(unit.name) || !ctx.data.pokemons[unit.name] ||
+        !Number.isInteger(unit.x) || unit.x < 0 || unit.x > 7 ||
+        !Number.isInteger(unit.y) || unit.y < 1 || unit.y > 3 ||
+        !Array.isArray(unit.items) || unit.items.length > 3 || plannerHeld(unit.items).length !== unit.items.length ||
+        occupied.has(`${unit.x},${unit.y}`)) return []
+      occupied.add(`${unit.x},${unit.y}`)
+      out.push({ ...unit, items: [...unit.items] })
+    }
+    const mine = new Set(out.map((p) => familyOf(ctx.data, p.name)))
+    const additions = plannerCore(ctx, cluster).slice(0, 8)
+      .filter((p) => !mine.has(familyOf(ctx.data, p.name)))
+      .map((p) => plannerFinalForm(ctx, p.name))
+    for (const front of [true, false]) {
+      const group = additions.filter((pkm) => plannerFront(ctx, pkm) === front)
+      // Oyunda y=3 rakibe en yakın sıradır (simulation: mavi takım y-1, kırmızı 5-(y-1)).
+      const rows = front ? [3, 2, 1] : [2, 1]
+      // Yeni dizilimde her saf kendi içinde ortalanır; mevcut planda merkeze en yakın boş kare seçilir.
+      const xs = keep == null
+        ? Array.from({ length: 8 }, (_, i) => (Math.floor((8 - group.length) / 2) + i) % 8)
+        : [3, 4, 2, 5, 1, 6, 0, 7]
+      const squares = rows.flatMap((y) => xs.map((x) => ({ x, y })))
+      for (const pkm of group) {
+        const square = squares.find(({ x, y }) => !occupied.has(`${x},${y}`))
+        if (!square) break
+        occupied.add(`${square.x},${square.y}`)
+        out.push({ name: pkm, ...square, items: plannerItems(ctx, pkm) })
+      }
+    }
+    return out
+  }
+
+  // ---------- 11) Canlı ortak seçim ve bölge portalları ----------
+  // Eksik meta ve snapshot alanları eski önbelleklerde normaldir; ortak yardımcılar
+  // için varsayılanları burada tamamla, çağıranın verisini değiştirme.
+  function carouselContext(ctx) {
+    ctx = plannerContext(ctx)
+    if (!ctx) return null
+    return { ...ctx, data: { ...ctx.data, recipes: ctx.data.recipes ?? {} },
+      tierPokemons: Object.fromEntries(Object.entries(ctx.tierPokemons)
+        .filter(([, s]) => Number.isFinite(s[0]) && Number.isFinite(s[1]))
+        .map(([name, s]) => [name, [s[0], s[1], s[2], plannerHeld(s[3])]])),
+      clusters: ctx.clusters.filter((c) => c && Number.isFinite(c.rank) && Array.isArray(c.pokemons))
+        .map((c) => ({ ...c, pokemons: c.pokemons.filter((p) => p && typeof p.name === "string" && Number.isFinite(p.frequency)) })) }
+  }
+
+  function carouselTeam(snap, plan = []) {
+    const board = plannerUnits(snap?.board).map((p) => ({ ...p, items: plannerHeld(p.items) }))
+    const planned = plannerUnits(plan).map((p) => ({ ...p, y: p.y ?? 1, items: plannerHeld(p.items) }))
+    return { ...snap, board, shop: [], inventory: Array.isArray(snap?.inventory) ? plannerHeld(snap.inventory) : null,
+      planned, combined: { board: [...board, ...planned], shop: [], synergies: snap?.synergies ?? {} } }
+  }
+
+  const uniqueReasons = (reasons) => [...new Map(reasons.map((r) => [JSON.stringify(r), r])).values()]
+  const availableFirst = (a, b) => Number(a.taken) - Number(b.taken) || b.score - a.score
+
+  function rankCarousel(ctx, snap, plan = []) {
+    ctx = carouselContext(ctx)
+    if (!ctx || snap?.carousel?.kind !== "items" || !Array.isArray(snap.carousel.items)) return []
+    const team = carouselTeam(snap, plan)
+    const advice = suggestItems(ctx, team, team.inventory)
+    const comp = suggestComps(ctx, team.combined)[0]?.cluster
+    return snap.carousel.items.filter((it) => it && typeof it.name === "string" && !EMPTY.has(it.name)).map((it) => {
+      // rankPropositions ile aynı hemen kullanım hesabı: doğrudan verme veya eksik parçayı tamamlama.
+      const immediate = itemPlan(ctx, team, it.name, advice)
+      let score = immediate ? Math.max(immediate.result ? 60 : 70, Math.min(90, immediate.score * 10)) : 0
+      const reasons = immediate ? [immediate.carouselReason] : []
+      const wanted = (item, pkm, kind, value) => {
+        if (item !== it.name && !ctx.data.recipes[item]?.includes(it.name)) return
+        score = Math.max(score, value)
+        reasons.push({ kind, ...(pkm ? { pkm } : {}), item })
+      }
+      for (const a of advice) {
+        if (!(a.unit.y > 0) || a.unit.items.length >= 3 || (ctx.tierPokemons[a.source]?.[1] ?? 0) < ctx.minGames) continue
+        for (const rec of a.recs) {
+          if (rec.state !== "have" && rec.state !== "craftable" && rec.item !== it.name) wanted(rec.item, a.unit.name, "component", 40)
+        }
+      }
+      for (const p of team.planned) {
+        if (p.items.length >= 3) continue
+        const source = statFor(ctx, p.name)
+        if (!source || source.stat[1] < ctx.minGames) continue
+        for (const item of plannerItems(ctx, p.name)) if (!p.items.includes(item)) wanted(item, p.name, "want", 50)
+      }
+      for (const entry of comp?.items ?? []) {
+        const item = typeof entry === "string" ? entry : entry?.item
+        if (item) wanted(item, null, "comp", 30)
+      }
+      return { item: it.name, taken: !!it.taken, score: roundPct(score), reasons: uniqueReasons(reasons) }
+    }).sort(availableFirst)
+  }
+
+  function rankPortals(ctx, snap, plan = []) {
+    ctx = carouselContext(ctx)
+    if (!ctx || snap?.carousel?.kind !== "portals" || !Array.isArray(snap.carousel.portals)) return []
+    const team = carouselTeam(snap, plan)
+    const counts = synergyCounts(ctx, team)
+    const plannedCounts = synergyCounts(ctx, { board: team.planned })
+    const comps = suggestComps(ctx, team.combined)
+    // Aktif sinerji ve sonraki eşiğe bir birim kalan sinerji önceliklidir.
+    const affinity = (syn, n) => {
+      const steps = Array.isArray(ctx.thresholds?.[syn]) ? ctx.thresholds[syn] : []
+      if (!n || !steps.length) return 0
+      const active = steps.some((step) => step <= n)
+      const near = steps.find((step) => step > n) === n + 1
+      return (active ? 10 : 0) + (near ? 12 : 0)
+    }
+    return snap.carousel.portals.filter((p) => p && typeof p.id === "string" && typeof p.map === "string").map((p) => {
+      const synergies = [...new Set(plannerHeld(p.synergies))]
+      const regionTypes = plannerHeld(ctx.data.regions?.[p.map])
+      const reasons = []
+      let synScore = 0
+      // Bölge türleri kalıcı havuzu, canlı semboller portalın ek sinerjilerini temsil eder.
+      for (const syn of new Set([...regionTypes, ...synergies])) {
+        const live = affinity(syn, counts[syn])
+        const planned = affinity(syn, plannedCounts[syn])
+        synScore += Math.max(live, planned)
+        if (live) reasons.push({ kind: "syn", syn })
+        if (planned) reasons.push({ kind: "plan", syn })
+      }
+      // Bölgesel havuz sabit bölge türlerinden çıkar; canlı semboller geçici bonuslar da taşıyabilir.
+      const families = new Map()
+      for (const [pkm, d] of Object.entries(ctx.data.pokemons)) {
+        if (!Array.isArray(d) || !d[4] || !typesOf(ctx, pkm).some((syn) => regionTypes.includes(syn))) continue
+        const fit = roundPct(fitScore(ctx, team.combined, comps, pkm).score * 10)
+        const family = familyOf(ctx.data, pkm)
+        const prior = families.get(family)
+        if (!prior || fit > prior.fit) families.set(family, { pkm, fit })
+      }
+      const regional = [...families.values()].sort((a, b) => b.fit - a.fit || a.pkm.localeCompare(b.pkm)).slice(0, 3)
+      for (const r of regional) {
+        if (r.fit > 0) reasons.push({ kind: "regional", pkm: r.pkm })
+        if (team.planned.some((u) => familyOf(ctx.data, u.name) === familyOf(ctx.data, r.pkm))) {
+          reasons.push({ kind: "plan", pkm: r.pkm })
+        }
+      }
+      const stat = ctx.regionsMeta?.[p.map]
+      const meta = Array.isArray(stat) && Number.isFinite(stat[0]) && Number.isFinite(stat[1]) && stat[1] >= ctx.minGames
+        ? { rank: stat[0], count: stat[1] } : null
+      if (meta) reasons.push({ kind: "meta" })
+      // Sabit ölçek: sinerji en fazla 50, en iyi bölgesel uyum 30, bölge metası 20 puan.
+      const score = roundPct(Math.min(50, synScore) + (regional[0]?.fit ?? 0) * 0.3 + (meta ? metaPct(meta.rank) * 0.2 : 0))
+      return { portalId: p.id, map: p.map, taken: !!p.taken, score, synergies, regional, meta, reasons: uniqueReasons(reasons) }
+    }).sort(availableFirst)
+  }
+
   window.PacAdvisor = {
+    rankCarousel,
+    rankPortals,
+    planFit,
+    planRecommendations,
+    planItems,
+    compToPlan,
     boardAdvice,
     familyChain,
     analyze(ctx, snap) {

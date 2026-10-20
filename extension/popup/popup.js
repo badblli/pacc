@@ -17,6 +17,7 @@ async function load() {
   // Kurulumda background.js dile göre yazar; ayar hiç yoksa aynı kural (Türkçe arayüz → çeviri açık)
   $("translation").checked = settings.translation ?? I18n.resolveLang(settings.uiLang) === "tr"
   $("panel").checked = settings.panel !== false
+  $("planner").checked = settings.planner !== false
   $("overlay").checked = settings.overlay !== false
   $("poolTracking").checked = settings.poolTracking === true
   const status = $("status")
@@ -41,6 +42,7 @@ async function save(patch) {
 $("uiLang").addEventListener("change", (e) => save({ uiLang: e.target.value }))
 $("translation").addEventListener("change", (e) => save({ translation: e.target.checked }))
 $("panel").addEventListener("change", (e) => save({ panel: e.target.checked }))
+$("planner").addEventListener("change", (e) => save({ planner: e.target.checked }))
 $("overlay").addEventListener("change", (e) => save({ overlay: e.target.checked }))
 $("poolTracking").addEventListener("change", (e) => save({ poolTracking: e.target.checked }))
 
@@ -49,11 +51,14 @@ $("refresh").addEventListener("click", async () => {
   btn.disabled = true
   downloading = true
   btn.textContent = t("popup.downloading")
-  await chrome.runtime.sendMessage({ type: "refresh-meta" })
+  const res = await chrome.runtime.sendMessage({ type: "refresh-meta" })
   downloading = false
   btn.disabled = false
   btn.textContent = t("popup.refresh")
-  load()
+  await load()
+  // Rapor değişmediyse hiçbir şey indirilmedi; bunu kullanıcıya söyle
+  if (res?.ok && !res.updated) $("status").textContent += ` · ${t("popup.upToDate")}`
+  if (res?.error) $("status").textContent = t("popup.metaError", { error: res.error })
 })
 
 // Dil seçici değişince (PacI18n storage'dan duyar) popup da hemen yeni dilde yazılır.

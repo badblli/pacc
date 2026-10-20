@@ -4,6 +4,10 @@
 
 const API = "https://pokemon-auto-chess.com"
 const CHECK_MINUTES = 6 * 60
+// Elle yenilemede küçük kontrol isteğini bile en fazla dakikada bir at
+const MANUAL_MIN_INTERVAL_MS = 60 * 1000
+// compact* fonksiyonlarının çıktısı değişince artır: eski biçimde kayıtlı veri bir kez yeniden indirilir
+const META_FORMAT = 3
 const DEFAULT_SETTINGS = { uiLang: "auto", panel: true, overlay: true, poolTracking: false, tier: "LEVEL_BALL", minGames: 50 }
 
 // content/i18n.js'teki resolveLang ile aynı kural (service worker o dosyayı yüklemiyor):
@@ -71,26 +75,44 @@ function compactClusters(raw) {
   }))
 }
 
+// bölge -> [ortalama sıra, oyun sayısı, öne çıkan Pokémonlar]
+function compactRegions(raw) {
+  const out = {}
+  for (const { name, rank, count, pokemons } of raw) {
+    if (count > 0) out[name] = [rank, count, pokemons]
+  }
+  return out
+}
+
 let refreshing = null
 
-async function refresh(force = false) {
+// Büyük dosyaları (~38 MB) sadece sunucudaki rapor değiştiyse ya da kayıtlı veri eski
+// biçimdeyse indirir; elle yenileme de bu kurala uyar (oyunun sunucusunu yormamak için).
+// Dönüş: büyük dosyalar indirildiyse true, veri zaten güncelse false.
+async function refresh({ manual = false } = {}) {
   if (refreshing) return refreshing
   refreshing = (async () => {
+    if (manual) {
+      const { meta } = await chrome.storage.local.get("meta")
+      if (meta?.format === META_FORMAT && Date.now() - (meta.checkedAt ?? 0) < MANUAL_MIN_INTERVAL_MS) return false
+    }
     const [metadata] = await getJson("/meta/metadata")
     // Sinerji eşikleri (ör. WATER: [3, 6, 9]) — küçük, her kontrolde güncelliyoruz
     const thresholds = await getJson("/types-trigger").catch(() => null)
     const { meta } = await chrome.storage.local.get("meta")
-    if (!force && meta && meta.createdAt === metadata.created_at) {
+    if (meta && meta.format === META_FORMAT && meta.createdAt === metadata.created_at) {
       await chrome.storage.local.set({ meta: { ...meta, thresholds: thresholds ?? meta.thresholds, checkedAt: Date.now() } })
-      return
+      return false
     }
-    const [clusters, pokemons, items] = await Promise.all([
+    const [clusters, pokemons, items, regions] = await Promise.all([
       getJson("/meta-v2"),
       getJson("/meta/pokemons"),
-      getJson("/meta/items")
+      getJson("/meta/items"),
+      getJson("/meta/regions")
     ])
     await chrome.storage.local.set({
       meta: {
+        format: META_FORMAT,
         createdAt: metadata.created_at,
         timeLimit: metadata.time_limit,
         games: metadata.count,
@@ -98,10 +120,12 @@ async function refresh(force = false) {
         thresholds,
         clusters: compactClusters(clusters),
         pokemons: compactPokemons(pokemons),
-        items: compactItems(items)
+        items: compactItems(items),
+        regions: compactRegions(regions)
       },
       metaError: null
     })
+    return true
   })()
     .catch(async (err) => {
       console.warn("[PACC] meta verisi alınamadı", err)
@@ -167,8 +191,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true
   }
   if (msg?.type === "refresh-meta") {
-    refresh(true)
-      .then(() => sendResponse({ ok: true }))
+    refresh({ manual: true })
+      .then((updated) => sendResponse({ ok: true, updated }))
       .catch((err) => sendResponse({ error: String(err.message ?? err) }))
     return true
   }

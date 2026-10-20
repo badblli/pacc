@@ -39,12 +39,12 @@
       "label": "Standard"
     },
     "deep": {
-      "model": "gemini-3.1-pro-high",
+      "model": "gemini-3.8-flash-high",
       "effort": "high",
       "label": "Deep"
     },
     "peak": {
-      "model": "gemini-3.1-pro-high",
+      "model": "gemini-3.8-flash-high",
       "effort": "high",
       "label": "Peak"
     }

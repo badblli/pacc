@@ -1,4 +1,4 @@
-.crew/state/
+**/.crew/state/
 node_modules/
 extension/_metadata/
 .playwright-mcp/

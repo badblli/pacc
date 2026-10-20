@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "__MSG_extShortName__",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "homepage_url": "https://github.com/badblli/pacc",
@@ -53,6 +53,8 @@
       "js": [
         "content/i18n.js",
         "content/advisor.js",
+        "content/planner.js",
+        "content/carousel.js",
         "content/overlay.js",
         "content/panel.js"
       ],
@@ -69,7 +71,9 @@
         "data/static.json",
         "content/panel.css",
         "content/overlay.css",
-        "icons/icon-48.png"
+        "icons/icon-48.png",
+        "content/planner.css",
+        "content/carousel.css"
       ],
       "matches": [
         "https://pokemon-auto-chess.com/*"

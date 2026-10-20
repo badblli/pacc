@@ -1,6 +1,7 @@
 // Sayfanın kendi JS ortamında (MAIN world) çalışır. Oyunun Redux store'unu ve
 // Colyseus oyun durumunu yakalar, SADECE senin takımının özetini panelin
-// content script'ine postMessage ile yollar. Oyuna mesaj göndermez, hiçbir şeyi değiştirmez.
+// content script'ine postMessage ile yollar. Oyuna ağ mesajı göndermez;
+// kullanıcı isteğiyle yalnız takım planlayıcısının dizilimini günceller.
 //
 // Neden iki kaynak?
 //  - Redux store: kullanıcı id'si, dükkan, karusel/item seçenekleri, tahta (canlı).
@@ -155,6 +156,27 @@
     return out
   }
 
+  // Carousel yalnız canlı GameState'ten okunur; Redux'taki eski seçenekleri kullanma.
+  function carouselSnapshot(gs) {
+    const items = toArray(gs?.floatingItems)
+    if (items.length) return {
+      kind: "items",
+      items: items.map((it) => ({ id: it.id, name: it.name, taken: !!it.avatarId }))
+    }
+    const portals = toArray(gs?.portals)
+    if (!portals.length) return null
+    const symbols = toArray(gs?.symbols)
+    return {
+      kind: "portals",
+      portals: portals.map((p) => ({
+        id: p.id,
+        map: p.map,
+        synergies: [...new Set(symbols.filter((s) => s.portalId === p.id).map((s) => s.synergy))],
+        taken: !!p.avatarId
+      }))
+    }
+  }
+
   function snapshot() {
     if (!store) store = findStoreInReact()
     const st = store?.getState?.()
@@ -226,6 +248,7 @@
       board: unitsOf(player),
       // takılmamış itemler: sadece canlı GameState'te güvenilir
       inventory: live ? toArray(live.items) : null,
+      carousel: carouselSnapshot(gs),
       shop: toArray(game.shop),
       choices,
       itemsProposition: itemChoice?.items ?? toArray(game.itemsProposition),
@@ -323,8 +346,111 @@
     return { mode: board.mode ?? null, units, items }
   }
 
+  // ---- takım planlayıcısı köprüsü ----
+  const PLANNER_KEY = "team_planner"
+  const PLANNER_TTL = 30 * 24 * 60 * 60 * 1000
+
+  function isPlannerBoard(board) {
+    if (!Array.isArray(board) || board.length > 24) return false
+    for (const p of board) {
+      if (!p || typeof p.name !== "string" ||
+          !Number.isInteger(p.x) || p.x < 0 || p.x > 7 ||
+          !Number.isInteger(p.y) || p.y < 1 || p.y > 3 ||
+          !Array.isArray(p.items) || p.items.length > 3) return false
+      for (const item of p.items) if (typeof item !== "string") return false
+    }
+    return true
+  }
+
+  function plannerStorageValue(board, previous, now = Date.now()) {
+    return { expirationDate: previous?.expirationDate ?? now + PLANNER_TTL, value: board }
+  }
+
+  function readPlannerStorage() {
+    try {
+      return JSON.parse(window.localStorage.getItem(PLANNER_KEY))
+    } catch {
+      return null
+    }
+  }
+
+  function plannerModal() {
+    return document.querySelector("dialog.modal.team-builder-modal[open]")
+  }
+
+  function plannerRect(el) {
+    if (!el) return null
+    const r = el.getBoundingClientRect()
+    return { x: r.x, y: r.y, w: r.width, h: r.height }
+  }
+
+  let lastPlanner = ""
+  function publishPlanner() {
+    try {
+      const saved = readPlannerStorage()
+      const modal = plannerModal()
+      const planner = {
+        open: !!modal,
+        board: Array.isArray(saved?.value) ? saved.value : [],
+        rects: modal ? {
+          modal: plannerRect(modal),
+          // Başlık çubuğu: PACC araç çubuğu başlık yazısıyla kapatma düğmesi arasına oturur
+          header: plannerRect(modal.querySelector(":scope > header")),
+          actions: plannerRect(modal.querySelector(".actions")),
+          // Oyun seçicilere className="my-box" verdiği için react-tabs sınıfı yok; kimlikle bul
+          picker: plannerRect(modal.querySelector("#pokemon-picker")),
+          board: plannerRect(modal.querySelector("#team-editor"))
+        } : null
+      }
+      const json = JSON.stringify(planner)
+      if (json !== lastPlanner) {
+        window.postMessage({ type: "pac-yardimci:planner", planner }, location.origin)
+        lastPlanner = json
+      }
+    } catch {
+      // Planlayıcının okunamaması canlı oyun ve sağlık mesajlarını durdurmasın.
+    }
+  }
+
+  function plannerUpdater(modal) {
+    const el = modal?.querySelector("#team-builder")
+    const key = el && Object.keys(el).find((k) => k.startsWith("__reactFiber$"))
+    let fiber = key ? el[key] : null
+    for (let n = 0; fiber && n < 100; n++, fiber = fiber.return) {
+      if (typeof fiber.memoizedProps?.updateBoard === "function") return fiber.memoizedProps
+    }
+    return null
+  }
+
+  function setPlanner(board, requestId) {
+    let via = "storage"
+    try {
+      if (!isPlannerBoard(board)) {
+        window.postMessage({ type: "pac-yardimci:planner-set-result", requestId, ok: false, via,
+          error: "Geçersiz planlayıcı dizilimi." }, location.origin)
+        return
+      }
+      const props = plannerUpdater(plannerModal())
+      if (props) {
+        via = "react"
+        props.updateBoard(board)
+      } else {
+        const value = plannerStorageValue(board, readPlannerStorage())
+        window.localStorage.setItem(PLANNER_KEY, JSON.stringify(value))
+        // Oyun bu olayı görünce planı storage'dan yeniden okur.
+        window.dispatchEvent(new StorageEvent("storage", { key: PLANNER_KEY, newValue: board }))
+      }
+      window.postMessage({ type: "pac-yardimci:planner-set-result", requestId, ok: true, via,
+        ...(via === "storage" ? { note: "reopen" } : {}) }, location.origin)
+    } catch {
+      window.postMessage({ type: "pac-yardimci:planner-set-result", requestId, ok: false, via,
+        error: "Planlayıcı güncellenemedi." }, location.origin)
+    }
+  }
+
   let lastScreen = ""
   setInterval(() => {
+    publishPlanner()
     let screen = null
     try {
       screen = screenInfo()
@@ -340,7 +466,13 @@
   let last = ""
   // Panel geç yüklenirse ilk özeti kaçırmasın: panel "hello" deyince son durumu yeniden yolla
   window.addEventListener("message", (e) => {
-    if (e.source === window && e.data?.type === "pac-yardimci:hello") last = ""
+    if (e.source !== window) return
+    if (e.data?.type === "pac-yardimci:hello") {
+      last = ""
+      lastPlanner = ""
+    } else if (e.data?.type === "pac-yardimci:planner-set") {
+      setPlanner(e.data.board, e.data.requestId)
+    }
   })
   setInterval(() => {
     let snap = null

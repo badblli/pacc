@@ -29,7 +29,7 @@ parçayı hangi Pokémona sürükleyeceğini görsel olarak gösterir (oyunun ku
   `pokemons: Map<id, PokemonSprite>`), oyuncunun eldeki itemleri `scene.itemsContainer` (ItemsContainer; çocuk ItemContainer'ların adı = Item).
   Doğru alan adlarını kaynaktan bul: `app/public/src/game/scenes/game-scene.ts`, `components/board-manager.ts`, `components/items-container.ts`,
   `components/pokemon.ts`. Kaynak: raw.githubusercontent.com/keldaanCommunity/pokemonAutoChess/master/... ya da lider kopyası
-  `C:\Users\root\AppData\Local\Temp\claude\C--Users-root-Documents-projects-poke\2972d2d7-07fe-4e36-a887-bed4475d2b5f\scratchpad\pac`
+  `<yerel geçici klasör>`
   (`git -C <yol> sparse-checkout add app/public/src/game` ile game klasörünü ekleyebilirsin).
 - Phaser oyun nesnesini sayfa ortamından bulma: React fiber (game-hook.js'teki findStoreInReact gibi), `window.Phaser?.GAMES` ya da başka sağlam yol.
 - Ekran koordinatı: sprite dünya koordinatı → kamera/`game.scale` → `canvas.getBoundingClientRect()` içine.

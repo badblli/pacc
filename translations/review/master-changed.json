@@ -1,0 +1,1010 @@
+[
+ {
+  "key": "pkm.GALAR_MEOWTH",
+  "en_old": "Galar Meowth",
+  "en_new": "Galarian Meowth",
+  "tr_current": "Galarian Meowth"
+ },
+ {
+  "key": "ability.HIDDEN_POWER_D",
+  "en_old": "Hidden Power (DITTO)",
+  "en_new": "Hidden Power (DUPE)",
+  "tr_current": "Hidden Power (DITTO)"
+ },
+ {
+  "key": "ability_description.NIGHTMARE",
+  "en_old": "FATIGUE all enemy Pokémon for [2,4,6,10,SP] seconds. Any enemy suffering from a GHOST curse take [25,50,100,200,SP] SPECIAL.",
+  "en_new": "FATIGUE all enemy Pokémon for [2,4,6,10,SP] seconds. Any enemy suffering from a negative status condition takes [25,50,100,200,SP] SPECIAL.",
+  "tr_current": "Tüm düşman Pokémonlara [2,4,6,10,SP] saniyelik FATIGUE uygular. Bir GHOST lanetinden muzdarip her düşman [25,50,100,200,SP] SPECIAL alır."
+ },
+ {
+  "key": "ability_description.VOLT_SWITCH",
+  "en_old": "Dash to the farthest enemy reachable and deal [25,50,100,200,SP] SPECIAL to all enemy Pokémon in the path.",
+  "en_new": "DASH to the farthest enemy reachable and deal [25,50,100,200,SP] SPECIAL to all enemy Pokémon in the path.",
+  "tr_current": "Ulaşılabilen en uzak düşmana DASH yapar ve yolundaki tüm düşman Pokémonlara [25,50,100,200,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.NUZZLE",
+  "en_old": "Dash to the farthest opponent, deal [25,50,100,200,SP] SPECIAL and inflict it with PARALYSIS for [3,3,3,6] seconds.",
+  "en_new": "DASH to the farthest opponent, deal [25,50,100,200,SP] SPECIAL and inflict it with PARALYSIS for [3,3,3,6] seconds.",
+  "tr_current": "En uzaktaki rakibe DASH yapar, [25,50,100,200,SP] SPECIAL verir ve ona [3,3,3,6] saniyelik PARALYSIS uygular."
+ },
+ {
+  "key": "ability_description.TOXIC",
+  "en_old": "POISONNED the [1,2,3,4] closest enemy Pokémon for [1.5,3,4.5,9,ND=1] + [1.5,3,4.5,9,SP,ND=1] seconds.",
+  "en_new": "POISONED the [1,2,3,4] closest enemy Pokémon for [1.5,3,4.5,9,ND=1] + [1.5,3,4.5,9,SP,ND=1] seconds.",
+  "tr_current": "En yakın [1,2,3,4] düşman Pokémon'u [1.5,3,4.5,9,ND=1] + [1.5,3,4.5,9,SP,ND=1] saniyeliğine POISONNED yapar."
+ },
+ {
+  "key": "ability_description.MEDITATE",
+  "en_old": "Increase the user's ATK by [100,100,200,400,SP]% of base ATK.",
+  "en_new": "Increase the user's ATK by [100,100,200,400,SP]% of BASE ATK.",
+  "tr_current": "Kullananın ATK değerini BASE ATK değerinin [100,100,200,400,SP]% kadar artırır."
+ },
+ {
+  "key": "ability_description.BITE",
+  "en_old": "Deal [40,80,120,200,SP] SPECIAL to the target and heal the user for 30% of the damage dealt. Cause the target to FLINCH for 5 seconds.",
+  "en_new": "Deal [300,400,500,1000]% of user ATK as SPECIAL to the target and heal the user for [50,SP]% of the damage dealt. Cause the target to FLINCH for 5 seconds.",
+  "tr_current": "Hedefe [40,80,120,200,SP] SPECIAL verir ve verilen hasarın %30'u kadar kullananı iyileştirir. Hedefe 5 saniyelik FLINCH uygular."
+ },
+ {
+  "key": "ability_description.VENOSHOCK",
+  "en_old": "Deal [30,60,120,240,SP] SPECIAL to the target. The damage is doubled if the target suffers from POISONNED.",
+  "en_new": "Deal [30,60,120,240,SP] SPECIAL to the target. The damage is doubled if the target suffers from POISONED.",
+  "tr_current": "Hedefe [30,60,120,240,SP] SPECIAL verir. Hedef POISONNED durumundaysa hasar iki katına çıkar."
+ },
+ {
+  "key": "ability_description.FLAME_CHARGE",
+  "en_old": "Dash into the enemy team's back line and deal [30,60,120,240,SP] SPECIAL to all enemy Pokémon in the path.",
+  "en_new": "DASH into the enemy team's back line and deal [30,60,120,240,SP] SPECIAL to all enemy Pokémon in the path.",
+  "tr_current": "Düşman takımın arka sırasına DASH yapar ve yolundaki tüm düşman Pokémonlara [30,60,120,240,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.PASTEL_VEIL",
+  "en_old": "Dash to the farthest ally. Grant [20,40,80,160,SP] SHIELD to the user and all allied Pokémon on the way and cure their negative status conditions.",
+  "en_new": "DASH to the farthest ally. Grant [20,40,80,160,SP] SHIELD to the user and all allied Pokémon on the way and cure their negative status conditions.",
+  "tr_current": "En uzaktaki müttefike DASH yapar. Kullanana ve yol üstündeki tüm müttefik Pokémonlara [20,40,80,160,SP] SHIELD verir ve olumsuz durumlarını temizler."
+ },
+ {
+  "key": "ability_description.LEECH_SEED",
+  "en_old": "POISONNED the target for [3,6,12,24] seconds and heal the user for [20,40,80,160,SP] HP.",
+  "en_new": "POISONED the target for [3,6,12,24] seconds and heal the user for [20,40,80,160,SP] HP.",
+  "tr_current": "Hedefi [3,6,12,24] saniyeliğine POISONNED yapar ve kullananı [20,40,80,160,SP] HP iyileştirir."
+ },
+ {
+  "key": "ability_description.AQUA_JET",
+  "en_old": "Dash to the farthest reachable enemy Pokémon and deal [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path.",
+  "en_new": "DASH to the farthest reachable enemy Pokémon and deal [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path.",
+  "tr_current": "Ulaşılabilen en uzak düşman Pokémon'a DASH yapar ve yolundaki tüm düşman Pokémonlara [20,40,80,160,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.SLUDGE",
+  "en_old": "Throw trash at the 3 enemy Pokémon in front of the user to inflict [2,3,4,8] stacks of POISONNED for [3,3,3,10,SP] seconds.",
+  "en_new": "Throw trash at the 3 enemy Pokémon in front of the user to inflict [2,3,4,8] stacks of POISONED for [3,3,3,10,SP] seconds.",
+  "tr_current": "Kullananın önündeki 3 düşman Pokémon'a çöp atarak [3,3,3,10,SP] saniyelik [2,3,4,8] POISONNED yığını uygular."
+ },
+ {
+  "key": "ability_description.SLUDGE_WAVE",
+  "en_old": "Throw a spray of waste on the target and ADJACENT enemy Pokémon, dealing [10,20,40,80,SP] SPECIAL and inflict POISONNED for [2,3,4,8,SP] seconds.",
+  "en_new": "Throw a spray of waste on the target and ADJACENT enemy Pokémon, dealing [10,20,40,80,SP] SPECIAL and inflict POISONED for [2,3,4,8,SP] seconds.",
+  "tr_current": "Hedefe ve ADJACENT düşman Pokémonlara atık püskürtür, [10,20,40,80,SP] SPECIAL verir ve [2,3,4,8,SP] saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.SMOG",
+  "en_old": "Project a cloud of stinking gas onto the 3 tiles in front of the user, dealing [10,20,40,80,SP] SPECIAL. BOARD_EFFECT: gas makes Pokémon BLINDED.",
+  "en_new": "BOARD_EFFECT: project SMOKE onto the 3 tiles in front of the user, dealing [10,20,40,80,SP] SPECIAL.",
+  "tr_current": "Kullananın önündeki 3 kareye pis kokulu bir gaz bulutu yayarak [10,20,40,80,SP] SPECIAL verir. BOARD_EFFECT: gaz Pokémonları BLINDED yapar."
+ },
+ {
+  "key": "ability_description.LAVA_PLUME",
+  "en_old": "Project lava onto the 3 tiles in front of the user, dealing [20,40,80,160,SP] SPECIAL. BOARD_EFFECT: lava deals 10 SPECIAL per second and BURN non FLYING or FIRE Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: project EMBER onto the 3 tiles in front of the user, dealing [20,40,80,160,SP] SPECIAL.",
+  "tr_current": "Kullananın önündeki 3 kareye lav püskürterek [20,40,80,160,SP] SPECIAL verir. BOARD_EFFECT: lav saniyede 10 SPECIAL verir ve üstünde yürüyen FLYING ya da FIRE olmayan Pokémonları BURN yapar."
+ },
+ {
+  "key": "ability_description.SHELTER",
+  "en_old": "Gain [3,6,12,24,SP] DEF and project a smoke screen onto the target's tile. BOARD_EFFECT: smoke makes Pokémon BLINDED.",
+  "en_new": "BOARD_EFFECT: gain [3,6,12,24,SP] DEF and project SMOKE onto the target's tile.",
+  "tr_current": "[3,6,12,24,SP] DEF kazanır ve hedefin karesine duman perdesi yayar. BOARD_EFFECT: duman Pokémonları BLINDED yapar."
+ },
+ {
+  "key": "ability_description.DEFEND_ORDER",
+  "en_old": "Spawn a Combee nearby then gives [10,20,30,50,SP] SHIELD to user and all Combee allies. User gets [10,20,30,SP] additional SHIELD per Combee ally on the board.",
+  "en_new": "Spawn a Combee nearby then gives [10,20,30,60,SP] SHIELD to user and all Combee allies. User gets [10,20,30,60,SP] additional SHIELD per Combee ally on the board.",
+  "tr_current": "Yakına bir Combee çağırır, ardından kullanana ve tüm Combee müttefiklere [10,20,30,50,SP] SHIELD verir. Kullanan sahadaki her Combee müttefik için [10,20,30,SP] ek SHIELD alır."
+ },
+ {
+  "key": "ability_description.ATTACK_ORDER",
+  "en_old": "Spawn a Combee nearby then all Combee allies get RAGE for 3 seconds. The next attack of the user deals [20,40,60,120,SP] additional SPECIAL + [10,20,30,60,SP] per Combee ally on the board.",
+  "en_new": "Spawn a Combee nearby then all Combee allies get RAGE for 3 seconds. The next attack of the user deals [10,20,30,60,SP] additional SPECIAL + [10,20,30,60,SP] per Combee ally on the board.",
+  "tr_current": "Yakına bir Combee çağırır, ardından tüm Combee müttefikler 3 saniyelik RAGE alır. Kullananın bir sonraki saldırısı [20,40,60,120,SP] ek SPECIAL + sahadaki her Combee müttefik için [10,20,30,60,SP] verir."
+ },
+ {
+  "key": "ability_description.BUG_BITE",
+  "en_old": " Deal [20,40,80,160,SP] SPECIAL to the target and steal and eat one of their berries if it holds one.",
+  "en_new": "Deal [20,40,80,160,SP] SPECIAL to the target and steal and eat one of their berries if it holds one.",
+  "tr_current": "Hedefe [20,40,80,160,SP] SPECIAL verir; meyve taşıyorsa birini çalıp yer."
+ },
+ {
+  "key": "ability_description.COSMIC_POWER_SUN",
+  "en_old": "Increase the base ATK of all allied Pokémon other than the user by [25,25,25,50,SP]%.",
+  "en_new": "Increase the BASE ATK of all allied Pokémon other than the user by [25,25,25,50,SP]%.",
+  "tr_current": "Kullanan dışındaki tüm müttefik Pokémonların BASE ATK değerini [25,25,25,50,SP]% artırır."
+ },
+ {
+  "key": "ability_description.SILVER_WIND",
+  "en_old": "Dash to the farthest reachable enemy, dealing [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path. Then gain 1 ATK, 1 DEF, 1 SPE_DEF, 10 AP and 10 SPEED.",
+  "en_new": "DASH to the farthest reachable enemy, dealing [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path. Then gain 1 ATK, 1 DEF, 1 SPE_DEF, 10 AP and 10 SPEED.",
+  "tr_current": "Ulaşılabilen en uzak düşmana DASH yapar ve yolundaki tüm düşman Pokémonlara [20,40,80,160,SP] SPECIAL verir. Ardından 1 ATK, 1 DEF, 1 SPE_DEF, 10 AP ve 10 SPEED kazanır."
+ },
+ {
+  "key": "ability_description.POISON_POWDER",
+  "en_old": "Dash to the farthest reachable enemy, dealing [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path and inflicting them with POISONNED for [3,3,3,6,SP] seconds.",
+  "en_new": "DASH to the farthest reachable enemy, dealing [20,40,80,160,SP] SPECIAL to all enemy Pokémon in the path and inflicting them with POISONED for [3,3,3,6,SP] seconds.",
+  "tr_current": "Ulaşılabilen en uzak düşmana atılır, yolundaki tüm düşman Pokémonlara [20,40,80,160,SP] SPECIAL verir ve onlara [3,3,3,6,SP] saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.THRASH",
+  "en_old": "Increase ATK by [100,100,120,150,SP]% of base ATK and inflict the user with CONFUSION for 3 seconds.",
+  "en_new": "Increase ATK by [100,100,120,150,SP]% of BASE ATK and inflict the user with CONFUSION for 3 seconds.",
+  "tr_current": "ATK değerini BASE ATK değerinin [100,100,120,150,SP]% kadar artırır ve kullanana 3 saniyelik CONFUSION uygular."
+ },
+ {
+  "key": "ability_description.DIRE_CLAW",
+  "en_old": "Deal [15,30,60,120,SP] SPECIAL to the target and inflict either POISONNED, SLEEP or PARALYSIS for 3 seconds.",
+  "en_new": "Deal [15,30,60,120,SP] SPECIAL to the target and inflict either POISONED, SLEEP or PARALYSIS for 3 seconds.",
+  "tr_current": "Hedefe [15,30,60,120,SP] SPECIAL verir ve 3 saniyelik POISONNED, SLEEP ya da PARALYSIS uygular."
+ },
+ {
+  "key": "ability_description.HAIL",
+  "en_old": "A hailstorm hits [8,15,30,45] random tiles on the target's side of the board. The hailstones deal [50,50,50,80,SP] SPECIAL on impact and stay on the ground. BOARD_EFFECT: hailstones deal 10 SPECIAL and FREEZE for 1 second non ICE Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: a hailstorm hits [8,15,30,45] random tiles on the target's side of the board, dealing [50,50,50,80,SP] SPECIAL on impact. The hailstones stay on the ground as HAIL.",
+  "tr_current": "Bir dolu fırtınası sahanın hedef tarafındaki [8,15,30,45] rastgele kareyi vurur. Dolu taneleri çarpma anında [50,50,50,80,SP] SPECIAL verir ve yerde kalır. BOARD_EFFECT: dolu taneleri 10 SPECIAL verir ve üstünde yürüyen ICE olmayan Pokémonları 1 saniyeliğine FREEZE yapar."
+ },
+ {
+  "key": "ability_description.LINK_CABLE",
+  "en_old": "Dash to the farthest reachable enemy Pokémon, then trigger an electric arc between $t(pkm.PLUSLE) and $t(pkm.MINUN), dealing [40,40,40,80,SP] SPECIAL. If $t(pkm.PLUSLE) or $t(pkm.MINUN) are alone, deal half this damage to ADJACENT enemy Pokémon instead.",
+  "en_new": "DASH to the farthest reachable enemy Pokémon, then trigger an electric arc between $t(pkm.PLUSLE) and $t(pkm.MINUN), dealing [40,40,40,80,SP] SPECIAL. If $t(pkm.PLUSLE) or $t(pkm.MINUN) are alone, deal half this damage to ADJACENT enemy Pokémon instead.",
+  "tr_current": "Ulaşılabilen en uzak düşman Pokémon'a DASH yapar, ardından $t(pkm.PLUSLE) ile $t(pkm.MINUN) arasında bir elektrik arkı oluşturup [40,40,40,80,SP] SPECIAL verir. $t(pkm.PLUSLE) ya da $t(pkm.MINUN) yalnızsa bunun yerine bu hasarın yarısını ADJACENT düşman Pokémonlara verir."
+ },
+ {
+  "key": "ability_description.MAGIC_BOUNCE",
+  "en_old": "For 5 seconds, whenever the user is hit by an ability, block the damage and reflect [50,100,200,400,SP]% SPECIAL to the caster.",
+  "en_new": "For 4 seconds, whenever the user is hit by an ability, block the damage and reflect [50,100,200,400,SP]% SPECIAL to the caster. The caster gets SILENCE during the effect.",
+  "tr_current": "4 saniye boyunca kullanan bir yetenekle her vurulduğunda hasarı engeller ve yeteneği kullanana [50,100,200,400,SP]% SPECIAL yansıtır. Yeteneği kullanan efekt süresince SILENCE olur."
+ },
+ {
+  "key": "ability_description.HIDDEN_POWER_D",
+  "en_old": "Add Ditto to the allied player's bench.",
+  "en_new": "Transform into a copy of your STRONGEST ally without its items and permanent buffs.",
+  "tr_current": "STRONGEST müttefikinin itemleri ve kalıcı bonusları olmayan bir kopyasına dönüşür."
+ },
+ {
+  "key": "ability_description.HIDDEN_POWER_N",
+  "en_old": "All allied Pokémon gain [50,SP] SHIELD and cast $t(ability.EXPLOSION).",
+  "en_new": "All allied Pokémon gain [50,SP] SHIELD then explode, dealing [50,SP] SPECIAL to all ADJACENT enemy Pokémon and to themselves.",
+  "tr_current": "Tüm müttefik Pokémonlar [50,SP] SHIELD kazanır ve $t(ability.EXPLOSION) kullanır."
+ },
+ {
+  "key": "ability_description.HIDDEN_POWER_S",
+  "en_old": "A tidal wave cleans up negative status and field effects, heals 20% HP of all your team and knocks back and damages enemies for 10% of their HP as TRUE.",
+  "en_new": "BOARD_EFFECT: a TIDAL_WAVE cleans up negative status and field effects, heals 20% HP of all your team and knocks back and damages enemies for 10% of their HP as TRUE.",
+  "tr_current": "BOARD_EFFECT: Bir TIDAL_WAVE olumsuz durumları ve alan efektlerini temizler, tüm takımını %20 HP iyileştirir, düşmanları geri iter ve onlara HP değerlerinin %10'u kadar TRUE verir."
+ },
+ {
+  "key": "ability_description.HIDDEN_POWER_V",
+  "en_old": "Cast $t(ability.THUNDER_SHOCK) on all enemy Pokémon.",
+  "en_new": "Lightning strikes all enemies, dealing [30,SP] SPECIAL to all enemy Pokémon.",
+  "tr_current": "Tüm düşman Pokémonlara $t(ability.THUNDER_SHOCK) uygular."
+ },
+ {
+  "key": "ability_description.HIDDEN_POWER_Y",
+  "en_old": "All your team casts $t(ability.MEDITATE), which increase their attack by [100,SP]%.",
+  "en_new": "All your team increase their ATK by [100,SP]% of its BASE value.",
+  "tr_current": "Tüm takımın $t(ability.MEDITATE) kullanır ve bu onların saldırısını [100,SP]% artırır."
+ },
+ {
+  "key": "ability_description.POISON_JAB",
+  "en_old": "Deal [30,60,120,240,SP] SPECIAL, swap places with the target, and inflict both the target and the caster with POISONNED for 3 seconds.",
+  "en_new": "Deal [30,60,120,240,SP] SPECIAL, swap places with the target, and inflict both the target and the caster with POISONED for 3 seconds.",
+  "tr_current": "[30,60,120,240,SP] SPECIAL verir, hedefle yer değiştirir ve hem hedefe hem kullanana 3 saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.SMOKE_SCREEN",
+  "en_old": "Channel underground and reappear in the middle of the enemy team, dealing [10,20,40,80,SP] SPECIAL to all ADJACENT enemy Pokémon and applying smoke to the back row, making enemies BLINDED.",
+  "en_new": "BOARD_EFFECT: channel underground and reappear in the middle of the enemy team, dealing [10,20,40,80,SP] SPECIAL to all ADJACENT enemy Pokémon and applying SMOKE to the back row.",
+  "tr_current": "Toprağın altından ilerleyip düşman takımın ortasında belirir, tüm ADJACENT düşman Pokémonlara [10,20,40,80,SP] SPECIAL verir ve arka sıraya duman uygulayarak düşmanları BLINDED yapar."
+ },
+ {
+  "key": "ability_description.LEAF_BLADE",
+  "en_old": "The user's next attack is a guaranteed critical hit dealing [100,125,150,250,SP]% of ATK as TRUE.",
+  "en_new": "The user slashes with a sharp leaf, dealing [100,125,150,250,SP]% of ATK as TRUE. Always deals a critical hit.",
+  "tr_current": "Kullanan keskin bir yaprakla keserek ATK değerinin [100,125,150,250,SP]% kadar TRUE verir. Her zaman kritik vurur."
+ },
+ {
+  "key": "ability_description.CLOSE_COMBAT",
+  "en_old": "Deal [30,65,130,260,SP] SPECIAL to the target and **reduce the user's** DEF and SPE_DEF by 2.",
+  "en_new": "Deal [30,65,130,260,SP] SPECIAL to the target and reduce the user's DEF and SPE_DEF by 2.",
+  "tr_current": "Hedefe [30,65,130,260,SP] SPECIAL verir ve kullananın DEF ile SPE_DEF değerlerini 2 azaltır."
+ },
+ {
+  "key": "ability_description.POISON_GAS",
+  "en_old": "A cloud of stinky gas is thrown in the face of all ADJACENT enemy Pokémon, dealing [15,30,60,120,SP] SPECIAL. BOARD_EFFECT: gas inflicts POISONNED for 3 seconds.",
+  "en_new": "BOARD_EFFECT: a cloud of POISON_GAS is thrown in the face of all ADJACENT enemy Pokémon, dealing [15,30,60,120,SP] SPECIAL.",
+  "tr_current": "Tüm ADJACENT düşman Pokémonların yüzüne pis kokulu bir gaz bulutu fırlatarak [15,30,60,120,SP] SPECIAL verir. BOARD_EFFECT: gaz 3 saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.STEALTH_ROCKS",
+  "en_old": "Lay sharp stones within a [1,2,3,3] tile CONE, dealing [30,40,50,80,SP] SPECIAL to any enemy Pokémon in the area. BOARD_EFFECT: stones deal 10 PHYSICAL per second and WOUND non ROCK Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: lay sharp STEALTH_ROCKS within a [1,2,3,3] tile CONE, dealing [30,40,50,80,SP] SPECIAL to any enemy Pokémon in the area.",
+  "tr_current": "[1,2,3,3] karelik bir CONE alanına keskin taşlar döşeyerek alandaki her düşman Pokémon'a [30,40,50,80,SP] SPECIAL verir. BOARD_EFFECT: taşlar saniyede 10 PHYSICAL verir ve üstünde yürüyen ROCK olmayan Pokémonları WOUND yapar."
+ },
+ {
+  "key": "ability_description.STOCKPILE",
+  "en_old": "The user inflates itself, gaining [30,40,50,100,SP] max HP and losing 10 SPEED. After 3 casts, spit up, dealing [50,50,50,100,SP]% of max HP as SPECIAL to the target and propelling the user to the backline while retrieving its base max HP and SPEED.",
+  "en_new": "The user inflates itself, gaining [30,40,50,100,SP] max HP and losing 10 SPEED. After 3 casts, spit up, dealing [50,50,50,100,SP]% of max HP as SPECIAL to the target and propelling the user to the backline while retrieving its BASE max HP and SPEED.",
+  "tr_current": "Kullanan kendini şişirir, [30,40,50,100,SP] maks HP kazanır ve 10 SPEED kaybeder. 3 kullanımdan sonra tükürür; hedefe maks HP değerinin [50,50,50,100,SP]% kadar SPECIAL verir, kullanan arka sıraya fırlar ve BASE maks HP ile SPEED değerlerine geri döner."
+ },
+ {
+  "key": "ability_description.BARB_BARRAGE",
+  "en_old": "Dive into the middle of the enemy team, dealing [15,30,45,60,120,SP] SPECIAL to all ADJACENT enemy Pokémon and inflict them with POISONNED for 3 seconds.",
+  "en_new": "Dive into the middle of the enemy team, dealing [15,30,45,60,120,SP] SPECIAL to all ADJACENT enemy Pokémon and inflict them with POISONED for 3 seconds.",
+  "tr_current": "Düşman takımın ortasına dalar, tüm ADJACENT düşman Pokémonlara [15,30,45,60,120,SP] SPECIAL verir ve onlara 3 saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.STICKY_WEB",
+  "en_old": "Deal [20,35,70,140,SP] SPECIAL to the target and project a web around them. BOARD_EFFECT: Pokémon walking on the web are inflicted with PARALYSIS for 2 seconds.",
+  "en_new": "Deal [20,35,70,140,SP] SPECIAL to the target and project STICKY_WEB around them. BOARD_EFFECT: inflicts PARALYSIS for 2 seconds to Pokémon standing on it.",
+  "tr_current": "Hedefe [20,35,70,140,SP] SPECIAL verir ve etrafına STICKY_WEB yayar. BOARD_EFFECT: üstünde duran Pokémonlara 2 saniyelik PARALYSIS uygular."
+ },
+ {
+  "key": "ability_description.ACCELEROCK",
+  "en_old": "Jump next to the farthest enemy and deal [100,125,250,SP]% of ATK as SPECIAL to them. Immediately **reduce the user's** DEF by 2 and increase their SPEED by 5 up to [5,SP] times.",
+  "en_new": "Jump next to the farthest enemy and deal [100,125,250,SP]% of ATK as SPECIAL to them. Immediately reduce the user's DEF by 2 and increase their SPEED by 5 up to [5,SP] times.",
+  "tr_current": "En uzaktaki düşmanın yanına zıplar ve ona ATK değerinin [100,125,250,SP]% kadar SPECIAL verir. Anında kullananın DEF değerini 2 azaltır ve SPEED değerini 5 artırır; bu en fazla [5,SP] kez olur."
+ },
+ {
+  "key": "ability_description.PETAL_BLIZZARD",
+  "en_old": "Deal [30,SP] SPECIAL to all ADJACENT enemy Pokémon and gain 10 AP.",
+  "en_new": "Deal [10,20,30,50,SP] SPECIAL to all ADJACENT enemy Pokémon and gain 10 AP.",
+  "tr_current": "Tüm ADJACENT düşman Pokémonlara [30,SP] SPECIAL verir ve 10 AP kazanır."
+ },
+ {
+  "key": "ability_description.FLEUR_CANNON",
+  "en_old": "Launch a devastating laser beam, dealing [50,75,100,200,SP] SPECIAL to all enemy Pokémon in the path and **reduce the user's** AP by 20.",
+  "en_new": "Launch a devastating laser beam, dealing [50,75,100,200,SP] SPECIAL to all enemy Pokémon in the path and reduce the user's AP by 20.",
+  "tr_current": "Yıkıcı bir lazer ışını fırlatır, yolundaki tüm düşman Pokémonlara [50,75,100,200,SP] SPECIAL verir ve kullananın AP değerini 20 azaltır."
+ },
+ {
+  "key": "ability_description.EXTREME_SPEED",
+  "en_old": "Dash to the farthest enemy, dealing [20,30,40,80,SP] SPECIAL to all enemy Pokémon in the path.",
+  "en_new": "DASH to the farthest enemy, dealing [20,30,40,80,SP] SPECIAL to all enemy Pokémon in the path.",
+  "tr_current": "En uzaktaki düşmana DASH yapar, yolundaki tüm düşman Pokémonlara [20,30,40,80,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.PSYCHO_BOOST",
+  "en_old": "Slash the target and any enemy Pokémon ADJACENT_IN_THE_SAME_ROW, dealing [90,120,150,300,SP] SPECIAL. Then, **reduce the user's** AP by 10 for each Pokémon hit.",
+  "en_new": "Slash the target and any enemy Pokémon ADJACENT_IN_THE_SAME_ROW, dealing [90,120,150,300,SP] SPECIAL. Then, reduce the user's AP by 10 for each Pokémon hit.",
+  "tr_current": "Hedefi ve ADJACENT_IN_THE_SAME_ROW düşman Pokémonları keserek [90,120,150,300,SP] SPECIAL verir. Ardından isabet eden her Pokémon için kullananın AP değeri 10 azalır."
+ },
+ {
+  "key": "ability_description.CROSS_POISON",
+  "en_old": "Deal [30,60,120,240,SP] SPECIAL to the target and enemy Pokémon ADJACENT to them and inflict them with POISONNED for 2 seconds.",
+  "en_new": "Deal [30,60,120,240,SP] SPECIAL to the target and enemy Pokémon ADJACENT to them and inflict them with POISONED for 2 seconds.",
+  "tr_current": "Hedefe ve ona ADJACENT düşman Pokémonlara [30,60,120,240,SP] SPECIAL verir ve onlara 2 saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.PSYSHIELD_BASH",
+  "en_old": "Dash to the farthest reachable enemy Pokémon, dealing [30,40,50,60,120,SP] SPECIAL to all enemy Pokémon in the path and PROTECT the user for 1 second.",
+  "en_new": "DASH to the farthest reachable enemy Pokémon, dealing [30,40,50,60,120,SP] SPECIAL to all enemy Pokémon in the path and PROTECT the user for 1 second.",
+  "tr_current": "Ulaşılabilen en uzak düşman Pokémon'a DASH yapar, yolundaki tüm düşman Pokémonlara [30,40,50,60,120,SP] SPECIAL verir ve kullanana 1 saniyelik PROTECT verir."
+ },
+ {
+  "key": "ability_description.SPIKES",
+  "en_old": "Throw up to [6, SP] metal spikes within a 3 tiles range CONE, dealing [25,50,100,200,SP] SPECIAL to any enemy Pokémon in the area. BOARD_EFFECT: spikes deal 10 TRUE per second and inflict ARMOR_BREAK onto non FLYING or STEEL Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: throw up to [6, SP] metal SPIKES within a 3 tiles range CONE, dealing [25,50,100,200,SP] SPECIAL to any enemy Pokémon in the area.",
+  "tr_current": "3 kare menzilli bir CONE alanına en fazla [6, SP] metal diken fırlatarak alandaki her düşman Pokémon'a [25,50,100,200,SP] SPECIAL verir. BOARD_EFFECT: dikenler saniyede 10 TRUE verir ve üstünde yürüyen FLYING ya da STEEL olmayan Pokémonlara ARMOR_BREAK uygular."
+ },
+ {
+  "key": "ability_description.GUNK_SHOT",
+  "en_old": "Deal [50,100,200,400,SP] SPECIAL to the target and inflict POISONNED for [2,4,8,16,SP] seconds.",
+  "en_new": "Deal [50,100,200,400,SP] SPECIAL to the target and inflict POISONED for [2,4,8,16,SP] seconds.",
+  "tr_current": "Hedefe [50,100,200,400,SP] SPECIAL verir ve [2,4,8,16,SP] saniyelik POISONNED uygular."
+ },
+ {
+  "key": "ability_description.STONE_AXE",
+  "en_old": "Deal [30,40,50,100,SP] TRUE to the target and lay sharp stones around them. BOARD_EFFECT: stones deal 10 PHYSICAL per second and WOUND non ROCK Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: deal [30,40,50,100,SP] TRUE to the target and lay STEALTH_ROCKS around them.",
+  "tr_current": "Hedefe [30,40,50,100,SP] TRUE verir ve etrafına keskin taşlar döşer. BOARD_EFFECT: taşlar saniyede 10 PHYSICAL verir ve üstünde yürüyen ROCK olmayan Pokémonları WOUND yapar."
+ },
+ {
+  "key": "ability_description.FAKE_OUT",
+  "en_old": "Deal [40,80,150,300,SP] SPECIAL to the target and **reduce the user's** AP by 30. Inflict the target with FLINCH for 3 seconds unless the user's AP was negative.",
+  "en_new": "Deal [40,80,150,300,SP] SPECIAL to the target and reduce the user's AP by 30. Inflict the target with FLINCH for 3 seconds unless the user's AP was negative.",
+  "tr_current": "Hedefe [40,80,150,300,SP] SPECIAL verir ve kullananın AP değerini 30 azaltır. Kullananın AP değeri negatif değilse hedefe 3 saniyelik FLINCH uygular."
+ },
+ {
+  "key": "ability_description.FELL_STINGER",
+  "en_old": "Deal [400,400,400,800,SP]% of ATK as SPECIAL to the target. If it knocks out the target, gain 30% of base ATK.",
+  "en_new": "Deal [400,400,400,800,SP]% of ATK as SPECIAL to the target. If it knocks out the target, gain 30% of BASE ATK.",
+  "tr_current": "Hedefe ATK değerinin [400,400,400,800,SP]% kadar SPECIAL verir. Hedefi nakavt ederse BASE ATK değerinin %30'unu kazanır."
+ },
+ {
+  "key": "ability_description.STEEL_WING",
+  "en_old": "Dash to the farthest reachable enemy Pokémon, dealing [10,20,40,80,SP] SPECIAL + 2x DEF as SPECIAL to and stealing 1 DEF from all enemy Pokémon in the path.",
+  "en_new": "DASH to the farthest reachable enemy Pokémon, dealing [10,20,40,80,SP] SPECIAL + 2x DEF as SPECIAL to and stealing 1 DEF from all enemy Pokémon in the path.",
+  "tr_current": "Ulaşılabilen en uzak düşman Pokémon'a DASH yapar; yolundaki tüm düşman Pokémonlara [10,20,40,80,SP] SPECIAL + 2x DEF kadar SPECIAL verir ve her birinden 1 DEF çalar."
+ },
+ {
+  "key": "ability_description.POISON_STING",
+  "en_old": "Inflict the target with [2,3,4,5] stacks of POISONNED. Every stack over the max immediately deals [25,50,100,150,SP] SPECIAL.",
+  "en_new": "Inflict the target with [2,3,4,5] stacks of POISONED. Every stack over the max immediately deals [25,50,100,150,SP] SPECIAL.",
+  "tr_current": "Hedefe [2,3,4,5] POISONNED yığını uygular. Maksimumu aşan her yığın anında [25,50,100,150,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.MORTAL_SPIN",
+  "en_old": "Knock back any Pokémon targeting the user in melee range. Deal [20,40,80,160,SP] SPECIAL to any enemies hit, and apply POISONNED for [4,4,8,16,SP] seconds",
+  "en_new": "Knock back any Pokémon targeting the user in melee range. Deal [20,40,80,160,SP] SPECIAL to any enemies hit, and apply POISONED for [4,4,8,16,SP] seconds",
+  "tr_current": "Kullananı yakın mesafeden hedef alan her Pokémon'u geri iter. İsabet alan her düşmana [20,40,80,160,SP] SPECIAL verir ve [4,4,8,16,SP] saniyelik POISONNED uygular"
+ },
+ {
+  "key": "ability_description.FIRESTARTER",
+  "en_old": "Gains [10,20,40,80,SP] SPEED and FLY_AWAY, dropping embers on the tiles in between. The embers inflict [20,40,80,160,SP] SPECIAL on impact.",
+  "en_new": "BOARD_EFFECT: gains [10,20,40,80,SP] SPEED and FLY_AWAY, dropping EMBER on the tiles in between. The embers inflict [20,40,80,160,SP] SPECIAL on impact.",
+  "tr_current": "BOARD_EFFECT: [10,20,40,80,SP] SPEED kazanır ve FLY_AWAY yapar, aradaki karelere EMBER bırakır. Közler düştüğünde [20,40,80,160,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.RAGE",
+  "en_old": "Get RAGE status for 3 seconds and gain [10,10,10,20,SP]% base ATK for each 10% of max HP missing",
+  "en_new": "Get RAGE status for 3 seconds and gain [10,10,10,20,SP]% BASE ATK for each 10% of max HP missing",
+  "tr_current": "3 saniyelik RAGE durumu alır ve eksik maks HP değerinin her %10'u için [10,10,10,20,SP]% BASE ATK kazanır"
+ },
+ {
+  "key": "ability_description.BULK_UP",
+  "en_old": "Increase base ATK and base DEF by [50,50,50,100,SP]%",
+  "en_new": "Increase BASE ATK and BASE DEF by [50,50,50,100,SP]%",
+  "tr_current": "BASE ATK ve BASE DEF değerlerini [50,50,50,100,SP]% artırır"
+ },
+ {
+  "key": "ability_description.MALIGNANT_CHAIN",
+  "en_old": "Extends a poisonous chain to ensnare target, inflicting POSSESSED and 3 stacks of POISONNED for [3,3,3,6,SP] seconds.",
+  "en_new": "Extends a poisonous chain to ensnare target, inflicting POSSESSED and 3 stacks of POISONED for [3,3,3,6,SP] seconds.",
+  "tr_current": "Hedefi tuzağa düşürmek için zehirli bir zincir uzatır; [3,3,3,6,SP] saniyelik POSSESSED ve 3 POISONNED yığını uygular."
+ },
+ {
+  "key": "ability_description.BEHEMOTH_BLADE",
+  "en_old": "Dash behind the target and deliver a powerful slash, dealing [30,60,90,120,240,SP] + [100,SP]% ATK as SPECIAL",
+  "en_new": "DASH behind the target and deliver a powerful slash, dealing [30,60,90,120,240,SP] + [100,SP]% ATK as SPECIAL",
+  "tr_current": "Hedefin arkasına DASH yapar ve güçlü bir kesik atarak [30,60,90,120,240,SP] + ATK değerinin [100,SP]% kadar SPECIAL verir"
+ },
+ {
+  "key": "ability_description.ICICLE_MISSILE",
+  "en_old": "Launches [1,2,3,5] icicle missiles on enemies in the backline, dealing [50,SP] SPECIAL and inflicting FREEZE for 2 seconds.",
+  "en_new": "Launches [1,2,3,5] icicle missiles towards enemies in the backline, dealing [50,SP] SPECIAL and inflicting FREEZE for 2 seconds. Can miss if target moves.",
+  "tr_current": "Arka sıradaki düşmanlara [1,2,3,5] buz füzesi fırlatır, [50,SP] SPECIAL verir ve 2 saniyelik FREEZE uygular. Hedef hareket ederse ıskalayabilir."
+ },
+ {
+  "key": "ability_description.DRUM_BEATING",
+  "en_old": "Cycles through:\n1. Wood block: give [10,20,40,80,SP] SHIELD to the entire team\n2. Drum roll: deal [10,20,40,80,SP] SPECIAL to all enemies\n3. Raise the tempo: give [10,20,40,80,SP] SPEED to the entire team",
+  "en_new": "Cycles through:\n1. Wood block: give [10,20,40,80,SP] SHIELD to the entire team\n2. Drum roll: deal [10,20,40,80,SP] SPECIAL to all enemies\n3. Raise the tempo: give [10,20,40,80] SPEED to the entire team",
+  "tr_current": "Sırayla şunları yapar:\n1. Tahta blok: Tüm takıma [10,20,40,80,SP] SHIELD verir\n2. Davul gümbürtüsü: Tüm düşmanlara [10,20,40,80,SP] SPECIAL verir\n3. Tempoyu artır: Tüm takıma [10,20,40,80,SP] SPEED verir"
+ },
+ {
+  "key": "ability_description.COTTON_SPORE",
+  "en_old": "Create a cloud of cotton spores that reduce the SPEED of the 3 closest enemies by [10,20,30,50,SP]. BOARD_EFFECT: cotton inflicts SLEEP for 1 second on any Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: create a cloud of cotton spores that reduce the SPEED of the 3 closest enemies by [10,20,30,50,SP] and leave COTTON_BALL under each of them.",
+  "tr_current": "En yakın 3 düşmanın SPEED değerini [10,20,30,50,SP] azaltan bir pamuk sporu bulutu oluşturur. BOARD_EFFECT: pamuk, üstünde yürüyen her Pokémon'a 1 saniyelik SLEEP uygular."
+ },
+ {
+  "key": "ability_description.COTTON_GUARD",
+  "en_old": "Wraps its body in soft cotton, gaining [15,30,60,120,SP] SHIELD and 3 DEF, then dropping cotton balls onto the 3 tiles in front of the user. BOARD_EFFECT: cotton balls inflict SLEEP for 1 second on any Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: wraps its body in soft cotton, gaining [15,30,60,120,SP] SHIELD and 3 DEF, then dropping COTTON_BALL onto the 3 tiles in front of the user.",
+  "tr_current": "Vücudunu yumuşak pamuğa sarar, [15,30,60,120,SP] SHIELD ve 3 DEF kazanır, ardından kullananın önündeki 3 kareye pamuk topları bırakır. BOARD_EFFECT: pamuk topları üstünde yürüyen her Pokémon'a 1 saniyelik SLEEP uygular."
+ },
+ {
+  "key": "ability_description.CHAIN_CRAZED",
+  "en_old": "Self inflict POISONNED for 3 seconds and gain [5,10,15,20,SP] ATK, [3,6,10,15,SP] DEF and [10,15,20,25] SPEED",
+  "en_new": "Self inflict POISONED for 3 seconds and gain [5,10,15,20,SP] ATK, [3,6,10,15,SP] DEF and [10,15,20,25] SPEED",
+  "tr_current": "Kendine 3 saniyelik POISONNED uygular ve [5,10,15,20,SP] ATK, [3,6,10,15,SP] DEF ve [10,15,20,25] SPEED kazanır"
+ },
+ {
+  "key": "ability_description.SHELL_SIDE_ARM",
+  "en_old": "Launches a wave that bounces to 3 additional targets, prioritizing high HP Pokémon. Enemies becomes POISONNED for [2,3,4,6,SP] seconds, allies gain [10,20,30,50] AP.",
+  "en_new": "Launches a wave that bounces to 3 additional targets, prioritizing high HP Pokémon. Enemies becomes POISONED for [2,3,4,6,SP] seconds, allies gain [10,20,30,50] AP.",
+  "tr_current": "Yüksek HP değerine sahip Pokémonlara öncelik vererek 3 ek hedefe seken bir dalga fırlatır. Düşmanlar [2,3,4,6,SP] saniyeliğine POISONNED olur, müttefikler [10,20,30,50] AP kazanır."
+ },
+ {
+  "key": "ability_description.TRIMMING_MOWER",
+  "en_old": "Dash within 2 tiles to hit the most enemies possible and heals [30,45,60,120,SP] HP. Excess healing becomes SHIELD. Deals [20,30,40,80,SP] SPECIAL to ADJACENT enemies.",
+  "en_new": "DASH within 2 tiles to hit the most enemies possible and heals [30,45,60,120,SP] HP. Excess healing becomes SHIELD. Deals [20,30,40,80,SP] SPECIAL to ADJACENT enemies.",
+  "tr_current": "Mümkün olan en çok düşmana vurmak için 2 kare içinde DASH yapar ve [30,45,60,120,SP] HP iyileşir. Fazla iyileşme SHIELD olur. ADJACENT düşmanlara [20,30,40,80,SP] SPECIAL verir."
+ },
+ {
+  "key": "ability_description.STRANGE_STEAM",
+  "en_old": "Projects a strange stream around the user, gaining 1 tile range per cast. Allies in the zone receive FAIRY_FIELD and enemies in the zone have [30,30,100,100,LK]% chance to get CONFUSION for [3,SP,ND=1] seconds. BOARD_EFFECT: Pokémon in the steam deal and receive 20% more SPECIAL.",
+  "en_new": "BOARD_EFFECT: projects STRANGE_STEAM around the user, gaining 1 tile range per cast. Allies in the zone receive FAIRY_FIELD and enemies in the zone have [30,30,100,100,LK]% chance to get CONFUSION for [3,SP,ND=1] seconds.",
+  "tr_current": "Kullananın etrafına garip bir akıntı yayar, her kullanımda menzil 1 kare artar. Bölgedeki müttefikler FAIRY_FIELD alır, bölgedeki düşmanlar [30,30,100,100,LK]% ihtimalle [3,SP,ND=1] saniyelik CONFUSION alır. BOARD_EFFECT: buharın içindeki Pokémonlar %20 daha fazla SPECIAL verir ve alır."
+ },
+ {
+  "key": "ability_description.CITY_SHUTTLE",
+  "en_old": "Leap to the closest ally and saddle them on the user's back, then dash to the farthest enemy reachable. Deal [10,20,30,40,SP] SPECIAL + [100,SP]% of the carried ally's ATK to all enemy Pokémon in the path. Grant [20,40,80,160,SP] SHIELD to the user and the carried ally.",
+  "en_new": "Leap to the closest ally and saddle them on the user's back, then DASH to the farthest enemy reachable. Deal [10,20,30,40,SP] SPECIAL + [100,SP]% of the carried ally's ATK to all enemy Pokémon in the path. Grant [20,40,80,160,SP] SHIELD to the user and the carried ally.",
+  "tr_current": "En yakın müttefike sıçrayıp onu sırtına alır, ardından ulaşılabilen en uzak düşmana DASH yapar. Yolundaki tüm düşman Pokémonlara [10,20,30,40,SP] SPECIAL + taşınan müttefikin ATK değerinin [100,SP]% kadarını verir. Kullanana ve taşınan müttefike [20,40,80,160,SP] SHIELD verir."
+ },
+ {
+  "key": "ability_description.BANEFUL_BUNKER",
+  "en_old": "Taunt all ADJACENT enemies and PROTECT itself for 2 seconds. During this time, units that melee attack the user take [10,20,30,50,SP] SPECIAL and are inflicted with POISONNED for 3 seconds.",
+  "en_new": "Taunt all ADJACENT enemies and PROTECT itself for 2 seconds. During this time, units that melee attack the user take [10,20,30,50,SP] SPECIAL and are inflicted with POISONED for 3 seconds.",
+  "tr_current": "Tüm ADJACENT düşmanları kışkırtır ve kendine 2 saniyelik PROTECT verir. Bu sürede kullanana yakından saldıran birimler [10,20,30,50,SP] SPECIAL alır ve 3 saniyelik POISONNED olur."
+ },
+ {
+  "key": "ability_description.ORDER_UP",
+  "en_old": "Deal [30,60,100,200,SP] SPECIAL to the target. If a Tatsugiri has been swallowed, gains the stats provided by it again. If no Tatsugiri is on board, one spawns on your bench, with a different form each round.",
+  "en_new": "A sushi table drops on the target, dealing [30,60,100,200,SP] SPECIAL. Dondozo and allies fed with RICE gain Tatsugiri Commander bonus stats again. If no Tatsugiri is on board or bench, one spawns on your bench, with a different form each stage.",
+  "tr_current": "Hedefin üstüne bir suşi masası düşer, [30,60,100,200,SP] SPECIAL verir. Dondozo ve RICE ile beslenen müttefikler Tatsugiri Komutan bonus statlarını yeniden kazanır. Sahada ya da yedekte Tatsugiri yoksa yedeğinde her aşama farklı formda bir tane belirir."
+ },
+ {
+  "key": "ability_description.CEASELESS_EDGE",
+  "en_old": "Hits the 3 enemies in front of the user for [20,40,80,160,SP] SPECIAL, also leaving spikes under them. Can crit by default. BOARD_EFFECT: spikes deal 10 TRUE per second and inflict ARMOR_BREAK onto non FLYING or STEEL Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: hits the 3 enemies in front of the user for [20,40,80,160,SP] SPECIAL, also leaving SPIKES under them. Can crit by default.",
+  "tr_current": "Kullananın önündeki 3 düşmana [20,40,80,160,SP] SPECIAL verir ve altlarına dikenler bırakır. Varsayılan olarak kritik vurabilir. BOARD_EFFECT: dikenler saniyede 10 TRUE verir ve üstünde yürüyen FLYING ya da STEEL olmayan Pokémonlara ARMOR_BREAK uygular."
+ },
+ {
+  "key": "ability_description.TWINEEDLE",
+  "en_old": "Deals [25,50,80,160,SP] SPECIAL to the target twice. The first hit can crit by default, and the second hit has [40,LK]% chance to apply POISONNED for 4 seconds.",
+  "en_new": "Deals [25,50,80,160,SP] SPECIAL to the target twice. The first hit can crit by default, and the second hit has [40,LK]% chance to apply POISONED for 4 seconds.",
+  "tr_current": "Hedefe iki kez [25,50,80,160,SP] SPECIAL verir. İlk vuruş varsayılan olarak kritik vurabilir, ikinci vuruş [40,LK]% ihtimalle 4 saniyelik POISONNED uygular."
+ },
+ {
+  "key": "effect.SMOKE",
+  "en_old": "Gas",
+  "en_new": "Smoke",
+  "tr_current": "Duman"
+ },
+ {
+  "key": "effect_description.PURE_POWER",
+  "en_old": "Gain 30 SHIELD. Get a fourth SILK_SCARF. All NORMAL SILK_SCARF-made item holders gain 30% base ATK and 30 AP.",
+  "en_new": "Gain 30 SHIELD. Get a fourth SILK_SCARF. All NORMAL SILK_SCARF-made item holders gain 30% BASE ATK and 30 AP.",
+  "tr_current": "30 SHIELD kazan. Dördüncü bir SILK_SCARF al. NORMAL SILK_SCARF ile yapılmış item taşıyan herkes %30 BASE ATK ve 30 AP kazanır."
+ },
+ {
+  "key": "effect_description.COACHING",
+  "en_old": "Blocks 12 damage. Get a Training Bag. Each stage, FIGHTING Pokémon on the bench with a training bag or a pillar on their left will train and gain 4 ATK and 10% base max HP permanently.",
+  "en_new": "Blocks 12 damage. Get a Training Bag. Each stage, FIGHTING Pokémon on the bench with a training bag or a pillar on their left will train and gain 4 ATK and 10% BASE max HP permanently.",
+  "tr_current": "12 hasarı engeller. Bir Antrenman Torbası al. Her aşamada yedekte, solunda antrenman torbası ya da sütun olan FIGHTING Pokémonlar antrenman yapar ve kalıcı olarak 4 ATK ve %10 BASE maks HP kazanır."
+ },
+ {
+  "key": "effect_description.POISONOUS",
+  "en_old": "[30,LK]% chance to POISONNED",
+  "en_new": "[30,LK]% chance to POISONED",
+  "tr_current": "[30,LK]% ihtimalle POISONNED"
+ },
+ {
+  "key": "effect_description.VENOMOUS",
+  "en_old": "[60,LK]% chance to POISONNED. Max stacks of POISONNED +1",
+  "en_new": "[60,LK]% chance to POISONED. Max stacks of POISONED +1",
+  "tr_current": "[60,LK]% ihtimalle POISONNED. Maks POISONNED yığını +1"
+ },
+ {
+  "key": "effect_description.TOXIC",
+  "en_old": "[100,LK]% chance to POISONNED. Max stacks of POISONNED +2",
+  "en_new": "[100,LK]% chance to POISONED. Max stacks of POISONED +2",
+  "tr_current": "[100,LK]% ihtimalle POISONNED. Maks POISONNED yığını +2"
+ },
+ {
+  "key": "effect_description.WATER_VEIL",
+  "en_old": "-70% negative status duration and damage. Wave heals 30% max HP and deal 15% max HP as TRUE. A second wave hits after 16 seconds.",
+  "en_new": "-70% negative status duration and damage. Wave heals 30% max HP and deal 15% max HP as TRUE. A second wave hits after 14 seconds.",
+  "tr_current": "Olumsuz durum süresi ve hasarı -%70. Dalga maks HP değerinin %30'u kadar iyileştirir ve maks HP değerinin %15'i kadar TRUE verir. 14 saniye sonra ikinci bir dalga gelir."
+ },
+ {
+  "key": "effect_description.SURGE_SURFER",
+  "en_old": "Waves hit every 8 seconds for the rest of combat. After the first wave, a Surfing Pikachu joins you in battle.",
+  "en_new": "Waves hit every 7 seconds for the rest of combat. After the first wave, a Surfing Pikachu joins you in battle.",
+  "tr_current": "Savaşın geri kalanında her 7 saniyede bir dalga gelir. İlk dalgadan sonra Sörfçü bir Pikachu savaşta sana katılır."
+ },
+ {
+  "key": "effect_description.SKYDIVE",
+  "en_old": "Now perform skydive attacks after the FLY_AWAY, dealing 150% PHYSICAL ATK on landing on their target",
+  "en_new": "Now perform skydive attacks after the FLY_AWAY, dealing 200% PHYSICAL ATK on landing on their target",
+  "tr_current": "FLY_AWAY sonrası artık gökten dalış saldırısı yapar, hedefinin üstüne inerken %200 PHYSICAL ATK hasarı verir"
+ },
+ {
+  "key": "effect_description.ANCIENT_POWER",
+  "en_old": "Gain 40% base max HP as SHIELD and +40% base ATK",
+  "en_new": "Gain 40% BASE max HP as SHIELD and +40% BASE ATK",
+  "tr_current": "BASE maks HP değerinin %40'ı kadar SHIELD ve +%40 BASE ATK kazan"
+ },
+ {
+  "key": "effect_description.ELDER_POWER",
+  "en_old": "Gain 70% base max HP as SHIELD and +70% base ATK",
+  "en_new": "Gain 70% BASE max HP as SHIELD and +70% BASE ATK",
+  "tr_current": "BASE maks HP değerinin %70'i kadar SHIELD ve +%70 BASE ATK kazan"
+ },
+ {
+  "key": "effect_description.FORGOTTEN_POWER",
+  "en_old": "Gain 100% base max HP as SHIELD and +100% base ATK",
+  "en_new": "Gain 100% BASE max HP as SHIELD and +100% BASE ATK",
+  "tr_current": "BASE maks HP değerinin %100'ü kadar SHIELD ve +%100 BASE ATK kazan"
+ },
+ {
+  "key": "effect_description.LINK_CABLE",
+  "en_old": "Gain +5% base ATK, AP and max HP as SHIELD per held item. Get another tool.",
+  "en_new": "Gain +5% BASE ATK, AP and max HP as SHIELD per held item. Get another tool.",
+  "tr_current": "Taşınan her item için BASE ATK, AP ve maks HP değerinin +%5'i kadar SHIELD kazan. Bir alet daha al."
+ },
+ {
+  "key": "effect_description.GOOGLE_SPECS",
+  "en_old": "Gain +10% base ATK, AP and max HP as SHIELD per held item. Get another tool.",
+  "en_new": "Gain +10% BASE ATK, AP and max HP as SHIELD per held item. Get another tool.",
+  "tr_current": "Taşınan her item için BASE ATK, AP ve maks HP değerinin +%10'u kadar SHIELD kazan. Bir alet daha al."
+ },
+ {
+  "key": "effect_description.POISON_GAS",
+  "en_old": "Inflicts POISONNED every second",
+  "en_new": "Inflicts POISONED while in the gas (POISON Pokémon are immune).",
+  "tr_current": "Her saniye POISONNED uygular"
+ },
+ {
+  "key": "effect_description.STRANGE_STEAM",
+  "en_old": "Pick one of three wands among GUIDING_WAND, SURROUND_WAND, POUNCE_WAND, TWO_EDGED_WAND",
+  "en_new": "Makes Pokémon standing on it deal and receive 20% more SPECIAL.",
+  "tr_current": "GUIDING_WAND, SURROUND_WAND, POUNCE_WAND, TWO_EDGED_WAND arasından gelen üç asadan birini seç"
+ },
+ {
+  "key": "effect_description.SHINING_RAY",
+  "en_old": "Increase AP by 20 and base ATK by 20%",
+  "en_new": "Increase AP by 20 and BASE ATK by 20%",
+  "tr_current": "AP değerini 20, BASE ATK değerini %20 artırır"
+ },
+ {
+  "key": "effect_description.ETERNAL_LIGHT",
+  "en_old": "Also increase base DEF and SPE_DEF by 50% and give SAFEGUARD for 8 seconds",
+  "en_new": "Also increase BASE DEF and SPE_DEF by 50% and give SAFEGUARD for 8 seconds",
+  "tr_current": "Ayrıca BASE DEF ve SPE_DEF değerlerini %50 artırır ve 8 saniyelik SAFEGUARD verir"
+ },
+ {
+  "key": "effect_description.HUSTLE",
+  "en_old": "+40 SPEED and +40% base ATK",
+  "en_new": "+40 SPEED and +40% BASE ATK",
+  "tr_current": "+40 SPEED ve +%40 BASE ATK"
+ },
+ {
+  "key": "item_description.AQUA_EGG",
+  "en_old": "The holder regains 20% of its max PP after casting its ability, + 2 PP for each cast done in the fight",
+  "en_new": "The holder regains 20% of its max PP ON_CAST, + 2 PP for each cast done in the fight",
+  "tr_current": "Taşıyan ON_CAST maks PP değerinin %20'sini geri kazanır, savaşta kullandığı her yetenek için + 2 PP"
+ },
+ {
+  "key": "item_description.STAR_DUST",
+  "en_old": "After casting ability, gain 50% of max PP as SHIELD",
+  "en_new": "ON_CAST, gain 50% of max PP as SHIELD",
+  "tr_current": "ON_CAST, maks PP değerinin %50'si kadar SHIELD kazanır"
+ },
+ {
+  "key": "item_description.FLAME_ORB",
+  "en_old": "Holder increases its base ATK by 100% and is immune to FREEZE, but suffers from BURN during the entire fight.",
+  "en_new": "Holder increases its BASE ATK by 100% and is immune to FREEZE, but suffers from BURN during the entire fight.",
+  "tr_current": "Taşıyanın BASE ATK değeri %100 artar ve FREEZE etkisine bağışık olur, ama tüm savaş boyunca BURN etkisi altında kalır."
+ },
+ {
+  "key": "item_description.ASSAULT_VEST",
+  "en_old": "+40 SPE_DEF. Reduce BURN and POISONNED damage by 50%",
+  "en_new": "+40 SPE_DEF. Reduce BURN and POISONED damage by 50%",
+  "tr_current": "+40 SPE_DEF. BURN ve POISONNED hasarını %50 azaltır"
+ },
+ {
+  "key": "item_description.LEPPA_BERRY",
+  "en_old": "Consumed once below 50% HP or after casting ability, heal 50 HP and gain 50 PP",
+  "en_new": "Consumed once below 50% HP or ON_CAST, heal 50 HP and gain 50 PP",
+  "tr_current": "HP %50'nin altına inince ya da ON_CAST yenir; 50 HP iyileştirir ve 50 PP kazandırır"
+ },
+ {
+  "key": "item_description.PECHA_BERRY",
+  "en_old": "Consumed once below 50% HP or after being POISONNED, heal 100 HP and give immunity to POISONNED for the rest of the fight",
+  "en_new": "Consumed once below 50% HP or after being POISONED, heal 100 HP and give immunity to POISONED for the rest of the fight",
+  "tr_current": "HP %50'nin altına inince ya da POISONNED olunca yenir; 100 HP iyileştirir ve savaşın geri kalanında POISONNED bağışıklığı verir"
+ },
+ {
+  "key": "item_description.TERRAIN_EXTENDER",
+  "en_old": "At the start of the fight, holder gains either ELECTRIC_FIELD, GRASS_FIELD, PSYCHIC_FIELD or FAIRY_FIELD based on its synergies. When casting its ability, spread the field effect to all allies sharing the field's synergy.",
+  "en_new": "At the start of the fight, holder gains either ELECTRIC_FIELD, GRASS_FIELD, PSYCHIC_FIELD or FAIRY_FIELD based on its synergies. ON_CAST, spread the field effect to all allies sharing the field's synergy.",
+  "tr_current": "Savaş başlayınca taşıyan, sinerjilerine göre ELECTRIC_FIELD, GRASS_FIELD, PSYCHIC_FIELD ya da FAIRY_FIELD kazanır. ON_CAST, alan efektini o alanın sinerjisine sahip tüm müttefiklere yayar."
+ },
+ {
+  "key": "item_description.SURFBOARD",
+  "en_old": "Gives AQUATIC synergy. The holder casts $t(ability.SURF) at every tidal wave, with the ability level matching current AQUATIC synergy level.",
+  "en_new": "Gives AQUATIC synergy. The holder casts $t(ability.SURF) at every TIDAL_WAVE, with the ability level matching current AQUATIC synergy level.",
+  "tr_current": "AQUATIC sinerjisi verir. Taşıyan her TIDAL_WAVE ile birlikte $t(ability.SURF) kullanır; yetenek seviyesi mevcut AQUATIC sinerji seviyesine eşittir."
+ },
+ {
+  "key": "item_description.RUNNING_SHOES",
+  "en_old": "Gives FIELD synergy. The holder gains 5 SPEED every tile they move (jumps and dashes count for one tile).",
+  "en_new": "Gives FIELD synergy. The holder gains 5 SPEED every tile they move (DASH counts for one tile).",
+  "tr_current": "FIELD sinerjisi verir. Taşıyan hareket ettiği her kare için 5 SPEED kazanır (DASH bir kare sayılır)."
+ },
+ {
+  "key": "item_description.SMELLY_CLAY",
+  "en_old": "Counts for 3 towards SMOG. Under SMOG, your team gains 5% accuracy and has 15% less chance to get POISONNED.",
+  "en_new": "Counts for 3 towards SMOG. Under SMOG, your team gains 5% accuracy and has 15% less chance to get POISONED.",
+  "tr_current": "SMOG için 3 sayılır. SMOG altında takımın %5 isabet kazanır ve POISONNED olma ihtimali %15 azalır."
+ },
+ {
+  "key": "item_description.CHEF_HAT",
+  "en_old": "The holder will cook their Signature Dish between rounds.",
+  "en_new": "The holder will cook their Signature Dish between rounds. Dishes made are removed if the hat is removed.",
+  "tr_current": "Taşıyan turlar arasında İmza Yemeğini pişirir. Şapka çıkarılırsa yapılan yemekler de kaldırılır."
+ },
+ {
+  "key": "item_description.CASTELIACONE",
+  "en_old": "The first attack in the next fight will inflict FREEZE for 5 seconds ON_HIT.",
+  "en_new": "In the next fight, get [30,LK]% chance to inflict FREEZE for 2 seconds ON_HIT. First attack always FREEZE.",
+  "tr_current": "Sonraki savaşta ON_HIT [30,LK]% ihtimalle 2 saniyelik FREEZE uygula. İlk saldırı her zaman FREEZE uygular."
+ },
+ {
+  "key": "item_description.WHIPPED_DREAM",
+  "en_old": "The first attack in the next fight will inflict CHARM for 5 seconds ON_HIT.",
+  "en_new": "In the next fight, get [30,LK]% chance to inflict CHARM for 2 seconds ON_HIT. First attack always CHARM.",
+  "tr_current": "Sonraki savaşta ON_HIT [30,LK]% ihtimalle 2 saniyelik CHARM uygula. İlk saldırı her zaman CHARM uygular."
+ },
+ {
+  "key": "item_description.BLACK_SLUDGE",
+  "en_old": "POISONNED the Pokémon that eats it. If it has POISON type, restore 5% of max HP every 2 seconds instead.",
+  "en_new": "POISONED the Pokémon that eats it. If it has POISON type, restore 5% of max HP every 2 seconds instead. In the next fight, get [30,LK]% chance to inflict POISONED for 5 seconds ON_HIT. The first attack always inflicts POISONED.",
+  "tr_current": "Yiyen Pokémon'u POISONNED yapar. POISON tipindeyse bunun yerine her 2 saniyede maks HP değerinin %5'ini yeniler."
+ },
+ {
+  "key": "item_description.RICE",
+  "en_old": "Gives 80 SHIELD. If a Tatsugiri is on the board, also provides the additional stats given by its form.",
+  "en_new": "Gives 50 additional max HP. If a Tatsugiri is on the board, also provides the additional stats given by its form.",
+  "tr_current": "80 SHIELD verir. Sahada bir Tatsugiri varsa onun formunun verdiği ek statları da sağlar."
+ },
+ {
+  "key": "item_description.NUTRITIOUS_EGG",
+  "en_old": "Start the next fight with +50% base ATK, DEF and SPE_DEF.",
+  "en_new": "Start the next fight with +50% BASE ATK, DEF and SPE_DEF.",
+  "tr_current": "Sonraki savaşa +%50 BASE ATK, DEF ve SPE_DEF ile başla."
+ },
+ {
+  "key": "item_description.RECYCLE_TICKET",
+  "en_old": "Recycle a crafted item on bench or the crafted items held by a Pokémon into their base components. Then all components held are sent back to player item bench. Single use.",
+  "en_new": "Recycle a crafted item on bench or the crafted items held by a Pokémon into their BASE components. Then all components held are sent back to player item bench. Single use.",
+  "tr_current": "Yedekteki üretilmiş bir itemi ya da bir Pokémon'un taşıdığı üretilmiş itemleri BASE parçalarına ayır. Ardından taşınan tüm parçalar oyuncunun item yedeğine geri gönderilir. Tek kullanımlık."
+ },
+ {
+  "key": "item_description.RUSTED_SWORD",
+  "en_old": "It is said that a hero used this sword to halt a terrible disaster in ancient times. Gives the holder +50% base ATK. Transfers to the ally with the weakest ATK when the holder faints.",
+  "en_new": "It is said that a hero used this sword to halt a terrible disaster in ancient times. Gives the holder +50% BASE ATK. Transfers to the ally with the weakest ATK when the holder faints.",
+  "tr_current": "Eski zamanlarda bir kahramanın korkunç bir felaketi bu kılıçla durdurduğu söylenir. Taşıyana +%50 BASE ATK verir. Taşıyan bayılınca ATK değeri en düşük müttefike geçer."
+ },
+ {
+  "key": "item_description.AQUA_MONICA",
+  "en_old": "Pokémon in shop have 5% additional chance to have the WATER type.",
+  "en_new": "Pokémon in the shop are more likely to have the WATER type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların WATER tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.FIERY_DRUM",
+  "en_old": "Pokémon in shop have 5% additional chance to have the FIRE type.",
+  "en_new": "Pokémon in the shop are more likely to have the FIRE type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların FIRE tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.GRASS_CORNET",
+  "en_old": "Pokémon in shop have 5% additional chance to have the GRASS type.",
+  "en_new": "Pokémon in the shop are more likely to have the GRASS type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların GRASS tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.ICY_FLUTE",
+  "en_old": "Pokémon in shop have 5% additional chance to have the ICE type.",
+  "en_new": "Pokémon in the shop are more likely to have the ICE type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların ICE tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.ROCK_HORN",
+  "en_old": "Pokémon in shop have 5% additional chance to have the ROCK type.",
+  "en_new": "Pokémon in the shop are more likely to have the ROCK type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların ROCK tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.SKY_MELODICA",
+  "en_old": "Pokémon in shop have 5% additional chance to have the FLYING type.",
+  "en_new": "Pokémon in the shop are more likely to have the FLYING type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların FLYING tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.TERRA_CYMBAL",
+  "en_old": "Pokémon in shop have 5% additional chance to have the GROUND type.",
+  "en_new": "Pokémon in the shop are more likely to have the GROUND type (5% bonus chance for each shop slot).",
+  "tr_current": "Dükkandaki Pokémonların GROUND tipinde olma ihtimali artar (her dükkan yuvası için %5 bonus ihtimal)."
+ },
+ {
+  "key": "item_description.BALL",
+  "en_old": "A ball made of a large hard berry. When casting ability, throws the ball to the furthest FIELD ally to pass them the BALL and 50 SHIELD. If no FIELD ally with a free item slot at sight, throws the ball to the furthest enemy instead, dealing [30,SP]% of user's SPEED as PHYSICAL",
+  "en_new": "A ball made of a large hard berry. ON_CAST, throws the ball to the furthest FIELD ally to pass them the BALL and 50 SHIELD. If no FIELD ally with a free item slot at sight, throws the ball to the furthest enemy instead, dealing [30,SP]% of user's SPEED as PHYSICAL",
+  "tr_current": "Büyük, sert bir meyveden yapılmış top. ON_CAST, topu en uzaktaki FIELD müttefike atarak BALL ve 50 SHIELD verir. Görüş alanında boş item yuvası olan FIELD müttefik yoksa topu en uzaktaki düşmana atar ve kullananın SPEED değerinin [30,SP]% kadar PHYSICAL verir"
+ },
+ {
+  "key": "item_description.PINK_NECTAR",
+  "en_old": "Can be given to Oricorio to switch to Pa'U Style",
+  "en_new": "Can be given to Oricorio to switch to Pa'u Style",
+  "tr_current": "Oricorio'ya verilerek Pa'u Stiline geçmesini sağlar"
+ },
+ {
+  "key": "passive_description.SYNCHRO",
+  "en_old": "If the Pokémon is affected by POISONNED, BURN, WOUND or SILENCE, the enemy caster will suffer the same negative status",
+  "en_new": "If the Pokémon is affected by POISONED, BURN, WOUND or SILENCE, the enemy caster will suffer the same negative status",
+  "tr_current": "Pokémon POISONNED, BURN, WOUND ya da SILENCE etkisine maruz kalırsa, bunu uygulayan düşman da aynı olumsuz durumu yaşar"
+ },
+ {
+  "key": "passive_description.UNOWN",
+  "en_old": "Unown cannot hold items and vanish after casting their ability",
+  "en_new": "Unown cannot hold items and vanish ON_CAST",
+  "tr_current": "Unown item taşıyamaz ve ON_CAST kaybolur"
+ },
+ {
+  "key": "passive_description.GLISCOR",
+  "en_old": "First stack of POISONNED heals this Pokémon instead of taking damage",
+  "en_new": "First stack of POISONED heals this Pokémon instead of taking damage",
+  "tr_current": "İlk POISONNED yığını bu Pokémon'a hasar vermek yerine onu iyileştirir"
+ },
+ {
+  "key": "passive_description.GUTS",
+  "en_old": "The Pokémon gains 5 ATK as long as it is BURN or POISONNED",
+  "en_new": "The Pokémon gains 5 ATK as long as it is BURN or POISONED",
+  "tr_current": "Pokémon BURN ya da POISONNED durumunda olduğu sürece 5 ATK kazanır"
+ },
+ {
+  "key": "passive_description.STENCH",
+  "en_old": "Leaves behind a stinking cloud that POISONNED any unit that breathes it",
+  "en_new": "BOARD_EFFECT: leaves behind a stinky POISON_GAS that POISONED any unit that breathes it",
+  "tr_current": "Arkasında soluyan her birimi POISONNED yapan pis kokulu bir bulut bırakır"
+ },
+ {
+  "key": "passive_description.ILLUMISE_VOLBEAT",
+  "en_old": "Illumise and Volbeat gain 5 PP per second for each other member of their species alive on the board",
+  "en_new": "Illumise and Volbeat gain 5 PP per second for each other Illumise and Volbeat alive on the board",
+  "tr_current": "Illumise ve Volbeat, sahada hayatta olan diğer her Illumise ve Volbeat için saniyede 5 PP kazanır"
+ },
+ {
+  "key": "passive_description.COMFEY",
+  "en_old": "Comfey cannot hold items. At the start of the fight, the STRONGEST nearest ally with a free item slot wears Comfey and gains its base max HP, ATK, DEF and SPE_DEF. Comfey casts its ability at the same time as its holder. When its holder is KO, Comfey fights on its own.",
+  "en_new": "Comfey cannot hold items. At the start of the fight, the STRONGEST nearest ally with a free item slot wears Comfey and gains its BASE max HP, ATK, DEF and SPE_DEF. Comfey casts its ability at the same time as its holder. When its holder is KO, Comfey fights on its own.",
+  "tr_current": "Comfey item taşıyamaz. Savaş başlayınca boş item yuvası olan en yakın STRONGEST müttefik Comfey'i takar ve onun BASE maks HP, ATK, DEF ve SPE_DEF değerlerini kazanır. Comfey yeteneğini taşıyanıyla aynı anda kullanır. Taşıyan KO olunca Comfey tek başına savaşır."
+ },
+ {
+  "key": "passive_description.COSMOG",
+  "en_old": "$t(pkm.COSMOG) is feeding with the energy of the stars. Gain 10 permanent max HP every time you evolve a unit. Evolve after 8 times.",
+  "en_new": "$t(pkm.COSMOG) is feeding with the energy of the stars. Gain 10 permanent max HP every time you evolve a unit. Evolve after 10 times.",
+  "tr_current": "$t(pkm.COSMOG) yıldızların enerjisiyle besleniyor. Bir birimi her evrimleştirdiğinde kalıcı olarak 10 maks HP kazanır. 10 kez sonra evrimleşir."
+ },
+ {
+  "key": "passive_description.COSMOEM",
+  "en_old": "$t(pkm.COSMOEM) is feeding with the energy of the stars. Gain 10 permanent max HP every time you evolve a unit. Evolve after 8 times into $t(pkm.SOLGALEO) if in the light spot, or $t(pkm.LUNALA) instead.",
+  "en_new": "$t(pkm.COSMOEM) is feeding with the energy of the stars. Gain 10 permanent max HP every time you evolve a unit. Evolve after 10 times into $t(pkm.SOLGALEO) if in the light spot, or $t(pkm.LUNALA) instead.",
+  "tr_current": "$t(pkm.COSMOEM) yıldızların enerjisiyle besleniyor. Bir birimi her evrimleştirdiğinde kalıcı olarak 10 maks HP kazanır. 10 kez sonra spot ışığındaysa $t(pkm.SOLGALEO), değilse $t(pkm.LUNALA) olarak evrimleşir."
+ },
+ {
+  "key": "passive_description.TOXIC_BOOST",
+  "en_old": "The Pokémon takes 50% less poison damage and gains 10 ATK as long as it has POISONNED",
+  "en_new": "The Pokémon takes 50% less poison damage and gains 10 ATK as long as it has POISONED",
+  "tr_current": "Pokémon POISONNED durumunda olduğu sürece %50 daha az zehir hasarı alır ve 10 ATK kazanır"
+ },
+ {
+  "key": "passive_description.SKARMORY",
+  "en_old": "At the start of the fight, Skarmory scatters spikes around the field. BOARD_EFFECT: spikes deal 10 TRUE per second and inflict ARMOR_BREAK onto non FLYING or STEEL Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: at the start of the fight, Skarmory scatters SPIKES around the field.",
+  "tr_current": "Savaş başlayınca Skarmory sahanın etrafına dikenler saçar. BOARD_EFFECT: dikenler saniyede 10 TRUE verir ve üstünde yürüyen FLYING ya da STEEL olmayan Pokémonlara ARMOR_BREAK uygular."
+ },
+ {
+  "key": "passive_description.AEGISLASH",
+  "en_old": "Alternates between Shield Forme and Blade Forme when casting ability",
+  "en_new": "Alternates between Shield Forme and Blade Forme ON_CAST",
+  "tr_current": "ON_CAST Kalkan Formu ile Kılıç Formu arasında geçiş yapar"
+ },
+ {
+  "key": "passive_description.GLIMMORA",
+  "en_old": "Once below 50% max HP, throws toxic spikes in a 2x3 rectangle in front of itself, dealing 20 SPECIAL. Toxic spikes apply POISONNED to Pokémon, unless they are POISON.",
+  "en_new": "BOARD_EFFECT: once below 50% max HP, throws TOXIC_SPIKES in a 2x3 rectangle in front of itself, dealing 20 SPECIAL.",
+  "tr_current": "Maks HP %50'nin altına inince önündeki 2x3 dikdörtgene zehirli dikenler atarak 20 SPECIAL verir. Zehirli dikenler POISON olmayan Pokémonlara POISONNED uygular."
+ },
+ {
+  "key": "passive_description.DRUMMER",
+  "en_old": "If there are allies and no enemies at range, beats their drum instead of attacking, which grants [2,3,5] bonus PP to ADJACENT allies (except other drummers). This counts as an attack.",
+  "en_new": "If there are allies and no enemies at range, beats their drum instead of attacking, which grants [2,3,5,7] bonus PP to ADJACENT allies (except other drummers). This counts as an attack.",
+  "tr_current": "Menzilde müttefik olup düşman yoksa saldırmak yerine davulunu çalar ve ADJACENT müttefiklere (diğer davulcular hariç) [2,3,5] bonus PP verir. Bu bir saldırı sayılır."
+ },
+ {
+  "key": "passive_description.ACCELERATION",
+  "en_old": "Acceleration: gain 15 SPEED every tile you move (jumps and dashes count for one)",
+  "en_new": "Acceleration: gain 15 SPEED every tile you move (DASH counts for one tile)",
+  "tr_current": "İvmelenme: hareket ettiğin her kare için 15 SPEED kazan (DASH bir kare sayılır)"
+ },
+ {
+  "key": "passive_description.FALINKS",
+  "en_old": "Falinks Troopers now have a [4,LK]% chance to show up in your shop, costing 3 GOLD each, up to 6 troopers.\nAt the start of the battle, all troopers on your bench not training join Falinks Brass, combining their base ATK and DEF and giving their base HP as SHIELD.",
+  "en_new": "Falinks Troopers now have a [4,LK]% chance to show up in your shop, costing 3 GOLD each, up to 6 troopers.\nAt the start of the battle, all troopers on your bench not training join Falinks Brass, combining their BASE ATK and DEF and giving their BASE HP as SHIELD.",
+  "tr_current": "Falinks Askerleri artık dükkanında [4,LK]% ihtimalle çıkar; her biri 3 GOLD, en fazla 6 asker.\nSavaş başlayınca yedekte antrenman yapmayan tüm askerler Falinks Brass'a katılır, BASE ATK ve DEF değerlerini birleştirir ve BASE HP değerlerini SHIELD olarak verir."
+ },
+ {
+  "key": "passive_description.QWILFISH",
+  "en_old": "When struck by an attack at melee range, deal 5 TRUE to the attacker, with [30,LK]% chance to inflict POISONNED for 3 seconds",
+  "en_new": "When struck by an attack at melee range, deal 5 TRUE to the attacker, with [30,LK]% chance to inflict POISONED for 3 seconds",
+  "tr_current": "Yakın mesafeden saldırı alınca saldırana 5 TRUE verir, [30,LK]% ihtimalle 3 saniyelik POISONNED uygular"
+ },
+ {
+  "key": "passive_description.GALE_WINGS",
+  "en_old": "Drops embers on the ground when they FLY_AWAY. BOARD_EFFECT: embers deal 10 SPECIAL per second and BURN non FLYING or FIRE Pokémon that walk on it.",
+  "en_new": "BOARD_EFFECT: drops EMBER to the ground when they FLY_AWAY.",
+  "tr_current": "FLY_AWAY yaptıklarında yere korlar bırakır. BOARD_EFFECT: korlar saniyede 10 SPECIAL verir ve üstünde yürüyen FLYING ya da FIRE olmayan Pokémonları BURN yapar."
+ },
+ {
+  "key": "passive_description.COMMANDER",
+  "en_old": "Tatsugiri cannot hold items. At the start of the fight, an ADJACENT Dondozo with a free item slot swallows Tatsugiri. Tatsugiri provides stats based on its form: \nCurly Form: +8 ATK\nDroopy Form: +8 DEF\nStretchy Form: +25 SPEED",
+  "en_new": "Tatsugiri cannot hold items or eat dishes. At the start of the fight, Tatsugiri gets swallowed by an ADJACENT Dondozo and becomes its commander, providing 50 max HP and stats based on its form: \nCurly Form: +8 ATK\nDroopy Form: +8 DEF\nStretchy Form: +25 SPEED",
+  "tr_current": "Tatsugiri item taşıyamaz ve yemek yiyemez. Savaş başlayınca ADJACENT bir Dondozo tarafından yutulur ve onun komutanı olur; 50 maks HP ve formuna göre stat sağlar: \nKıvrık Form: +8 ATK\nSarkık Form: +8 DEF\nUzun Form: +25 SPEED"
+ },
+ {
+  "key": "passive_description.EISCUE_ICE_FACE",
+  "en_old": "When casting its ability, its current SHIELD is converted to additional SPECIAL. When SHIELD is depleted or after casting its ability, Eiscue breaks into its Noice form.",
+  "en_new": "ON_CAST, its current SHIELD is converted to additional SPECIAL. When SHIELD is depleted or ON_CAST, Eiscue breaks into its Noice form.",
+  "tr_current": "ON_CAST, mevcut SHIELD değeri ek SPECIAL hasara dönüşür. SHIELD bitince ya da ON_CAST, Eiscue kırılır ve Buzsuz formuna geçer."
+ },
+ {
+  "key": "passive_description.COMATOSE",
+  "en_old": "Always under SLEEP. Immune to BURN, POISONNED, FREEZE and PARALYSIS. When a SOUND try to wake this Pokémon up, it sinks deeper into its dream, gaining 5 AP.",
+  "en_new": "Always under SLEEP. Immune to BURN, POISONED, FREEZE and PARALYSIS. When a SOUND try to wake this Pokémon up, it sinks deeper into its dream, gaining 5 AP.",
+  "tr_current": "Her zaman SLEEP durumundadır. BURN, POISONNED, FREEZE ve PARALYSIS etkilerine bağışıktır. Bir SOUND bu Pokémon'u uyandırmaya çalıştığında rüyasına daha da dalar ve 5 AP kazanır."
+ },
+ {
+  "key": "status_description.RESURRECTION",
+  "en_old": "Prevents KO once, restoring to base max HP. Synergy buffs, item stacks and statuses are reset upon resurrection.",
+  "en_new": "Prevents KO once, restoring to BASE max HP. Synergy buffs, item stacks and statuses are reset upon resurrection.",
+  "tr_current": "Bir kez KO olmayı engeller ve BASE maks HP ile geri getirir. Diriliş sırasında sinerji bonusları, item yığınları ve durumlar sıfırlanır."
+ },
+ {
+  "key": "synergy_description.FIRE",
+  "en_old": "FIRE Pokémon have a chance to BURN their enemies, and gain ATK after every attack.",
+  "en_new": "FIRE Pokémon have a chance to BURN their enemies ON_HIT, and gain ATK after every attack.",
+  "tr_current": "FIRE Pokémonlar ON_HIT düşmanlarını belli bir ihtimalle BURN durumuna sokar ve her saldırıdan sonra ATK kazanır."
+ },
+ {
+  "key": "synergy_description.DARK",
+  "en_old": "DARK Pokémon's critical hits are more powerful and more frequent. Melee Dark Pokémon jump to the farthest target reachable.",
+  "en_new": "DARK Pokémon's critical hits are more powerful and more frequent. Melee Dark Pokémon DASH to the farthest target reachable.",
+  "tr_current": "DARK Pokémonların kritik vuruşları daha güçlü ve daha sık olur. Yakın dövüşçü Dark Pokémonlar ulaşabildikleri en uzak hedefe DASH yapar."
+ },
+ {
+  "key": "synergy_description.POISON",
+  "en_old": "POISON Pokémon have a chance to POISONNED their target for 4 seconds with their basic attacks. Poison inflicts TRUE over time",
+  "en_new": "POISON Pokémon have a chance to POISONED their target for 4 seconds ON_HIT. Poison inflicts TRUE over time",
+  "tr_current": "POISON Pokémonlar temel saldırılarıyla hedeflerini belli bir ihtimalle 4 saniyeliğine POISONNED yapar. Zehir zamanla TRUE verir"
+ },
+ {
+  "key": "synergy_description.AQUATIC",
+  "en_old": "AQUATIC Pokémon mitigate status afflictions for all your team. After 7 seconds, a tidal wave cleans up negative status and field effects, heals your AQUATIC allies, and knocks back and damages enemies.",
+  "en_new": "AQUATIC Pokémon mitigate status afflictions for all your team. After 7 seconds, a TIDAL_WAVE cleans up negative status and field effects, heals your AQUATIC allies, and knocks back and damages enemies.",
+  "tr_current": "AQUATIC Pokémonlar tüm takımın durum bozukluklarını hafifletir. 7 saniye sonra bir TIDAL_WAVE olumsuz durumları ve alan efektlerini temizler, AQUATIC müttefikleri iyileştirir, düşmanları geri iter ve hasar verir."
+ },
+ {
+  "key": "synergy_description.FLYING",
+  "en_old": "FLYING Pokémon FLY_AWAY when they fall under a certain amount of HP unless affected by PARALYSIS, FREEZE, LOCKED or SLEEP.",
+  "en_new": "FLYING Pokémon FLY_AWAY and dodge damage that would have dropped them below a certain HP threshold, unless affected by PARALYSIS, FREEZE, LOCKED or SLEEP.",
+  "tr_current": "FLYING Pokémonlar canlarını belli bir HP eşiğinin altına düşürecek hasardan FLY_AWAY ile kaçar; PARALYSIS, FREEZE, LOCKED ya da SLEEP etkisi altındaysalar kaçamazlar."
+ },
+ {
+  "key": "synergy_description.ICE",
+  "en_old": "ICE Pokémon have [20,LK]% chance to FREEZE the enemy for 2 seconds after a hit and give SPE_DEF to your whole team.",
+  "en_new": "ICE Pokémon have [20,LK]% chance to FREEZE the enemy for 2 seconds ON_HIT and give SPE_DEF to your whole team.",
+  "tr_current": "ICE Pokémonlar ON_HIT [20,LK]% ihtimalle düşmanı 2 saniyeliğine FREEZE durumuna sokar ve tüm takımına SPE_DEF kazandırır."
+ },
+ {
+  "key": "title_description.GLUTTON",
+  "en_old": "Get a Snorlax with more than 750 base HP",
+  "en_new": "Get a Snorlax with more than 750 BASE HP",
+  "tr_current": "750'den fazla BASE HP değerine sahip bir Snorlax al"
+ },
+ {
+  "key": "weather_description.ZENITH",
+  "en_old": "+20% healing from all sources\n-30% SLEEP duration",
+  "en_new": "+{{healingBonusPercent}}% healing from all sources\n-{{sleepDurationReductionPercent}}% SLEEP duration",
+  "tr_current": "Tüm kaynaklardan iyileşme +%{{healingBonusPercent}}\nSLEEP süresi -%{{sleepDurationReductionPercent}}"
+ },
+ {
+  "key": "weather_description.DROUGHT",
+  "en_old": "+30% BURN damage\n-30% FREEZE duration\n-3 PP per second",
+  "en_new": "+{{burnDamageBonusPercent}}% BURN damage\n-{{freezeDurationReductionPercent}}% FREEZE duration\n-{{ppPerSecond}} PP per second",
+  "tr_current": "BURN hasarı +%{{burnDamageBonusPercent}}\nFREEZE süresi -%{{freezeDurationReductionPercent}}\nSaniyede -{{ppPerSecond}} PP"
+ },
+ {
+  "key": "weather_description.WINDY",
+  "en_old": "+10 SPEED (+20 if FLYING)",
+  "en_new": "+{{speedBonus}} SPEED (+{{flyingSpeedBonus}} if FLYING)",
+  "tr_current": "+{{speedBonus}} SPEED (FLYING ise +{{flyingSpeedBonus}})"
+ },
+ {
+  "key": "weather_description.RAIN",
+  "en_old": "+3 PP per second\n-30% BURN and POISONNED damage",
+  "en_new": "+{{ppPerSecond}} PP per second\n-{{damageReductionPercent}}% BURN and POISONED damage",
+  "tr_current": "Saniyede +3 PP\nBURN ve POISONNED hasarı -%30"
+ },
+ {
+  "key": "weather_description.NIGHT",
+  "en_old": "+10% CRIT_CHANCE\n+30% SLEEP duration",
+  "en_new": "+{{critChanceBonusPercent}}% CRIT_CHANCE\n+{{sleepDurationBonusPercent}}% SLEEP duration",
+  "tr_current": "+%{{critChanceBonusPercent}} CRIT_CHANCE\nSLEEP süresi +%{{sleepDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.STORM",
+  "en_old": "Lightning randomly strikes on the board, dealing 100 SPECIAL (ELECTRIC are supercharged instead)\n+30% PARALYSIS duration",
+  "en_new": "LIGHTNING_STRIKE randomly hits the board, dealing {{lightningDamage}} SPECIAL (ELECTRIC are supercharged instead)\n+{{paralysisDurationBonusPercent}}% PARALYSIS duration",
+  "tr_current": "LIGHTNING_STRIKE sahaya rastgele çarpar ve {{lightningDamage}} SPECIAL verir (ELECTRIC olanlar bunun yerine aşırı yüklenir)\nPARALYSIS süresi +%{{paralysisDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.MISTY",
+  "en_old": "+20% SPECIAL\n+30% CHARM duration",
+  "en_new": "+{{specialDamageBonusPercent}}% SPECIAL\n+{{charmDurationBonusPercent}}% CHARM duration",
+  "tr_current": "+%{{specialDamageBonusPercent}} SPECIAL\nCHARM süresi +%{{charmDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.SNOW",
+  "en_old": "-10 SPEED if not ICE\n+30% FREEZE duration",
+  "en_new": "-{{speedReduction}} SPEED if not ICE\n+{{freezeDurationBonusPercent}}% FREEZE duration",
+  "tr_current": "ICE değilse -{{speedReduction}} SPEED\nFREEZE süresi +%{{freezeDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.SANDSTORM",
+  "en_old": "5 SPECIAL per second (GROUND are immune)\n+30% CONFUSION duration",
+  "en_new": "{{damagePerSecond}} SPECIAL per second (GROUND are immune)\n+{{confusionDurationBonusPercent}}% CONFUSION duration",
+  "tr_current": "Saniyede {{damagePerSecond}} SPECIAL (GROUND olanlar bağışıktır)\nCONFUSION süresi +%{{confusionDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.BLOODMOON",
+  "en_old": "+20% PHYSICAL\n+30% WOUND duration",
+  "en_new": "+{{physicalDamageBonusPercent}}% PHYSICAL\n+{{woundDurationBonusPercent}}% WOUND duration",
+  "tr_current": "+%{{physicalDamageBonusPercent}} PHYSICAL\nWOUND süresi +%{{woundDurationBonusPercent}}"
+ },
+ {
+  "key": "weather_description.SMOG",
+  "en_old": "-15% accuracy\n+30% POISONNED duration",
+  "en_new": "-{{accuracyReductionPercent}}% accuracy\n+{{poisonDurationBonusPercent}}% POISONED duration",
+  "tr_current": "İsabet -%15\n+30% POISONNED süresi"
+ },
+ {
+  "key": "weather_description.MURKY",
+  "en_old": "-30 LUCK (GHOST are immune)\n+30% SILENCE duration",
+  "en_new": "-{{luckReduction}} LUCK (GHOST are immune)\n+{{silenceDurationBonusPercent}}% SILENCE duration",
+  "tr_current": "-{{luckReduction}} LUCK (GHOST olanlar bağışıktır)\nSILENCE süresi +%{{silenceDurationBonusPercent}}"
+ },
+ {
+  "key": "options.key_description.prev_player",
+  "en_old": "Previous player's board",
+  "en_new": "Previous player's board (by order)",
+  "tr_current": "Önceki oyuncunun sahası (sıraya göre)"
+ },
+ {
+  "key": "options.key_description.next_player",
+  "en_old": "Next player's board",
+  "en_new": "Next player's board (by order)",
+  "tr_current": "Sonraki oyuncunun sahası (sıraya göre)"
+ },
+ {
+  "key": "map.RockPathRB",
+  "en_old": "Rock Path RB",
+  "en_new": "Rock Path 1",
+  "tr_current": "Rock Path RB"
+ },
+ {
+  "key": "map.RockPathTDS",
+  "en_old": "Rock Path TDS",
+  "en_new": "Rock Path 2",
+  "tr_current": "Rock Path TDS"
+ },
+ {
+  "key": "wiki.data.data_description",
+  "en_old": "Various data about the game for the geeks",
+  "en_new": "Reference tables for the rates and formulas used by the game.",
+  "tr_current": "Oyunun kullandığı oranlar ve formüller için başvuru tabloları."
+ }
+]

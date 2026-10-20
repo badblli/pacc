@@ -1,0 +1,41 @@
+/* Oyunun zaman şeridinden aşağıda, bağımsız ve dar bir seçim kartı. */
+:host {
+  all: initial; position: fixed; top: 72px; left: 50%; transform: translateX(-50%);
+  width: min(400px, calc(100vw - 24px)); z-index: 2147483645; pointer-events: none;
+  --bg: #121a2b; --raised: #1b263c; --border: #485b7a; --fg: #f3f5fc;
+  --muted: #b9c7de; --gold: #f6c445; --green: #5fd68a; --radius: 12px;
+  color: var(--fg); font: 14px/1.4 Jost, "Trebuchet MS", sans-serif;
+}
+* { box-sizing: border-box; }
+.card { background: var(--bg); border: 2px solid var(--border); border-top-color: var(--gold); border-radius: var(--radius); box-shadow: 0 12px 32px #0008; overflow: hidden; }
+button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 58px; padding: 8px 14px; border: 0; color: inherit; background: var(--raised); font: inherit; text-align: left; cursor: pointer; pointer-events: auto; }
+button:hover { background: #25324b; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: -4px; }
+button small { display: block; color: var(--gold); font-size: 10px; letter-spacing: .18em; }
+strong { font-size: 14px; }
+.toggle { color: var(--gold); font-size: 24px; }
+ol { list-style: none; margin: 0; padding: 4px 12px; max-height: calc(100dvh - 160px); overflow-y: auto; pointer-events: auto; }
+[hidden] { display: none; }
+.choice { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+.choice + .choice { border-top: 1px solid #485b7a70; }
+.order { flex: 0 0 18px; font-size: 17px; font-weight: bold; color: var(--gold); font-variant-numeric: tabular-nums; }
+.item { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; }
+.body { flex: 1; min-width: 0; }
+.line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+small, .reason { color: var(--muted); font-size: 11px; }
+.line small { flex-shrink: 0; }
+.reason { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 15px; }
+meter { display: block; appearance: none; width: 100%; height: 4px; margin-top: 5px; border: 0; background: var(--raised); }
+meter::-webkit-meter-bar { border: 0; background: var(--raised); }
+meter::-webkit-meter-optimum-value { background: var(--green); }
+meter::-moz-meter-bar { background: var(--green); }
+.taken { opacity: .48; }
+.taken .name { text-decoration: line-through; }
+.portal-details { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: 7px; }
+.chips, .portraits { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; background: var(--raised); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; }
+.chip img { width: 15px; height: 15px; }
+.portrait { display: flex; align-items: center; width: 28px; height: 28px; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; font-size: 9px; }
+.portrait img { width: 100%; height: 100%; image-rendering: pixelated; }
+@media (max-width: 480px) { :host { width: min(360px, calc(100vw - 16px)); } strong { font-size: 12px; } }

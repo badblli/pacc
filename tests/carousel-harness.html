@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PACC · Seçim koçu deneme sahnesi</title>
+<!-- Depo kökünden python -m http.server 8123; /tests/carousel-harness.html?autotest=1 -->
+<style>
+  :root { color-scheme: dark; font: 15px/1.5 'Trebuchet MS', sans-serif; background: #0c1321; color: #f3f5fc; }
+  body { margin: 0; } .timer { height: 54px; display: grid; place-content: center; border-bottom: 2px solid #485b7a; background: #1b263c; color: #f6c445; }
+  main { padding: 24px; max-width: 320px; } h1 { font-size: 20px; } button { min-height: 44px; padding: 8px 12px; margin: 4px 0; cursor: pointer; }
+  #mock { position: fixed; inset: 380px 24px 24px; border: 2px dashed #485b7a; border-radius: 16px; display: grid; place-content: center; color: #b9c7de; pointer-events: none; }
+  #report { white-space: pre-wrap; color: #5fd68a; }
+  @media(max-width:700px) { main { padding-top: 430px; } #mock { display:none; } }
+</style>
+<div class="timer">AŞAMA 12 · 00:24</div>
+<main><h1>PACC · Seçim koçu</h1><p>Sahneyi değiştirerek iki öneri kartını inceleyin.</p>
+<button id="items">Ortak Seçim</button> <button id="portals">Bölge seçimi</button>
+<button id="end">Sahneyi bitir</button> <button id="overlay">Overlay aç/kapa</button>
+<button id="engine">Motor aç/kapa</button> <button id="language">EN / TR</button><pre id="report"></pre></main>
+<div id="mock">Phaser tuvali · oyun ağacı</div>
+<script>
+  const extensionBase = new URL('../extension/', location.href)
+  const mem = { settings: { overlay: true, uiLang: 'tr' }, meta: { regions: {} } }, listeners = []
+  window.chrome = { runtime: { id: 'carousel-harness', getURL: p => new URL(p, extensionBase).href }, storage: {
+    local: { get: async () => structuredClone(mem), set: async values => { Object.assign(mem, values); listeners.forEach(fn => fn(Object.fromEntries(Object.entries(values).map(([k,v]) => [k,{newValue:v}])), 'local')) } },
+    onChanged: { addListener: fn => listeners.push(fn) }
+  } }
+  const itemRows = [
+    { item:'CHARCOAL', score:100, taken:true, reasons:[{kind:'comp'}] },
+    { item:'TWISTED_SPOON', score:42, reasons:[{kind:'component',item:'CHOICE_SPECS'}] },
+    { item:'MAGNET', score:92, reasons:[{kind:'craft',item:'CHARCOAL'}] },
+    { item:'MYSTIC_WATER', score:68, reasons:[{kind:'want',pkm:'GYARADOS'}] },
+    { item:'MIRACLE_SEED', score:35, reasons:[{kind:'comp'}] }
+  ]
+  const portalRows = [
+    { portalId:'taken', map:'DarkCave', taken:true, score:99, synergies:['DARK'], regional:[{pkm:'UMBREON'}], meta:null },
+    { portalId:'forest', map:'HowlingForest2', score:88, synergies:['GRASS','BUG'], regional:[{pkm:'VENUSAUR'},{pkm:'SCYTHER'},{pkm:'LEAFEON'}], meta:{rank:3.15,count:300} },
+    { portalId:'fire', map:'MtBlaze', score:70, synergies:['FIRE','DRAGON'], regional:[{pkm:'CHARIZARD'},{pkm:'NINETALES'}], meta:{rank:3.82,count:250} }
+  ]
+  const engine = { rankCarousel: () => itemRows, rankPortals: () => portalRows }
+  window.PacAdvisor = engine
+  let kind = 'items'
+  function send(next = kind) {
+    kind = next
+    window.postMessage({type:'pac-yardimci:game',snapshot:{carousel:kind ? {kind, ...(kind==='items' ? {items:itemRows.map((r,i)=>({id:String(i),name:r.item,taken:!!r.taken}))} : {portals:portalRows.map(r=>({id:r.portalId,...r}))})} : null}},location.origin)
+  }
+  addEventListener('message',e => { if(e.source===window && e.data.type==='pac-yardimci:hello') send() })
+  document.getElementById('items').onclick = () => send('items')
+  document.getElementById('portals').onclick = () => send('portals')
+  document.getElementById('end').onclick = () => send(null)
+  document.getElementById('overlay').onclick = () => chrome.storage.local.set({settings:{...mem.settings,overlay:!mem.settings.overlay}})
+  document.getElementById('engine').onclick = () => { window.PacAdvisor=window.PacAdvisor ? null : engine; send() }
+  document.getElementById('language').onclick = () => chrome.storage.local.set({settings:{...mem.settings,uiLang:PacI18n.lang==='tr'?'en':'tr'}})
+</script>
+<script src="../extension/content/i18n.js"></script>
+<script src="../extension/content/carousel.js"></script>
+<script>
+  const wait = () => new Promise(r => setTimeout(r,80))
+  const root = () => document.getElementById('pac-carousel')?.shadowRoot
+  const $ = s => root()?.querySelector(s)
+  function check(ok,text) { document.getElementById('report').textContent += `${ok?'PASS':'FAIL'} ${text}\n`; if(!ok) throw Error(text) }
+  async function autotest() {
+    for(let i=0;i<100&&!$('.card');i++) await wait()
+    check(!!$('.card'),'Item kartı açık')
+    check($('.choice .name').textContent===PacI18n.humanize('MAGNET') || $('.choice .name').textContent===(await PacI18n.gameText()).item.MAGNET,'Puan sırası doğru')
+    check(root().querySelector('li:last-child').classList.contains('taken'),'Alınmış item sonda')
+    check(getComputedStyle($('.taken')).opacity==='0.48','Alınmış item soluk')
+    check(getComputedStyle($('.taken .name')).textDecorationLine.includes('line-through'),'Alınmış item üstü çizili')
+    check($('button').getBoundingClientRect().height>=44,'Başlık hedefi en az 44px')
+    $('button').click(); check($('#carousel-choices').hidden,'Kart küçültüldü')
+    send('portals'); await wait(); check($('#carousel-choices').hidden,'Sahne değişiminde küçültme korundu')
+    $('button').click(); check(root().querySelectorAll('.portrait').length===6,'Portal portreleri gösterildi')
+    check(root().querySelector('li:last-child').classList.contains('taken'),'Alınmış portal sonda')
+    check(!!$('.chip img')&&$('.line small').textContent.includes('3,15'),'Sinerji ve meta gösterildi')
+    send(null); await wait(); check(!$('.card'),'Null sahnede kart yok')
+    send('items'); await chrome.storage.local.set({settings:{...mem.settings,overlay:false}}); await wait(); check(!$('.card'),'Overlay kapalıyken kart yok')
+    check(document.getElementById('pac-carousel').parentElement===document.documentElement && !document.getElementById('mock').children.length,'Oyun ağacına düğüm eklenmedi')
+    await chrome.storage.local.set({settings:{...mem.settings,overlay:true}})
+    document.title='PASS · Carousel harness'; document.documentElement.dataset.result='pass'
+  }
+  if(new URLSearchParams(location.search).has('autotest')) autotest().catch(e => { document.title='FAIL · Carousel harness'; document.documentElement.dataset.result='fail'; document.getElementById('report').textContent+=e.stack })
+</script>
+</html>

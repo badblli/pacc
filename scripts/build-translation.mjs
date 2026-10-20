@@ -122,12 +122,17 @@ function merge(en, tr, path) {
   if (!isObj(en)) {
     stats.total++
     if (typeof tr !== "string") return en
-    stats.translated++
     if (typeof en === "string") {
       const have = tokens(tr)
       const missing = tokens(en).filter((t) => !have.includes(t))
-      if (missing.length) stats.warnings.push(`${path}: eksik kalıp(lar) ${[...new Set(missing)].join(", ")}`)
+      if (missing.length) {
+        // Çeviri, oyunun bu sürümündeki İngilizceyle uyuşmuyor (çoğunlukla Türkçe yeni master'a göre
+        // yazılmış, canlı site henüz eski metni kullanıyor). Bozuk ikon göstermek yerine İngilizceye düş.
+        stats.warnings.push(`${path}: eksik kalıp(lar) ${[...new Set(missing)].join(", ")}`)
+        return en
+      }
     }
+    stats.translated++
     return tr
   }
   const out = {}
@@ -165,6 +170,6 @@ if (stats.unknown.length) {
   for (const k of stats.unknown.slice(0, 20)) console.log(`    - ${k}`)
 }
 if (stats.warnings.length) {
-  console.log(`  ⚠ ${stats.warnings.length} metinde oyunun kullandığı kalıplar eksik:`)
+  console.log(`  ⚠ ${stats.warnings.length} metinde oyunun kullandığı kalıplar eksik; bunlar İngilizce gösterilecek:`)
   for (const w of stats.warnings.slice(0, 30)) console.log(`    - ${w}`)
 }

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import vm from "node:vm"
+import test from "node:test"
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const data = JSON.parse(read("extension/data/static.json"))
@@ -374,5 +375,192 @@ const liveSnapshot = hookSnapshot({ live: true, liveBoard: new Map([["one", { na
 assert.deepEqual(liveSnapshot.board.map((pokemon) => ({ name: pokemon.name, y: pokemon.y, types: pokemon.types })),
   [{ name: "MAGIKARP", y: 1, types: ["WATER"] }])
 assert.deepEqual(liveSnapshot.synergies, { WATER: 1 })
+
+// ---------- Planlayıcı: saf API sözleşmesi ----------
+const planned = (name, x = 3, y = 1, items = []) => ({ name, x, y, items })
+const plannerCluster = { id: "planner-core", count: 100, rank: 3,
+  pokemons: [{ name: "CHARIZARD", frequency: 0.8 }, { name: "BLASTOISE", frequency: 0.6 },
+    { name: "VENUSAUR", frequency: 0.4 }, { name: "NINETALES", frequency: 0.24 }] }
+const plannerCtx = { ...ctx, clusters: [plannerCluster] }
+const pctValid = (pct) => Number.isInteger(pct) && pct >= 0 && pct <= 100
+function planContract(plan) {
+  const squares = new Set()
+  for (const p of plan) {
+    assert.equal(typeof p.name, "string")
+    assert.ok(Number.isInteger(p.x) && p.x >= 0 && p.x <= 7)
+    assert.ok(Number.isInteger(p.y) && p.y >= 1 && p.y <= 3)
+    assert.ok(Array.isArray(p.items) && p.items.length <= 3)
+    assert.ok(!squares.has(`${p.x},${p.y}`))
+    squares.add(`${p.x},${p.y}`)
+  }
+  return plan
+}
+
+test("planFit: frekans ağırlığı, aile eşleşmesi ve en iyi üç dizilim", () => {
+  const plan = [planned("CHARMANDER"), planned("CHARMELEON", 4)]
+  const fit = advisor.planFit(plannerCtx, plan)
+  assert.deepEqual(Object.keys(fit).sort(), ["best", "missing", "synergies"])
+  assert.equal(fit.best[0].fit, 44) // 0.8 / (0.8 + 0.6 + 0.4)
+  assert.deepEqual(fit.best[0].owned, ["CHARIZARD"])
+  assert.deepEqual(fit.best[0].missing, ["BLASTOISE", "VENUSAUR"])
+  assert.deepEqual(fit.missing, [{ pkm: "BLASTOISE", why: "comp" }, { pkm: "VENUSAUR", why: "comp" }])
+  assert.equal(advisor.planFit(plannerCtx, [planned("CHARIZARD")]).best[0].fit, 44)
+  assert.equal(advisor.planFit(plannerCtx, [planned("CHARMANDER"), planned("SQUIRTLE", 4), planned("BULBASAUR", 5)]).best[0].fit, 100)
+  const variants = [5, 2, 4, 3].map((rank) => ({ ...plannerCluster, id: `rank-${rank}`, rank }))
+  const best = advisor.planFit({ ...plannerCtx, clusters: [...variants, { ...plannerCluster, count: 1 }] }, plan).best
+  assert.deepEqual(best.map((p) => p.cluster.rank), [2, 3, 4])
+  assert.ok(best.every((p) => pctValid(p.fit)))
+  assert.equal(advisor.planFit(plannerCtx, []).best[0].fit, 0)
+})
+
+test("planFit: aynı ailedeki formların ağırlığı ve eksikleri tekrarlanmaz", () => {
+  const cluster = { ...plannerCluster, pokemons: [{ name: "CHARIZARD", frequency: 0.5 },
+    { name: "CHARMELEON", frequency: 0.3 }, { name: "BLASTOISE", frequency: 0.8 }] }
+  const context = { ...plannerCtx, clusters: [cluster] }
+  assert.equal(advisor.planFit(context, [planned("CHARMANDER")]).best[0].fit, 50)
+  assert.deepEqual(advisor.planFit(context, []).best[0].missing, ["BLASTOISE", "CHARIZARD"])
+})
+
+test("planFit: sinerji aile başına tür birleşimi, yedek hariç ve item bonusları", () => {
+  const context = { ...plannerCtx, data: { ...data, itemTypes: { WATER_STONE: "WATER", FIRE_GEM: ["FIRE"] } } }
+  const plan = [planned("CHARMANDER", 0, 1, ["WATER_STONE", "FIRE_GEM"]),
+    planned("CHARIZARD", 1, 1, ["WATER_STONE"]), planned("SQUIRTLE", 2),
+    planned("BLASTOISE", 3, 0, ["FIRE_GEM"]), planned("VULPIX", 4, 0)]
+  const get = (units) => advisor.planFit(context, units).synergies
+  const counts = Object.fromEntries(get(plan).map((s) => [s.syn, s.count]))
+  assert.equal(counts.FIRE, 1)
+  assert.equal(counts.DRAGON, 1)
+  assert.equal(counts.FLYING, 1)
+  assert.equal(counts.WATER, 2)
+  assert.deepEqual(get(plan), get([...plan].reverse()))
+  assert.deepEqual(get(plan).find((s) => s.syn === "WATER"), { syn: "WATER", count: 2, next: 3, need: 1 })
+  assert.equal(advisor.planFit(plannerCtx, plan).synergies.find((s) => s.syn === "WATER").count, 1)
+  const maxed = advisor.planFit({ ...context, thresholds: { FIRE: [1] } }, plan).synergies.find((s) => s.syn === "FIRE")
+  assert.deepEqual(maxed, { syn: "FIRE", count: 1, next: null, need: 0 })
+})
+
+test("planRecommendations: çekirdek ve dükkan adayları, gerekçeler, sınır ve meta katkısı", () => {
+  const plan = [planned("CHARMANDER")]
+  const before = JSON.stringify({ plannerCtx, plan })
+  const recs = advisor.planRecommendations(plannerCtx, plan, { limit: 1000 })
+  assert.ok(recs.some((p) => p.pkm === "BLASTOISE" && p.reasons.some((r) => r.kind === "comp")))
+  assert.ok(recs.some((p) => p.reasons.some((r) => r.kind === "next" && r.syn === "FIRE")))
+  assert.ok(recs.some((p) => p.reasons.some((r) => r.kind === "syn" && r.syn === "DRAGON")))
+  assert.ok(!recs.some((p) => advisor.familyChain(data, p.pkm).includes("CHARMANDER")))
+  const families = recs.map((p) => data.family[p.pkm] ?? p.pkm)
+  assert.equal(new Set(families).size, families.length)
+  for (const [i, rec] of recs.entries()) {
+    assert.deepEqual(Object.keys(rec).sort(), ["fit", "pkm", "rarity", "reasons"])
+    assert.ok(pctValid(rec.fit))
+    assert.equal(rec.rarity, data.pokemons[rec.pkm][0])
+    assert.ok(rec.reasons.every((r) => ["comp", "next", "syn", "meta"].includes(r.kind)))
+    if (i) assert.ok(recs[i - 1].fit >= rec.fit)
+  }
+  assert.deepEqual(advisor.planRecommendations(plannerCtx, plan, { limit: 2 }), recs.slice(0, 2))
+  assert.ok(advisor.planRecommendations(plannerCtx, plan).length <= 10)
+  assert.deepEqual(advisor.planRecommendations(plannerCtx, plan, { limit: 0 }), [])
+  const withoutMeta = advisor.planRecommendations({ ...plannerCtx, tierPokemons: {} }, plan, { limit: 1000 })
+  const blastoise = recs.find((p) => p.pkm === "BLASTOISE")
+  assert.ok(blastoise.fit > withoutMeta.find((p) => p.pkm === "BLASTOISE").fit)
+  assert.ok(blastoise.reasons.some((r) => r.kind === "meta"))
+  assert.equal(JSON.stringify({ plannerCtx, plan }), before)
+  const shopOnly = advisor.planRecommendations({ ...plannerCtx, clusters: [] }, plan, { limit: 1000 })
+  assert.ok(shopOnly.length > 0)
+  assert.ok(shopOnly.every((p) => {
+    const d = data.pokemons[p.pkm]
+    return d[1] === 1 && !d[3] && !d[4] && d[6] && data.rules.shopRarities.includes(d[0])
+  }))
+  const synergyOnlyCtx = { ...plannerCtx, clusters: [], tierPokemons: {}, thresholds: { FIRE: [2] } }
+  const nextStep = advisor.planRecommendations(synergyOnlyCtx, plan)[0]
+  const distantStep = advisor.planRecommendations({ ...synergyOnlyCtx, thresholds: { FIRE: [4] } }, plan)
+    .find((p) => p.pkm === nextStep.pkm)
+  assert.equal(nextStep.fit, 30)
+  assert.equal(distantStep.fit, 10)
+  assert.deepEqual(advisor.planRecommendations({ ...plannerCtx, clusters: [] }, []), [])
+})
+
+test("planItems: birim başına ilk üç meta itemi ve aile üzerinden yedek veri", () => {
+  const context = { ...plannerCtx, tierPokemons: { CHARIZARD: [3, 100, 0, ["A", "B", "C", "D"]] } }
+  const plan = [planned("CHARMANDER", 0, 1, ["HELD"]), planned("CHARMELEON", 1), planned("SQUIRTLE", 2)]
+  const result = advisor.planItems(context, plan)
+  assert.deepEqual(result, [{ pkm: "CHARMANDER", items: ["A", "B", "C"], have: ["HELD"] },
+    { pkm: "CHARMELEON", items: ["A", "B", "C"], have: [] }, { pkm: "SQUIRTLE", items: [], have: [] }])
+  result[0].have.push("OTHER")
+  result[0].items.push("OTHER")
+  assert.deepEqual(plan[0].items, ["HELD"])
+  assert.equal(context.tierPokemons.CHARIZARD[3].length, 4)
+})
+
+test("compToPlan: son evrim, dallanma meta sıklığı, ön saf, ortalama ve sekiz birim sınırı", () => {
+  const names = ["CHARMANDER", "SQUIRTLE", "BULBASAUR", "RALTS", "LAPRAS", "LATIOS", "LATIAS", "CHIKORITA", "MAGIKARP"]
+  const cluster = { ...plannerCluster, pokemons: names.map((name, i) => ({ name, frequency: 1 - i * 0.05 })) }
+  const context = { ...plannerCtx, data: { ...data, pokemonStats: {
+    CHARIZARD: { range: 1 }, BLASTOISE: { range: 2, hp: 250 }, VENUSAUR: { range: 3, def: 40 },
+    GALLADE: { range: 4, hp: 100, def: 10 }, LAPRAS: { range: 3 }, LATIOS: { range: 4 },
+    LATIAS: { range: 4 }, MEGANIUM: { range: 3 }
+  } }, tierPokemons: { ...ctx.tierPokemons, CHARMANDER: [3, 10000, 0, []],
+    GALLADE: [3, 200, 0, ["A", "B", "C", "D"]], GARDEVOIR: [2, 100, 0, []] } }
+  const snapshot = JSON.stringify({ context, cluster })
+  const plan = planContract(advisor.compToPlan(context, cluster))
+  assert.equal(plan.length, 8)
+  assert.ok(!plan.some((p) => data.family[p.name] === "MAGIKARP"))
+  assert.ok(plan.some((p) => p.name === "CHARIZARD")) // Çok oynanan temel form son evrimi engellemez.
+  assert.ok(plan.some((p) => p.name === "GALLADE"))
+  assert.ok(!plan.some((p) => p.name === "GARDEVOIR"))
+  const front = plan.filter((p) => ["CHARIZARD", "BLASTOISE", "VENUSAUR"].includes(p.name))
+  assert.deepEqual(front.map((p) => [p.x, p.y]), [[2, 3], [3, 3], [4, 3]])
+  assert.ok(plan.filter((p) => !front.includes(p)).every((p) => p.y <= 2))
+  assert.deepEqual(plan.find((p) => p.name === "GALLADE").items, ["A", "B", "C"])
+  assert.equal(JSON.stringify({ context, cluster }), snapshot)
+  const noMeta = planContract(advisor.compToPlan({ ...context, tierPokemons: {} }, cluster))
+  assert.equal(noMeta.length, 8)
+  assert.ok(noMeta.every((p) => p.items.length === 0))
+})
+
+test("compToPlan: keepPlan mevcut birimleri korur, aileleri yinelemez, boş karelere ekler", () => {
+  const keep = [{ ...planned("CHARMANDER", 3, 1, ["OWN_ITEM"]), shiny: true, emotion: "HAPPY" }, planned("LAPRAS", 3, 2)]
+  const before = JSON.stringify(keep)
+  const result = planContract(advisor.compToPlan(plannerCtx, plannerCluster, { keepPlan: keep }))
+  assert.deepEqual(result.slice(0, 2), keep)
+  assert.equal(result.length, 4)
+  assert.equal(result.filter((p) => (data.family[p.name] ?? p.name) === "CHARMANDER").length, 1)
+  assert.equal(JSON.stringify(keep), before)
+  result[0].items.push("OTHER")
+  assert.equal(JSON.stringify(keep), before)
+  const occupiedBack = Array.from({ length: 8 }, (_, x) => planned("LATIOS", x, 2))
+  const spill = planContract(advisor.compToPlan(plannerCtx, { pokemons: [{ name: "CHARIZARD", frequency: 1 }] }, { keepPlan: occupiedBack }))
+  assert.equal(spill.at(-1).y, 1)
+  const full = Array.from({ length: 24 }, (_, i) => planned("LATIOS", i % 8, 1 + Math.floor(i / 8)))
+  assert.deepEqual(planContract(advisor.compToPlan(plannerCtx, plannerCluster, { keepPlan: full })), full)
+  assert.deepEqual(advisor.compToPlan(plannerCtx, plannerCluster, { keepPlan: [planned("CHARMANDER", 8)] }), [])
+  assert.deepEqual(advisor.compToPlan(plannerCtx, plannerCluster, { keepPlan: [planned("CHARMANDER"), planned("SQUIRTLE")] }), [])
+})
+
+test("planlayıcı: eksik veri ve boş/bozuk girdiler hata üretmez, eski API sabit kalır", () => {
+  for (const context of [null, undefined, {}, { data: {} }]) {
+    assert.deepEqual(advisor.planFit(context, []), { best: [], synergies: [], missing: [] })
+    assert.deepEqual(advisor.planRecommendations(context, []), [])
+    assert.deepEqual(advisor.planItems(context, []), [])
+    assert.deepEqual(advisor.compToPlan(context, plannerCluster), [])
+  }
+  for (const plan of [null, undefined, {}, "invalid"]) {
+    assert.deepEqual(advisor.planFit(plannerCtx, plan), { best: [], synergies: [], missing: [] })
+    assert.deepEqual(advisor.planRecommendations(plannerCtx, plan), [])
+    assert.deepEqual(advisor.planItems(plannerCtx, plan), [])
+  }
+  const noMeta = { data, clusters: null, tierPokemons: null }
+  assert.deepEqual(advisor.planFit(noMeta, []), { best: [], synergies: [], missing: [] })
+  assert.deepEqual(advisor.planRecommendations(noMeta, []), [])
+  assert.deepEqual(advisor.planItems(noMeta, [planned("CHARMANDER")]), [])
+  assert.deepEqual(advisor.compToPlan(noMeta, null), [])
+  assert.deepEqual(advisor.compToPlan(noMeta, { pokemons: [null, { name: "UNKNOWN", frequency: 1 }] }), [])
+  assert.deepEqual(advisor.planFit({ ...plannerCtx, clusters: [null, {}, { count: 100, pokemons: [null] }] }, [null]),
+    { best: [], synergies: [], missing: [] })
+  const { familyOf: oldFamily, ...oldAnalysis } = before
+  const { familyOf: newFamily, ...newAnalysis } = advisor.analyze(ctx, legacySnap)
+  assert.deepEqual(newAnalysis, oldAnalysis)
+  assert.equal(newFamily("CHARIZARD"), oldFamily("CHARIZARD"))
+  assert.deepEqual(advisor.summarize(ctx, legacySnap), summary)
+})
 
 console.log("advice.test.mjs: seçim, dükkan, eski API ve snapshot testleri geçti")

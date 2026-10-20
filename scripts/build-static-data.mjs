@@ -100,7 +100,22 @@ for (const m of block(await source("app/config/game/pools.ts"), "export const Po
 
 const rules = { rarityProbability, poolSize, shopSize, shopRarities: ["COMMON", "UNCOMMON", "RARE", "EPIC", "ULTRA"] }
 
+// Bölge adları canlı portal ve /meta/regions kayıtlarındaki DungeonPMDO değerleridir.
+// town bir oynanabilir bölge olmadığı için yalnız enum anahtarlı kayıtları al.
+const regionSrc = await source("app/config/maps/regions.ts")
+const dungeonSrc = await source("app/types/enum/Dungeon.ts")
+const dungeonNames = Object.fromEntries([...block(dungeonSrc, "export enum DungeonPMDO")
+  .matchAll(/^\s*(\w+)\s*=\s*"([^"]+)"/gm)].map((m) => [m[1], m[2]]))
+const regions = {}
+for (const m of regionSrc.matchAll(/\[DungeonPMDO\.(\w+)\]:\s*\{\s*synergies:\s*\[([^\]]+)\]/g)) {
+  const name = dungeonNames[m[1]]
+  if (!name) throw new Error(`Bölge enum değeri bulunamadı: ${m[1]}`)
+  regions[name] = [...m[2].matchAll(/Synergy\.(\w+)/g)].map((s) => s[1])
+  if (!regions[name].length) throw new Error(`Bölge sinerjileri bulunamadı: ${name}`)
+}
+
 if (
+  Object.keys(regions).length < 50 ||
   Object.keys(pokemons).length < 500 ||
   Object.keys(duos).length < 3 ||
   Object.keys(rarityProbability).length < 9 ||
@@ -114,6 +129,6 @@ if (
 }
 
 await mkdir(dirname(OUT), { recursive: true })
-await writeFile(OUT, JSON.stringify({ components, recipes, pkmIndex, family, pokemons, duos, rules }))
+await writeFile(OUT, JSON.stringify({ components, recipes, pkmIndex, family, pokemons, duos, rules, regions }))
 console.log(`✔ ${OUT}`)
-console.log(`  ${components.length} parça, ${Object.keys(recipes).length} tarif, ${Object.keys(pkmIndex).length} Pokémon, ${Object.keys(family).length} evrim, ${Object.keys(pokemons).length} tip kaydı, ${Object.keys(duos).length} duo`)
+console.log(`  ${components.length} parça, ${Object.keys(recipes).length} tarif, ${Object.keys(pkmIndex).length} Pokémon, ${Object.keys(family).length} evrim, ${Object.keys(pokemons).length} tip kaydı, ${Object.keys(duos).length} duo, ${Object.keys(regions).length} bölge`)

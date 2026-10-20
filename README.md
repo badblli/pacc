@@ -22,6 +22,8 @@ PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](ht
 
 - **English and Turkish interface.** The language follows your browser (Turkish if the browser language starts with `tr`, English otherwise). You can change it at any time from the popup (Automatic / English / Türkçe); the panel and the on-board markers switch live. In English, Pokémon, item and synergy names are the game's own English names.
 - **On-board recommendations.** In pick windows (starter, additional / unique / legendary Pokémon, item carousel and rewards) and in the shop, the suggested option gets a green frame with a fit percentage and the options to avoid get a red one. Hover a frame to read why. Item crafting hints mark the two components on the board and the Pokémon to drag them onto. **Alt+I** toggles the crafting hints, **Alt+O** hides or shows all markers.
+- **Team Planner coach.** Open the game's own Team Planner (**T**, or the planner icon in the lobby) and PACC adds a toolbar to its header: **★ Recommended** (Pokémon that fit your plan, with a fit % and the reason), **Start from a meta comp** (pick a comp from the meta report and load it into the planner — the game then marks those Pokémon in your shop by itself) and a **fit chip** (how close your plan is to the best meta comp, missing core units, item plan). During a game a small plan tracker shows your progress and next steps.
+- **Carousel and region portals.** During the item carousel and the region portal scene, a card shows the recommended pick order with a short reason for each option.
 - **In-game panel** (logo button at the bottom right, or **Alt+P**), with four tabs:
   - **My game:** reads your board, bench, shop and components while you play and suggests:
     - **Pokémon pick:** which option helps your team most,
@@ -49,7 +51,7 @@ Being careful with extensions is right. Here is exactly what PACC can and cannot
 
 - **Runs on one site only.** PACC's only site permission is `https://pokemon-auto-chess.com/*`. It cannot see any other tab or website.
 - **Talks to one server only.** The only address in the code is `https://pokemon-auto-chess.com`, used for the game's public meta report. No analytics, no tracking, no server of its own, nothing about you is sent anywhere. See [PRIVACY.md](PRIVACY.md).
-- **Never plays for you.** It does not click, drag, buy or send anything to the game. It only draws badges and a panel on top of the page.
+- **Never plays for you.** It does not click, drag, buy or send anything to the game. It only draws badges and panels on top of the page. The one thing it changes is your own Team Planner, and only when you press **Load into plan** (the planner is stored in your browser).
 - **No hidden code.** Everything is in this repo (GPL-3.0). There is no remote code and no minified bundle; the release zip is built from the `extension/` folder by `npm run pack`.
 - **Few permissions.** `storage` (settings and the meta cache), `alarms` (check the meta report every 6 hours), `declarativeNetRequest` (only for the optional Turkish translation).
 

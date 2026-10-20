@@ -1,0 +1,577 @@
+{
+  "summary": {
+    "checked": 5286,
+    "applied": 1,
+    "ask": 34
+  },
+  "items": [
+    {
+      "id": "r1",
+      "decision": "applied",
+      "kind": "placeholder",
+      "keys": [
+        "ability_description.DRUM_BEATING"
+      ],
+      "en": "Cycles through:\n1. Wood block: give [10,20,40,80,SP] SHIELD to the entire team\n2. Drum roll: deal [10,20,40,80,SP] SPECIAL to all enemies\n3. Raise the tempo: give [10,20,40,80] SPEED to the entire team",
+      "tr_before": "Sırayla şunları yapar:\n1. Tahta blok: Tüm takıma [10,20,40,80,SP] SHIELD verir\n2. Davul gümbürtüsü: Tüm düşmanlara [10,20,40,80,SP] SPECIAL verir\n3. Tempoyu artır: Tüm takıma [10,20,40,80,SP] SPEED verir",
+      "tr_after": "Sırayla şunları yapar:\n1. Tahta blok: Tüm takıma [10,20,40,80,SP] SHIELD verir\n2. Davul gümbürtüsü: Tüm düşmanlara [10,20,40,80,SP] SPECIAL verir\n3. Tempoyu artır: Tüm takıma [10,20,40,80] SPEED verir",
+      "reason": "Master branch kaynak alındığı için 3. adımdaki [10,20,40,80,SP] kalıbındaki \",SP\" kaldırıldı (revert edildi) ve master ile eşitlendi."
+    },
+    {
+      "id": "r2",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "carousel",
+        "carousel_stages",
+        "carousel_priority",
+        "stage_type.carousel",
+        "stage_type.portal",
+        "wiki.faq.items_answer",
+        "wiki.stages.carousel_description",
+        "wiki.town.town_encounters_hint",
+        "scribble_description.TOWN_FESTIVAL",
+        "town_encounter_description.SPINDA"
+      ],
+      "en": "Carousel / Item Carousel",
+      "options": [
+        "Karusel (TFT/Auto Chess oyuncu topluluğunda standart)",
+        "Atlıkarınca (öz Türkçe karşılık)"
+      ],
+      "reason": "Arayüz düğmelerinde 'Karusel', wiki ve açıklamalarda 'Atlıkarınca' kullanılmıştır. Terimin oyun genelinde tek bir karşılıkla standartlaştırılması önerilir.",
+      "resolved": "Ortak Seçim"
+    },
+    {
+      "id": "r3",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "bench",
+        "options.key_description.switch",
+        "player_choices.free_slot_hint",
+        "drop_here_to_open",
+        "wiki.glossary.removable_item"
+      ],
+      "en": "Bench",
+      "options": [
+        "Yedek (mevcut ve oturmuş çeviri)",
+        "Kulübe / Sıra"
+      ],
+      "reason": "Kenardaki bekleme alanı için çeviride 'Yedek' kullanılmıştır; 'Yedek' olarak onayınız önerilir.",
+      "resolved": "Yedek"
+    },
+    {
+      "id": "r4",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "shop.place_up_to_pokemons_on_your_board",
+        "board_power",
+        "options.key_description.switch",
+        "options.key_description.board_return",
+        "technical_terms.BOARD_EFFECT"
+      ],
+      "en": "Board",
+      "options": [
+        "Saha (mevcut kullanım, savaş alanını ifade eder)",
+        "Tahta (Auto Chess / satranç jargonuna yakın)"
+      ],
+      "reason": "Savaş alanı için çeviride %95 oranında 'Saha' kullanılmıştır (BOARD_EFFECT için 'Alan Efekti'). 'Saha' olarak teyit edilmesi önerilir.",
+      "resolved": "Saha"
+    },
+    {
+      "id": "r5",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "refresh",
+        "shop.refresh",
+        "options.key_description.refresh",
+        "replay.eventlog.row.reroll",
+        "game_stats.total_reroll_count",
+        "item_description.REPEAT_BALL"
+      ],
+      "en": "Reroll / Refresh",
+      "options": [
+        "Yenile / Yenileme (Türkçe ve anlaşılır)",
+        "Reroll (oyuncu jargonu)"
+      ],
+      "reason": "Dükkanı 1 altına yenileme eylemi için düğmelerde 'Yenile', açıklamalarda 'yenileme' kullanılmıştır.",
+      "resolved": "Yenile"
+    },
+    {
+      "id": "r6",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "synergy.GROUND"
+      ],
+      "en": "Ground",
+      "options": [
+        "Yer (mevcut çeviri, Pokémon resmi terminolojisiyle uyumlu)",
+        "Toprak"
+      ],
+      "reason": "Yer/Toprak tipi sinerji adı seçimi. Resmi Pokémon Türkçeleştirmesinde 'Yer' tipi kullanılır.",
+      "resolved": "Yer"
+    },
+    {
+      "id": "r7",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "synergy.FIELD"
+      ],
+      "en": "Field",
+      "options": [
+        "Kır (mevcut çeviri, kısa ve arayüze sığıyor)",
+        "Ova / Tarla / Arazi"
+      ],
+      "reason": "Yumurta grubu kökenli 'Field' sinerjisi için 'Kır' seçilmiştir.",
+      "resolved": "Kara"
+    },
+    {
+      "id": "r8",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "synergy.AQUATIC"
+      ],
+      "en": "Aquatic",
+      "options": [
+        "Deniz (mevcut çeviri)",
+        "Su Canlısı / Su Grubu"
+      ],
+      "reason": "Water sinerjisi 'Su' olduğu için, Aquatic sinerjisi karışmaması adına 'Deniz' olarak adlandırılmıştır.",
+      "resolved": "Deniz"
+    },
+    {
+      "id": "r9",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "synergy.AMORPHOUS"
+      ],
+      "en": "Amorphous",
+      "options": [
+        "Şekilsiz (mevcut çeviri)",
+        "Biçimsiz / Akışkan"
+      ],
+      "reason": "Amorphous yumurta grubu için 'Şekilsiz' karşılığı kullanılmıştır.",
+      "resolved": "Biçimsiz"
+    },
+    {
+      "id": "r10",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "pkm"
+      ],
+      "en": "Pokémon names (1200 entries)",
+      "options": [
+        "İngilizce orijinal bırakılsın (mevcut kural ve topluluk standardı)",
+        "Türkçeleştirilsin"
+      ],
+      "reason": "Türk Pokémon oyuncuları uluslararası İngilizce isimleri kullanır. Tüm 1200 Pokémon adı İngilizce bırakılmıştır.",
+      "resolved": "İngilizce"
+    },
+    {
+      "id": "r11",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "item"
+      ],
+      "en": "Item names (358 entries)",
+      "options": [
+        "İngilizce orijinal bırakılsın (mevcut kural)",
+        "Türkçeleştirilsin (örn. İpek Eşarp, Seçim Gözlüğü vb.)"
+      ],
+      "reason": "Item isimleri oyun içi topluluk rehberleri ve jargona uyum için İngilizce korunmuştur.",
+      "resolved": "Türkçe"
+    },
+    {
+      "id": "r12",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "ability"
+      ],
+      "en": "Ability names (569 entries)",
+      "options": [
+        "İngilizce orijinal bırakılsın (mevcut kural)",
+        "Türkçeleştirilsin"
+      ],
+      "reason": "Yetenek isimleri İngilizce bırakılmıştır; açıklamaları Türkçe olarak yapılmıştır.",
+      "resolved": "Türkçe"
+    },
+    {
+      "id": "r13",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "map"
+      ],
+      "en": "Map / Dungeon names (147 entries)",
+      "options": [
+        "İngilizce orijinal bırakılsın (Mystery Dungeon lokasyon adları)",
+        "Türkçeleştirilsin (Kristal Mağara, Fırtına Denizi vb.)"
+      ],
+      "reason": "Harita adları (Beach Cave, Dark Crater vb.) Mystery Dungeon serisindeki orijinal isimleriyle bırakılmıştır.",
+      "resolved": "Türkçe"
+    },
+    {
+      "id": "r14",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "elorank"
+      ],
+      "en": "Elo rank Pokeball names (11 entries)",
+      "options": [
+        "İngilizce orijinal bırakılsın (Poké Ball, Great Ball, Ultra Ball, Master Ball vb.)",
+        "Türkçeleştirilsin"
+      ],
+      "reason": "Top adları dereceleri temsil eder; oyuncular İngilizce Pokéball isimlerine aşinadır.",
+      "resolved": "İngilizce"
+    },
+    {
+      "id": "r15",
+      "decision": "ask",
+      "kind": "placeholder",
+      "keys": [
+        "status_description.CONFUSION"
+      ],
+      "en": "Force to change target all the time and [sometimes,LK] target allies or itself",
+      "options": [
+        "[bazen,LK] olarak kalsın (build-translation destekler, tag içinde Türkçe yazar)",
+        "[sometimes,LK] olarak İngilizceye çekilsin"
+      ],
+      "reason": "Bracket içi metin çevirisi. Oyun motoru şans zarı etiketinde 'bazen' yazar; resmi repoya gideceği için İngilizce kalıp mı tercih edilmeli?",
+      "resolved": "master"
+    },
+    {
+      "id": "r16",
+      "decision": "ask",
+      "kind": "ambiguous",
+      "keys": [
+        "weather_description.ZENITH",
+        "weather_description.DROUGHT",
+        "weather_description.WINDY",
+        "weather_description.NIGHT",
+        "weather_description.STORM",
+        "weather_description.MISTY",
+        "weather_description.SNOW",
+        "weather_description.SANDSTORM",
+        "weather_description.BLOODMOON",
+        "weather_description.MURKY"
+      ],
+      "en": "Weather description variables (master uses {{healingBonusPercent}}, live uses hardcoded numbers)",
+      "options": [
+        "Master'daki {{...}} şablon değişkenleri korunsun (resmi repoya PR gideceği için master ile uyumlu)",
+        "Canlı sunucudaki sabit sayılar (+20%, 5 vb.) yazılsın"
+      ],
+      "reason": "Hava durumu açıklamalarında master branch'te değişkenler şablonlaştırılmıştır, canlı sitede ise sabit sayılar vardır. PR master branch'e gidecektir.",
+      "resolved": "master"
+    },
+    {
+      "id": "r17",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "item_description.CASTELIACONE",
+        "item_description.WHIPPED_DREAM"
+      ],
+      "en": "Casteliacone & Whipped Dream duration/effects (master vs live)",
+      "options": [
+        "Master versiyonu korunsun ([30,LK]% ihtimalle 2 saniye / PR hedefi master)",
+        "Canlı sitedeki 5 saniyelik sabit etki metnine güncellensin"
+      ],
+      "reason": "Canlı sitede eşyalar 'ilk vuruşta 5 saniye' şeklinde basitleştirilmiş, master'da ise [30,LK]% ihtimal kalıbı vardır.",
+      "resolved": "master"
+    },
+    {
+      "id": "r18",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "effect_description.WATER_VEIL",
+        "effect_description.SURGE_SURFER",
+        "effect_description.SKYDIVE"
+      ],
+      "en": "Balance timer/damage differences (master vs live: 14s vs 16s, 7s vs 8s, 200% vs 150%)",
+      "options": [
+        "Master sayıları korunsun (14 saniye, 7 saniye, %200 / PR hedefi master)",
+        "Canlı sitedeki rebalance sayılarına (16 saniye, 8 saniye, %150) güncellensin"
+      ],
+      "reason": "Canlı sitede dengeleme yamasıyla dalga süreleri ve dalış hasarı güncellenmiş, master'da eski sayılar bulunmaktadır.",
+      "resolved": "master"
+    },
+    {
+      "id": "r19",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "passive_description.COSMOG",
+        "passive_description.COSMOEM"
+      ],
+      "en": "Cosmog / Cosmoem evolution threshold (master: 10 times, live: 8 times)",
+      "options": [
+        "Master sayısı korunsun (10 kez / PR hedefi master)",
+        "Canlı sitedeki 8 kez değerine güncellensin"
+      ],
+      "reason": "Evrim için gereken birim evrimleştirme sayısı master'da 10, canlıda 8'dir.",
+      "resolved": "master"
+    },
+    {
+      "id": "r20",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "passive_description.COMMANDER"
+      ],
+      "en": "Commander passive description (master vs live wording)",
+      "options": [
+        "Master metni korunsun (Tatsugiri komutan bonusu / PR hedefi master)",
+        "Canlıdaki eşya yuvası şartı eklenmiş metne güncellensin"
+      ],
+      "reason": "Canlı sitede Dondozo'nun boş eşya yuvası olması şartı metne eklenmiştir.",
+      "resolved": "master"
+    },
+    {
+      "id": "r21",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "ability_description.MAGIC_BOUNCE"
+      ],
+      "en": "Magic Bounce duration and silence effect (master: 4s + SILENCE, live: 5s)",
+      "options": [
+        "Master metni korunsun (4 saniye ve SILENCE / PR hedefi master)",
+        "Canlı sitedeki 5 saniye ve susturmasız metne güncellensin"
+      ],
+      "reason": "Canlı sitede yetenek 5 saniyeye çıkarılmış ve susturma detayı metinden çıkarılmıştır.",
+      "resolved": "master"
+    },
+    {
+      "id": "r22",
+      "decision": "ask",
+      "kind": "meaning",
+      "keys": [
+        "ability_description.ORDER_UP"
+      ],
+      "en": "Order Up ability description (master: sushi table + RICE allies, live: simplified)",
+      "options": [
+        "Master metni korunsun (suşi masası ve RICE detayları / PR hedefi master)",
+        "Canlıdaki sadeleştirilmiş metne güncellensin"
+      ],
+      "reason": "Canlı sitede suşi masası ve RICE ile beslenme detayı çıkarılıp metin sadeleştirilmiştir.",
+      "resolved": "master"
+    },
+    {
+      "id": "r23",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "pkm.GALAR_MEOWTH"
+      ],
+      "en": "Galar Meowth (live) vs Galarian Meowth (master)",
+      "options": [
+        "Galarian Meowth (diğer tüm Galarian formlarla tutarlı)",
+        "Galar Meowth (canlıdaki yazım)"
+      ],
+      "reason": "Oyundaki diğer tüm Galar formları 'Galarian' adlandırmasına sahiptir (Galarian Zapdos, Galarian Corsola vb.)."
+    },
+    {
+      "id": "r24",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "item_description.TM",
+        "synergy_description.HUMAN",
+        "tm_short"
+      ],
+      "en": "TM / Technical Machine",
+      "options": [
+        "TM (yaygın Pokémon oyuncu kısaltması)",
+        "Teknik Makine (TM)"
+      ],
+      "reason": "İnsan sinerjisinde 'teknik makinelerle' yazılmış, eşya açıklamasında 'TM' kullanılmıştır. 'TM' olarak tekleştirilmesi önerilir."
+    },
+    {
+      "id": "r25",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "shards",
+        "wiki.faq.collection_answer"
+      ],
+      "en": "Shards",
+      "options": [
+        "Kırıntı (mevcut çeviri)",
+        "Parça / Kristal"
+      ],
+      "reason": "Mükerrer ifadelerden elde edilen ifade para birimi için 'Kırıntı' terimi kullanılmıştır."
+    },
+    {
+      "id": "r26",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "boosters",
+        "boosters_hint",
+        "open_booster",
+        "wiki.faq.boosters_answer"
+      ],
+      "en": "Boosters",
+      "options": [
+        "Paket (kart/ifade paketi bağlamında doğal)",
+        "Güçlendirici"
+      ],
+      "reason": "İfade kart paketleri için 'Paket' kullanılmıştır."
+    },
+    {
+      "id": "r27",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "wiki.faq.items_answer",
+        "item_description.RARE_CANDY",
+        "wiki.stages.gift_shop_description",
+        "wiki.data.tiers_by_level_description"
+      ],
+      "en": "Tier",
+      "options": [
+        "Kademe (eşya seviyeleri ve birim yıldızları için 'kademe', oyun turları için 'aşama')",
+        "Aşama"
+      ],
+      "reason": "Eşya ve birim seviyesi için 'kademe', stage için 'aşama' kullanımı karışıklığı önler."
+    },
+    {
+      "id": "r28",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "stage",
+        "round",
+        "wiki.stages.carousel_description",
+        "wiki.faq.double_up_answer"
+      ],
+      "en": "Stage vs Round",
+      "options": [
+        "Stage = Aşama, Round = Tur (mevcut tutarlı ayrım)",
+        "Her ikisi için Tur"
+      ],
+      "reason": "Oyun döngüsünde ana seviye grupları (1-1, 1-2...) 'aşama', her bir karşılaşma 'tur' olarak ayrılmıştır."
+    },
+    {
+      "id": "r29",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "synergy_description.FIELD",
+        "synergy_description.FLORA",
+        "item_description.AMULET_COIN",
+        "item_description.SOUL_DEW"
+      ],
+      "en": "KO / Knock Out",
+      "options": [
+        "KO olmak / KO etmek (espor ve Pokémon standart jargonu)",
+        "Nakavt olmak / Nakavt etmek"
+      ],
+      "reason": "Açıklamalarda çoğunlukla 'KO olmak' veya 'KO almak' kalıbı korunmuştur; bazı yerlerde 'nakavt' kullanılmıştır."
+    },
+    {
+      "id": "r30",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "item_description.BANQUET",
+        "synergy_description.GOURMET",
+        "ability_description.HIDDEN_POWER_O"
+      ],
+      "en": "Dish",
+      "options": [
+        "Yemek (Gourmet aşçılık mekaniği için en doğal karşılık)",
+        "Tabak"
+      ],
+      "reason": "Gourmet şeflerinin pişirdiği yiyecekler için 'yemek' terimi seçilmiştir."
+    },
+    {
+      "id": "r31",
+      "decision": "ask",
+      "kind": "terminology",
+      "keys": [
+        "effect_description.LINK_CABLE",
+        "effect_description.GOOGLE_SPECS",
+        "synergy_description.ARTIFICIAL",
+        "ability_description.POLTERGEIST"
+      ],
+      "en": "Tool / Tools",
+      "options": [
+        "Alet (Artificial sinerjisinin verdiği eşyalar)",
+        "Araç / Takım"
+      ],
+      "reason": "Artificial sınıfının verdiği özel eşya kategorisi için 'alet' karşılığı kullanılmıştır."
+    },
+    {
+      "id": "r32",
+      "decision": "ask",
+      "kind": "style",
+      "keys": [
+        "general",
+        "wiki",
+        "settings"
+      ],
+      "en": "Tone of voice / Address style",
+      "options": [
+        "Samimi 'sen' dili (mevcut çeviride %100 tutarlı olarak 'alabilirsin', 'dene', 'sahana koy')",
+        "Resmi 'siz' dili"
+      ],
+      "reason": "Oyun arayüzü ve wiki metinlerinde oyuncuya samimi 'sen' diliyle hitap edilmektedir."
+    },
+    {
+      "id": "r33",
+      "decision": "ask",
+      "kind": "style",
+      "keys": [
+        "profile.account.delete_account_passphrase"
+      ],
+      "en": "DELETE ACCOUNT PERMANENTLY",
+      "options": [
+        "İngilizce orijinal bırakılsın (kullanıcının onay için kutuya birebir yazması gerekir)",
+        "Türkçeleştirilsin (HESABI KALICI OLARAK SİL)"
+      ],
+      "reason": "Hesap silme güvenliği için frontend metin eşleştirmesi yapıyorsa İngilizce kalmalıdır; i18n kontrolü yapılmadan Türkçeleştirilmemelidir."
+    },
+    {
+      "id": "r34",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "item.MAGMARIZER",
+        "item.POFFIN"
+      ],
+      "en": "Magmarizer & Poffin",
+      "options": [
+        "Magmarizer ve Poffin olarak kalsın (Özel evrim ve Pokémon evreni yiyecek adı)",
+        "Magmatör ve Poffin Keki olarak uyarlansın"
+      ],
+      "reason": "Magmarizer özel evrim eşyası, Poffin ise Pokémon dünyasına has bir hamur tatlısıdır; orijinal adlarıyla bırakılmıştır."
+    },
+    {
+      "id": "r35",
+      "decision": "ask",
+      "kind": "naming",
+      "keys": [
+        "ability.POLTERGEIST",
+        "ability.ZING_ZAP"
+      ],
+      "en": "Poltergeist & Zing Zap",
+      "options": [
+        "Poltergeist ve Zing Zap olarak kalsın (Evrensel doğaüstü terim ve özel ses oyunu)",
+        "Gürültücü Hayalet ve Şimşek Çarpması olarak Türkçeleştirilsin"
+      ],
+      "reason": "Poltergeist doğrudan kavram adı olup Türkçede de bu şekilde kullanılır; Zing Zap ise çevrilemeyen bir ses/kelime oyunudur."
+    }
+  ]
+}

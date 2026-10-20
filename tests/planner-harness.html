@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PACC · Planlayıcı deneme tahtası</title>
+<!-- Depo kökünden python -m http.server 8123; /tests/planner-harness.html?autotest=1 -->
+<style>
+  :root { color-scheme: dark; background: #0c1321; color: #f3f5fc; font: 15px/1.5 'Trebuchet MS', sans-serif; }
+  body { margin: 24px; } button { min-height: 44px; padding: 10px; cursor: pointer; }
+  #mock { position: fixed; inset: 100px 24px 40px; background: #162136; border: 2px solid #526380; border-radius: 14px; padding: 24px; }
+  #actions { position: absolute; left: 24px; top: 85px; width: 290px; height: 44px; border: 1px dashed #6fb7ff; }
+  #picker { position: absolute; left: 24px; right: 24px; top: 260px; bottom: 24px; border: 1px dashed #f6c445; }
+  #board { position: absolute; left: 24px; top: 150px; width: 50%; height: 58px; border: 1px dashed #5fd68a; }
+  #report { position: relative; z-index: 1; white-space: pre-wrap; color: #5fd68a; max-width: 900px; }
+</style>
+<h1>PACC · Planlayıcı deneme tahtası</h1>
+<button id="planner-on">Planlayıcı</button> <button id="game-on">Oyun içi takip</button>
+<button id="empty">Boş plan</button> <button id="disabled">Koçu aç/kapa</button>
+<button id="no-engine">Motoru aç/kapa</button> <button id="reopen">Storage yanıtı aç/kapa</button>
+<div id="mock"><b>Takım Planlayıcısı</b><div id="actions"></div><div id="board"></div><div id="picker"></div></div>
+<pre id="report"></pre>
+<script>
+  // Gerçek sözleşmenin biçiminde, ağ veya model çağrısı yapmayan veriler.
+  const cluster = { id: 'fire', rank: 3.25, winrate: 28, count: 420, synergies: { FIRE: 4, DRAGON: 2 }, pokemons: [
+    { name: 'CHARIZARD', frequency: .9 }, { name: 'GYARADOS', frequency: .8 }, { name: 'NINETALES', frequency: .7 }
+  ] }
+  const fixture = [
+    { name: 'CHARIZARD', x: 0, y: 1, items: ['FIRE_STONE'] },
+    { name: 'GYARADOS', x: 1, y: 1, items: [] }, { name: 'NINETALES', x: 2, y: 2, items: [] }
+  ]
+  const mem = { settings: { planner: true, uiLang: new URLSearchParams(location.search).get('lang') || 'tr' }, meta: { clusters: [cluster] } }
+  const changes = []
+  const extensionBase = new URL('../extension/', location.href)
+  window.chrome = {
+    runtime: { id: 'planner-harness', getURL: p => new URL(p, extensionBase).href },
+    storage: { local: {
+      get: async () => structuredClone(mem),
+      set: async (values) => { Object.assign(mem, values); changes.forEach(fn => fn(Object.fromEntries(Object.entries(values).map(([k,v]) => [k, { newValue: v }])), 'local')) }
+    }, onChanged: { addListener: fn => changes.push(fn) } }
+  }
+  const engine = {
+    planFit: (ctx, plan) => ({ best: [{ cluster, fit: plan.length ? 67 : 0 }], missing: [{ pkm: 'NINETALES', why: 'comp' }], synergies: [{ syn: 'FIRE', count: 2, next: 4, need: 2 }] }),
+    planRecommendations: () => [{ pkm: 'NINETALES', fit: 94, rarity: 'RARE', reasons: [{ kind: 'next', syn: 'FIRE' }] }],
+    planItems: () => [{ pkm: 'CHARIZARD', items: ['FIRE_STONE'], have: [] }],
+    compToPlan: (ctx, c, { keepPlan }) => keepPlan ? [...keepPlan, ...fixture.filter(p => !keepPlan.some(b => b.name === p.name))] : structuredClone(fixture)
+  }
+  window.PacAdvisor = engine
+  let board = [fixture[0]], opened = true, reopen = false, lastSet
+  const rect = id => { const r = document.getElementById(id).getBoundingClientRect(); return { x:r.x, y:r.y, w:r.width, h:r.height } }
+  function sendPlanner() {
+    document.getElementById('mock').hidden = !opened
+    window.postMessage({ type:'pac-yardimci:planner', planner: { open: opened, board: structuredClone(board), rects: opened ? { modal: rect('mock'), actions: rect('actions'), picker: rect('picker'), board: rect('board') } : null } }, location.origin)
+  }
+  addEventListener('message', e => {
+    if (e.source !== window) return
+    if (e.data.type === 'pac-yardimci:hello') sendPlanner()
+    if (e.data.type === 'pac-yardimci:planner-set') {
+      lastSet = e.data
+      board = structuredClone(e.data.board)
+      window.postMessage({ type:'pac-yardimci:planner-set-result', requestId:e.data.requestId, ok:true, via:reopen ? 'storage' : 'react', ...(reopen ? {note:'reopen'} : {}) }, location.origin)
+      sendPlanner()
+    }
+  })
+  function game() {
+    opened = false; history.replaceState({}, '', '/game'); sendPlanner()
+    window.postMessage({type:'pac-yardimci:game', snapshot:{ board:[{ name:'CHARMANDER', x:1, y:0, items:[] }], shop:['VULPIX','CHARMANDER'], inventory:['FOSSIL_STONE','CHARCOAL'], synergies:{FIRE:1} }}, location.origin)
+  }
+  document.getElementById('planner-on').onclick = () => { opened = true; sendPlanner() }
+  document.getElementById('game-on').onclick = game
+  document.getElementById('empty').onclick = () => { board = []; sendPlanner() }
+  document.getElementById('disabled').onclick = () => chrome.storage.local.set({settings:{ ...mem.settings, planner:!mem.settings.planner }})
+  document.getElementById('no-engine').onclick = () => { window.PacAdvisor = window.PacAdvisor ? null : engine; sendPlanner() }
+  document.getElementById('reopen').onclick = () => { reopen = !reopen }
+  addEventListener('resize', sendPlanner)
+</script>
+<script src="../extension/content/i18n.js"></script>
+<script src="../extension/content/planner.js"></script>
+<script>
+  const wait = (ms = 80) => new Promise(r => setTimeout(r,ms))
+  const root = () => document.getElementById('pac-planner')?.shadowRoot
+  const $ = s => root()?.querySelector(s)
+  const report = []
+  function check(ok, text) { report.push(`${ok ? 'PASS' : 'FAIL'} ${text}`); document.getElementById('report').textContent = report.join('\n'); if (!ok) throw Error(text) }
+  async function autotest() {
+    for (let n=0; n<100 && !$('[data-action="choose"]'); n++) await wait()
+    check(!!$('[data-action="recommended"]'), 'Planlayıcı mesajı Önerilen düğmesini açtı')
+    check(parseFloat($('.recommended-tab').style.left) === rect('picker').x, 'Önerilen seçicinin soluna hizalı')
+    check(parseFloat($('.meta-action').style.left) === rect('actions').x && parseFloat($('.meta-action').style.top) === rect('actions').y, 'Meta düğmesi actions koordinatında')
+    check(!$('.tracker'), 'Planlayıcı açıkken takip kartı yok')
+    $('[data-action="recommended"]').click()
+    check(!!$('[data-add="NINETALES"]'), 'Öneri kartı gösterildi')
+    $('[data-add="NINETALES"]').click(); await wait()
+    check(lastSet.board[1].name === 'NINETALES' && lastSet.board[1].x === 1 && lastSet.board[1].y === 1, 'Ekle ilk boş kareyi kullandı')
+    $('[data-action="choose"]').click()
+    check(!!$('.chooser'), 'Dizilim penceresi açıldı')
+    check(root().activeElement.dataset.action === 'close', 'Pencere odağı içine aldı')
+    $('[data-action="replace"]').click(); await wait()
+    check(JSON.stringify(lastSet.board) === JSON.stringify(fixture) && !!lastSet.requestId, 'Plana yükle doğru board ve requestId yolladı')
+    reopen = true; $('[data-action="choose"]').click(); $('[data-action="merge"]').click(); await wait()
+    check(lastSet.board.length === 3, 'Sadece eksikler mevcut planı korudu')
+    check($('.notice').textContent.includes(PacI18n.t('panel.planner.reopen')), 'reopen yanıtı bilgilendirmesi var')
+    window.postMessage({type:'pac-yardimci:planner-set-result',requestId:'foreign',ok:false},location.origin); await wait()
+    check(!$('.notice').textContent.includes(PacI18n.t('panel.planner.failed')), 'Yabancı requestId yok sayıldı')
+    game(); await wait()
+    check(!!$('.tracker'), 'Oyun rotası + dolu plan takip kartını açtı')
+    check($('.progress-label').textContent.includes('1 / 3'), 'Yedekteki evrim ailesi ilerlemeye sayıldı')
+    check($('.tracker ol').textContent.includes(PacI18n.t('panel.planner.buy',{name:'Vulpix'})), 'Dükkandaki plan ailesi sıradaki adımda')
+    $('[data-action="minimize"]').click(); check(!$('#tracking-details'), 'Takip kartı küçültüldü')
+    $('[data-action="minimize"]').click(); check(!!$('#tracking-details'), 'Takip kartı genişletildi')
+    history.replaceState({}, '', '/lobby'); dispatchEvent(new PopStateEvent('popstate')); check(!$('.tracker'), 'Oyun dışında kart yok')
+    history.replaceState({}, '', '/game'); board=[]; sendPlanner(); await wait(); check(!$('.tracker'), 'Boş planda kart yok')
+    opened=true; sendPlanner(); await wait(); window.PacAdvisor=null; sendPlanner(); await wait()
+    check(!!$('.empty'), 'Motor yokken zarif boş durum')
+    await chrome.storage.local.set({settings:{...mem.settings,planner:false}}); check(!$('#surface').textContent, 'Ayar kapalıyken koç gizli')
+    check(document.getElementById('pac-planner').parentElement === document.documentElement && !document.getElementById('mock').querySelector('#pac-planner'), 'Yalnızca documentElement içinde kendi shadow hostu')
+    window.PacAdvisor=engine; await chrome.storage.local.set({settings:{...mem.settings,planner:true}})
+    document.title='PASS · Planner harness'; document.documentElement.dataset.result='pass'
+  }
+  if(new URLSearchParams(location.search).has('autotest')) autotest().catch(e => { document.title='FAIL · Planner harness'; document.documentElement.dataset.result='fail'; document.getElementById('report').textContent += '\n'+e.stack })
+</script>
+</html>
