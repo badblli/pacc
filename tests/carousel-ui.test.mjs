@@ -5,6 +5,9 @@ import vm from "node:vm"
 import { test } from "node:test"
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8")
+const engineContext = { window: {} }
+vm.runInNewContext(read("extension/content/advisor.js"), engineContext)
+const buildContext = engineContext.window.PacAdvisor.buildContext
 const catalog = JSON.parse(read("extension/i18n/en.json"))
 async function setup() {
   const handlers = {}, rootHandlers = {}, appended = [], calls = [], sent = []
@@ -22,7 +25,7 @@ async function setup() {
     { map: "FOREST", score: 80, synergies: ["FIRE"], regional: ["A", "B", "C", "D"].map(pkm => ({ pkm })), meta: { rank: 3.25, count: 200 } }
   ]
   const window = {
-    PacAdvisor: Object.fromEntries([["rankCarousel", items], ["rankPortals", portals]].map(([key, result]) => [key, (...args) => { calls.push(args); return result }])),
+    PacAdvisor: { buildContext, ...Object.fromEntries([["rankCarousel", items], ["rankPortals", portals]].map(([key, result]) => [key, (...args) => { calls.push(args); return result }])) },
     PacI18n: { ready: Promise.resolve(), lang: "en", number: String, humanize: String,
       escapeHtml: s => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"),
       t: (k, vars = {}) => { assert.ok(k in catalog, k); return catalog[k].replace(/\{\{(\w+)\}\}/g, (_, v) => vars[v] ?? "") },

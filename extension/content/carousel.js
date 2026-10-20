@@ -4,7 +4,7 @@
   const I18n = window.PacI18n
   const t = (key, vars) => I18n.t(key, vars)
   const esc = (s) => I18n.escapeHtml(s)
-  const defaults = { overlay: true, tier: "LEVEL_BALL", minGames: 50 }
+  const defaults = { overlay: true, tier: "auto", minGames: 50 }
   const state = { settings: defaults, snap: null, plan: [], data: null, meta: null, text: null, minimized: false, ready: false }
   const host = document.createElement("div")
   host.id = "pac-carousel"
@@ -13,14 +13,12 @@
   document.documentElement.appendChild(host)
   const surface = root.getElementById("surface")
   const name = (key, kind = "pkm") => state.text?.[kind]?.[key] ?? I18n.humanize(key)
-  const ctx = () => ({
-    data: state.data, tierPokemons: state.meta?.pokemons?.[state.settings.tier] ?? {},
-    tierItems: state.meta?.items?.[state.settings.tier] ?? {}, clusters: state.meta?.clusters ?? [],
-    regionsMeta: state.meta?.regions, minGames: state.settings.minGames,
-    thresholds: state.meta?.thresholds ?? null,
+  const ctx = () => window.PacAdvisor.buildContext({
+    data: state.data, meta: state.meta, settings: state.settings, snap: state.snap, plan: state.plan,
     names: { pkm: name, syn: (k) => name(k, "synergy"), item: (k) => name(k, "item") }, t
   })
   const reason = (r) => {
+    if (["plan", "live"].includes(r?.kind)) return t(`advice.context.${r.kind}`)
     if (!["craft", "component", "want", "comp"].includes(r?.kind)) return ""
     return t({ craft: "panel.carousel.reason.craft", component: "panel.carousel.reason.component", want: "panel.carousel.reason.want", comp: "panel.carousel.reason.comp" }[r.kind], { item: name(r.item, "item"), pkm: name(r.pkm) })
   }
@@ -42,6 +40,7 @@
     return `<li class="choice portal${row.taken ? " taken" : ""}"><span class="order">${i + 1}</span><div class="body">
       <div class="line"><b class="name">${esc(name(row.map, "map"))}</b><small>${esc(row.taken ? t("panel.carousel.taken")
         : Number.isFinite(row.meta?.rank) ? t("panel.carousel.meta", { rank: I18n.number(Number(row.meta.rank.toFixed(2))) }) : t("panel.carousel.noMeta"))}</small></div>
+      <span class="reason">${esc((row.reasons ?? []).filter((r) => ["plan", "live"].includes(r.kind) && !r.syn && !r.pkm).map(reason).join(" · "))}</span>
       <div class="portal-details"><div class="chips">${(row.synergies ?? []).map((syn) => `<span class="chip"><img src="/assets/types/${esc(syn)}.svg" alt="">${esc(name(syn, "synergy"))}</span>`).join("")}</div>
       <div class="portraits">${(row.regional ?? []).slice(0, 3).map(portrait).join("")}</div></div></div></li>`
   }

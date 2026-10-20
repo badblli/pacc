@@ -1,0 +1,393 @@
+{
+  "format": 1,
+  "recordedAt": "2026-10-20T12:00:00.000Z",
+  "extensionVersion": "1.1.1",
+  "events": [
+    {
+      "t": 1000,
+      "type": "planner",
+      "payload": {
+        "open": false,
+        "board": [
+          {
+            "name": "CHARIZARD",
+            "x": 2,
+            "y": 2,
+            "items": [
+              "CHARCOAL"
+            ]
+          },
+          {
+            "name": "NINETALES",
+            "x": 3,
+            "y": 2,
+            "items": []
+          }
+        ],
+        "rects": null
+      }
+    },
+    {
+      "t": 1001,
+      "type": "game",
+      "payload": {
+        "uid": "self",
+        "stage": 12,
+        "phase": 0,
+        "money": 24,
+        "life": 83,
+        "elo": 1220,
+        "rank": 3,
+        "alive": true,
+        "level": 6,
+        "experience": 2,
+        "expNeeded": 16,
+        "maxLevel": 9,
+        "streak": 2,
+        "interest": 2,
+        "maxInterest": 5,
+        "map": "MtBlaze",
+        "board": [
+          {
+            "name": "CHARIZARD",
+            "x": 2,
+            "y": 2,
+            "stars": 2,
+            "items": [
+              "CHARCOAL"
+            ]
+          },
+          {
+            "name": "NINETALES",
+            "x": 3,
+            "y": 2,
+            "stars": 2,
+            "items": []
+          },
+          {
+            "name": "CHARMANDER",
+            "x": 0,
+            "y": 0,
+            "stars": 1,
+            "items": []
+          }
+        ],
+        "inventory": [
+          "MAGNET",
+          "MAGNET"
+        ],
+        "shop": [
+          "CHARMANDER",
+          "VULPIX",
+          "MAGIKARP",
+          "EEVEE",
+          "PIKACHU"
+        ],
+        "choices": [
+          {
+            "type": "item",
+            "items": [
+              "MAGNET",
+              "CHARCOAL",
+              "MYSTIC_WATER"
+            ]
+          }
+        ],
+        "itemsProposition": [
+          "MAGNET",
+          "CHARCOAL",
+          "MYSTIC_WATER"
+        ],
+        "pokemonsProposition": [],
+        "regionalPokemons": [],
+        "additionalPokemons": [],
+        "synergies": {
+          "FIRE": 2
+        },
+        "players": 8,
+        "taken": {
+          "CHARMANDER": 4
+        },
+        "opponent": {
+          "id": "p1",
+          "name": "p1",
+          "life": 75,
+          "board": [
+            {
+              "name": "GYARADOS",
+              "x": 2,
+              "y": 2,
+              "stars": 2,
+              "items": []
+            }
+          ],
+          "synergies": {
+            "WATER": 1
+          }
+        },
+        "carousel": null
+      }
+    },
+    {
+      "t": 1002,
+      "type": "screen",
+      "payload": {
+        "mode": "pick",
+        "units": [
+          {
+            "name": "CHARIZARD",
+            "x": 2,
+            "y": 2,
+            "index": 0,
+            "rect": {
+              "x": 450,
+              "y": 400,
+              "w": 72,
+              "h": 72
+            }
+          }
+        ],
+        "items": [
+          {
+            "item": "MAGNET",
+            "rect": {
+              "x": 380,
+              "y": 600,
+              "w": 60,
+              "h": 60
+            }
+          },
+          {
+            "item": "MAGNET",
+            "rect": {
+              "x": 450,
+              "y": 600,
+              "w": 60,
+              "h": 60
+            }
+          }
+        ]
+      }
+    },
+    {
+      "t": 2000,
+      "type": "game",
+      "payload": {
+        "uid": "self",
+        "stage": 12,
+        "phase": 0,
+        "money": 24,
+        "life": 83,
+        "elo": 1220,
+        "rank": 3,
+        "alive": true,
+        "level": 6,
+        "experience": 2,
+        "expNeeded": 16,
+        "maxLevel": 9,
+        "streak": 2,
+        "interest": 2,
+        "maxInterest": 5,
+        "map": "MtBlaze",
+        "board": [
+          {
+            "name": "CHARIZARD",
+            "x": 2,
+            "y": 2,
+            "stars": 2,
+            "items": [
+              "CHARCOAL"
+            ]
+          },
+          {
+            "name": "NINETALES",
+            "x": 3,
+            "y": 2,
+            "stars": 2,
+            "items": []
+          },
+          {
+            "name": "CHARMANDER",
+            "x": 0,
+            "y": 0,
+            "stars": 1,
+            "items": []
+          }
+        ],
+        "inventory": [
+          "MAGNET",
+          "MAGNET"
+        ],
+        "shop": [
+          "CHARMANDER",
+          "VULPIX",
+          "MAGIKARP",
+          "EEVEE",
+          "PIKACHU"
+        ],
+        "choices": [],
+        "itemsProposition": [],
+        "pokemonsProposition": [],
+        "regionalPokemons": [],
+        "additionalPokemons": [],
+        "synergies": {
+          "FIRE": 2
+        },
+        "players": 8,
+        "taken": {
+          "CHARMANDER": 4
+        },
+        "opponent": {
+          "id": "p1",
+          "name": "p1",
+          "life": 75,
+          "board": [
+            {
+              "name": "GYARADOS",
+              "x": 2,
+              "y": 2,
+              "stars": 2,
+              "items": []
+            }
+          ],
+          "synergies": {
+            "WATER": 1
+          }
+        },
+        "carousel": {
+          "kind": "items",
+          "items": [
+            {
+              "id": "a",
+              "name": "MAGNET",
+              "taken": false
+            },
+            {
+              "id": "b",
+              "name": "CHARCOAL",
+              "taken": true
+            },
+            {
+              "id": "c",
+              "name": "MYSTIC_WATER",
+              "taken": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "t": 3000,
+      "type": "game",
+      "payload": {
+        "uid": "self",
+        "stage": 12,
+        "phase": 0,
+        "money": 24,
+        "life": 83,
+        "elo": 1220,
+        "rank": 3,
+        "alive": true,
+        "level": 6,
+        "experience": 2,
+        "expNeeded": 16,
+        "maxLevel": 9,
+        "streak": 2,
+        "interest": 2,
+        "maxInterest": 5,
+        "map": "MtBlaze",
+        "board": [
+          {
+            "name": "CHARIZARD",
+            "x": 2,
+            "y": 2,
+            "stars": 2,
+            "items": [
+              "CHARCOAL"
+            ]
+          },
+          {
+            "name": "NINETALES",
+            "x": 3,
+            "y": 2,
+            "stars": 2,
+            "items": []
+          },
+          {
+            "name": "CHARMANDER",
+            "x": 0,
+            "y": 0,
+            "stars": 1,
+            "items": []
+          }
+        ],
+        "inventory": [
+          "MAGNET",
+          "MAGNET"
+        ],
+        "shop": [
+          "CHARMANDER",
+          "VULPIX",
+          "MAGIKARP",
+          "EEVEE",
+          "PIKACHU"
+        ],
+        "choices": [],
+        "itemsProposition": [],
+        "pokemonsProposition": [],
+        "regionalPokemons": [],
+        "additionalPokemons": [],
+        "synergies": {
+          "FIRE": 2
+        },
+        "players": 8,
+        "taken": {
+          "CHARMANDER": 4
+        },
+        "opponent": {
+          "id": "p1",
+          "name": "p1",
+          "life": 75,
+          "board": [
+            {
+              "name": "GYARADOS",
+              "x": 2,
+              "y": 2,
+              "stars": 2,
+              "items": []
+            }
+          ],
+          "synergies": {
+            "WATER": 1
+          }
+        },
+        "carousel": {
+          "kind": "portals",
+          "portals": [
+            {
+              "id": "fire",
+              "map": "MtBlaze",
+              "synergies": [
+                "FIRE"
+              ],
+              "taken": false
+            },
+            {
+              "id": "forest",
+              "map": "HowlingForest2",
+              "synergies": [
+                "GRASS"
+              ],
+              "taken": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "t": 4000,
+      "type": "game",
+      "payload": null
+    }
+  ]
+}

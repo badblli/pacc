@@ -60,6 +60,7 @@ const used = new Set([...code.matchAll(KEY)].map((m) => m[1]).filter((key) => !/
 for (const [, key] of code.matchAll(/data-i18n="([^"]+)"/g)) used.add(key)
 // Şablonla kurulan anahtarlar (ör. `panel.craft.${r.state}`)
 const dynamic = {
+  "advice.context.": ["plan", "live"],
   "advice.verdict.": ["best", "good", "avoid"],
   "overlay.": ["best", "good", "avoid"],
   "panel.tab.": ["game", "pokemon", "comps", "items"],
@@ -163,6 +164,7 @@ const choose = (type, pokemons = [], items = []) => ({ id: `t-${type}`, type, po
 const base0 = { board: [], shop: [], choices: [], inventory: [], synergies: {}, itemsProposition: [], pokemonsProposition: [], level: 3, money: 20, life: 100 }
 // Gerekçe metni üreten tüm dalları dolaşan senaryolar
 const scenarios = [
+  { plan: [unit("SQUIRTLE")], choices: [choose("addPick", ["SQUIRTLE", "CHARMANDER"])] },
   { choices: [choose("starter", ["CHARMANDER", "SQUIRTLE", "BULBASAUR", "CHIKORITA"], ["FIRE_STONE"])] },
   { choices: [choose("starter", ["LATIOS_LATIAS", "MAGIKARP"], ["UNKNOWN_ITEM"])] },
   { board: [unit("VULPIX")], choices: [choose("addPick", ["CHARMANDER", "SQUIRTLE"])] },
@@ -198,6 +200,7 @@ function allTexts(lang) {
     for (const p of a.shop) out.push(...p.reasons)
     for (const p of a.pool) assert.ok(["have", "comp"].includes(p.why))
   }
+  out.push(...advisor.itemHolderFit(ctx, { board: [unit("CHARMANDER")], inventory: [] }, "CHARCOAL").reasons)
   // Ekonomi ipuçlarının tüm dalları
   for (const e of economyCases) out.push(...advisor.analyze(ctx, { ...base0, ...e }).economy.tips.map(([, text]) => text))
   // Item meta verisi yokken birleştirme gerekçesi
@@ -229,6 +232,7 @@ for (const part of [
   "core unit of a meta comp (average #3.3)", "copy for evolving (1/9)", "Rarely played in the meta / no data",
   "Your HP is low (20)", "Save 2 more gold to raise your interest to +2.", "Interest is maxed (+5).", "4-round streak",
   "Level 6 costs 8 gold and keeps your interest.", "Level 6 needs 12 gold (12 XP)", "You can reach level 6 for 8 gold.",
+  "Fits your plan", "Fits your current team", "Component for Fire Stone for Charmander",
   "Recommended", "Good option", "Avoid", "Strong in meta", "Meta + team", "Team fit", "Weak pick", "No data"
 ]) has(enTexts, part)
 for (const part of ["Charmander → Charizard: meta ort. 3.1 sıra", "Ateş 1→2 (tamamlar)", "Önerilen", "Meta'da az oynanıyor / veri yok", "Canın az (20)"]) has(trTexts, part)

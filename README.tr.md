@@ -149,3 +149,11 @@ Oyunun kullanım koşulları "izinsiz otomasyon / araç" kullanımını yasaklı
 ## Lisans
 
 Oyun GPL-3.0 lisanslı. Eklenti oyunun kodunu içermiyor. Sadece dil dosyasını ve item tarif verisini oyunun reposundan türetiyor; eklentiyi yayınlarsan GPL-3.0 kullanmak en sorunsuz yol.
+
+## Bir maçı kaydedip geliştiricilere göndermek
+
+Oynamadan önce eklenti popup'ından **Maçı kaydet (geliştirici)** seçeneğini açın. Kayıt varsayılan olarak kapalıdır. Maçtan sonra kapatın ve **Kaydı indir (n durum)** düğmesine basın; oluşan `pacc-game-YYYYMMDD-HHMM.json` dosyasını geliştiricilere gönderin. **Kaydı sil** yerel kaydı temizler; ayrı bir maça başlamadan önce önceki kaydı silin.
+
+Oyuncu adları ve kimlikleri saklanmadan önce anonimleştirilir, avatar alanları kaldırılır. Yaklaşık 8 MB sınırı dolunca en eski olaylar atılır; meta veritabanı kayda dahil değildir. Paylaşmadan önce JSON'u gözden geçirin. Kaydı kapatmak mevcut kaydı silmez; daha sonra indirebilirsiniz.
+
+Geliştiriciler: kayıtları `tests/fixtures/games/` altına koyup `node --test tests/replay.test.mjs` çalıştırabilir. `sample-synthetic.json` elle hazırlanmış örnektir, gerçek maç değildir. Görsel tekrar için depo kökünde `python -m http.server 8123` çalıştırıp `http://localhost:8123/tests/replay-harness.html?file=fixtures/games/sample-synthetic.json` adresini açın veya yerel dosya seçin. Zaman çubuğuyla olaylarda gezinin; overlay koordinatları için kayıttaki pencere boyutunu kullanın. Tekrar oynatma depodaki meta fixture'ını ve güncel varsayılan ayarları kullandığından geçmiş önerilerden farklı sonuç verebilir.

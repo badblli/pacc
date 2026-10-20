@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PACC · Maç tekrar oynatma</title>
+<!-- Depo kökünden python -m http.server 8123; /tests/replay-harness.html?file=fixtures/games/sample-synthetic.json -->
+<style>
+  :root { color-scheme: dark; font: 15px/1.5 sans-serif; background: #0c1321; color: #f3f5fc; }
+  body { margin: 24px; } main { position: relative; z-index: 2147483647; background: #162136; padding: 16px; max-width: 650px; border-radius: 12px; }
+  input[type=range] { width: 100%; } button { padding: 10px; } pre { white-space: pre-wrap; max-height: 150px; overflow: auto; }
+  #stage { position: absolute; inset: 260px 0 0; pointer-events: none; } .target { position: absolute; border: 1px dashed #8eabc7; box-sizing: border-box; color: #a0b3ca; font-size: 11px; }
+</style>
+<main>
+  <h1>PACC · Maç tekrar oynatma</h1>
+  <label>Kayıt dosyası <input id="file" type="file" accept=".json,application/json"></label>
+  <p><button id="previous">Önceki</button> <button id="next">Sonraki</button> <button id="panel">Paneli aç/kapat</button></p>
+  <label>Olay <input id="timeline" type="range" min="0" max="0" value="0" disabled></label>
+  <output id="position" aria-live="polite">Bir kayıt seçin.</output>
+  <pre id="report" role="status"></pre>
+</main>
+<div id="stage"></div>
+<script>
+  const extensionBase = new URL('../extension/', location.href)
+  const harnessURL = new URL(location.href)
+  const mem = { settings: { panel:true, overlay:true, planner:true, uiLang:'tr', tier:'auto' } }
+  const storageListeners = [], runtimeListeners = []
+  window.chrome = {
+    runtime: { id:'replay-harness', getURL:p => new URL(p, extensionBase).href,
+      sendMessage:async () => ({ok:true}), onMessage:{addListener:fn => runtimeListeners.push(fn),removeListener:() => {}} },
+    storage: { local: { get:async () => structuredClone(mem), set:async values => {
+      Object.assign(mem, structuredClone(values))
+      storageListeners.forEach(fn => fn(Object.fromEntries(Object.entries(values).map(([k,v]) => [k,{newValue:v}])), 'local'))
+    } }, onChanged:{addListener:fn => storageListeners.push(fn),removeListener:() => {}} }
+  }
+  let recording = null, current = { game:null, screen:null, planner:{open:false,board:[],rects:null} }
+  const $ = id => document.getElementById(id)
+  function post(type, payload) {
+    window.postMessage({type:`pac-yardimci:${type}`, [type==='game'?'snapshot':type]:structuredClone(payload)}, location.origin)
+  }
+  function emit() {
+    // Takip kartının gerçek oyun rotası koşulunu sağla; dosya URL'leri sabit kalır.
+    history.replaceState(null, '', current.game ? '/game/pacc-replay' : harnessURL)
+    post('planner', current.planner)
+    post('game', current.game)
+    post('screen', current.screen)
+    window.postMessage({type:'pac-yardimci:health',status:current.game?'ok':'idle',inGame:!!current.game}, location.origin)
+  }
+  function seek() {
+    if (!recording) return
+    current = {game:null,screen:null,planner:{open:false,board:[],rects:null}}
+    const index = Number($('timeline').value)
+    for (const event of recording.events.slice(0,index+1)) current[event.type] = event.payload
+    emit()
+    const event = recording.events[index]
+    $('position').textContent = `${index+1} / ${recording.events.length} · ${event.type} · ${((event.t-recording.events[0].t)/1000).toFixed(2)} sn`
+    $('report').textContent = `Aşama: ${current.game?.stage ?? '—'} · ${current.game?.board?.length ?? 0} Pokémon\nEkran koordinatları kayıttaki piksel değerleridir; aynı pencere boyutunda inceleyin.`
+    $('stage').replaceChildren()
+    for (const unit of [...(current.screen?.units ?? []), ...(current.screen?.items ?? [])]) {
+      const r = unit.rect
+      if (!r) continue
+      const target = document.createElement('div')
+      target.className = 'target'
+      // Kayıttaki viewport koordinatlarını değiştirmeden göster.
+      target.style.cssText = `position:fixed;left:${Number(r.x)}px;top:${Number(r.y)}px;width:${Number(r.w)}px;height:${Number(r.h)}px`
+      target.textContent = unit.name ?? unit.item
+      $('stage').append(target)
+    }
+  }
+  function load(value) {
+    if (value?.format!==1 || !Array.isArray(value.events) || !value.events.length || value.events.some(e => !['game','screen','planner'].includes(e.type) || !Number.isFinite(e.t))) throw Error('Geçersiz veya boş kayıt (format: 1 gerekli).')
+    recording = value
+    $('timeline').max = value.events.length-1
+    $('timeline').value = 0
+    $('timeline').disabled = false
+    seek()
+  }
+  $('file').onchange = async e => { try { load(JSON.parse(await e.target.files[0].text())) } catch(error) { $('report').textContent=error.message } }
+  $('timeline').oninput = seek
+  $('previous').onclick = () => { $('timeline').value = Number($('timeline').value)-1; seek() }
+  $('next').onclick = () => { $('timeline').value = Number($('timeline').value)+1; seek() }
+  $('panel').onclick = () => runtimeListeners.forEach(fn => fn({type:'toggle-panel'}))
+  addEventListener('message', e => { if(e.source===window && e.data?.type==='pac-yardimci:hello') emit() })
+  // Duran zaman çubuğunda ekran konumları ve sağlık sinyali bayatlamaz.
+  setInterval(() => { if(recording) { post('screen',current.screen); window.postMessage({type:'pac-yardimci:health',status:current.game?'ok':'idle',inGame:!!current.game},location.origin) } }, 750)
+  window.replayReady = fetch(new URL('fixtures/meta.json',harnessURL)).then(r => { if(!r.ok) throw Error('Meta fixture yüklenemedi'); return r.json() }).then(meta => { mem.meta=meta })
+</script>
+<script src="../extension/content/i18n.js"></script>
+<script src="../extension/content/advisor.js"></script>
+<script>
+  // Önce meta, sonra gerçek content script'leri: kayıt sayfasında oyun kancası çalışmaz.
+  replayReady.then(async () => {
+    for(const name of ['planner','carousel','overlay','panel']) await new Promise((resolve,reject) => {
+      const script=document.createElement('script'); script.src=new URL(`content/${name}.js`,extensionBase); script.onload=resolve; script.onerror=reject; document.body.append(script)
+    })
+    const file=harnessURL.searchParams.get('file')
+    if(file) {
+      const url=new URL(file,harnessURL)
+      if(url.origin!==location.origin) throw Error('Fixture aynı kaynaktan yüklenmeli.')
+      const response=await fetch(url)
+      if(!response.ok) throw Error('Kayıt yüklenemedi.')
+      load(await response.json())
+    }
+  }).catch(error => { $('report').textContent=error.message })
+</script>
+</html>

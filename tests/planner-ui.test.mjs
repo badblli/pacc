@@ -5,6 +5,9 @@ import vm from "node:vm"
 import { test } from "node:test"
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8")
+const engineContext = { window: {} }
+vm.runInNewContext(read("extension/content/advisor.js"), engineContext)
+const buildContext = engineContext.window.PacAdvisor.buildContext
 const catalog = JSON.parse(read("extension/i18n/en.json"))
 const plan = [{ name: "CHARIZARD", x: 0, y: 1, items: [] }]
 const cluster = { id: "fire", rank: 3, count: 100, winrate: 25, synergies: { FIRE: 4 }, pokemons: [{ name: "CHARIZARD", frequency: 1 }] }
@@ -35,6 +38,7 @@ async function setup() {
   }
   const data = { family: { CHARMANDER: "CHARMANDER", CHARIZARD: "CHARMANDER", VULPIX: "VULPIX", NINETALES: "VULPIX" }, recipes: { FIRE_STONE: ["FOSSIL_STONE", "CHARCOAL"] } }
   const engine = {
+    buildContext,
     planFit: () => ({ best: [{ cluster, fit: 50 }], missing: [{ pkm: "NINETALES" }], synergies: [{ syn: "FIRE", count: 1, next: 4, need: 3 }] }),
     planRecommendations: () => [{ pkm: "NINETALES", fit: 80, rarity: "RARE", reasons: [{ kind: "next", syn: "FIRE" }] }],
     planItems: () => [{ pkm: "CHARIZARD", items: ["FIRE_STONE"], have: [] }],

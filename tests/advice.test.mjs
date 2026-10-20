@@ -34,9 +34,9 @@ const ctx = {
       pokemons: [{ name: "CHARIZARD", frequency: 0.8, items: [] }], items: [{ item: "FIRE_STONE" }] },
     { id: "water", count: 60, rank: 3.5, winrate: 0.2, synergies: [],
       pokemons: [{ name: "BLASTOISE", frequency: 0.7, items: [] }], items: [] },
-    // Bu iki küme örnek/frekans eşiği altında olduğu için başlangıç puanına katılmaz.
+    // Bu iki küme örnek/frekans eşiği (WEIGHTS.CORE_FREQUENCY_MIN) altında olduğu için başlangıç puanına katılmaz.
     { id: "rare", count: 2, rank: 1, pokemons: [{ name: "VENUSAUR", frequency: 1 }], items: [] },
-    { id: "infrequent", count: 80, rank: 1, pokemons: [{ name: "VENUSAUR", frequency: 0.1 }], items: [] }
+    { id: "infrequent", count: 80, rank: 1, pokemons: [{ name: "VENUSAUR", frequency: 0.05 }], items: [] }
   ],
   tierItems: { FIRE_STONE: [3.2, 80, []], WATER_STONE: [3.5, 60, []], BLACK_BELT: [5.8, 80, []] },
   names: {
@@ -251,19 +251,20 @@ const withoutComp = contract(advice(compPick, { board: [unit("CHARMANDER")], syn
 assert.ok(withComp.choice.options[0].pct - withoutComp.choice.options[0].pct >= 15)
 assert.equal(withComp.choice.options[0].verdict, "best")
 assert.equal(withComp.choice.options[0].tag, "Takım uyumu")
-assert.equal(withComp.choice.options[0].reasons[0], "Tahtandaki Charmander ile aynı dizilim (ort. 3.2)")
+assert.equal(withComp.choice.options[0].reasons[0], "Tahtandaki Charmander ile aynı dizilim (ort. 3.2) · Anlık takımına göre")
 assert.ok(withComp.choice.options[0].reasons.includes("Dizilim çekirdeği: Charizard, LAPRAS"))
 // Aynı aile kopyası (evrim) takım puanı verir ama sinerji gerekçesi vermez.
 const copyPick = contract(advice(choose("unique", ["CHARMELEON"]), { board: [unit("CHARMANDER")], synergies: {} }))
-assert.ok(copyPick.choice.options[0].reasons.includes("Evrim için kopya (1/9)"))
+assert.ok(copyPick.choice.options[0].reasons.some((r) => r.startsWith("Evrim için kopya (1/9)")))
 assert.ok(!copyPick.choice.options[0].reasons.some((r) => r.includes("tamamlar")))
 // Item seçimi: hemen verilen > birleşip verilen > kullanımı olmayan
-assert.equal(itemResult.choice.options[0].pct, 87)
+// Taşıyıcı uyumu artık ikili 100/85 yerine yıldız, nadirlik ve meta sinyallerinden hesaplanır.
+assert.equal(itemResult.choice.options[0].pct, 64) // ağırlıklar d8-eval grid aramasıyla ayarlandı
 assert.equal(itemResult.choice.options[0].tag, "Meta + takım")
 assert.equal(itemResult.choice.options[1].pct, null) // CHARCOAL: kullanım ve meta yok
-assert.equal(itemResult.choice.options[2].pct, 13) // BLACK_BELT: yalnız zayıf meta
+assert.equal(itemResult.choice.options[2].pct, 19) // BLACK_BELT: yalnız zayıf meta
 assert.equal(itemResult.choice.options[2].verdict, "neutral") // kullanımı yoksa kaçın denmez
-assert.equal(craftPick.choice.options[0].pct, 78)
+assert.equal(craftPick.choice.options[0].pct, 61)
 assert.equal(craftPick.choice.options[0].tag, "Meta + takım")
 // Dükkan: good olmayan slotlar da puan alır.
 assert.ok(shopResult.shop.every((slot) => slot.pct !== undefined && typeof slot.tag === "string"))
@@ -289,7 +290,7 @@ const craftBoard = [
 // İki tarif aynı FOSSIL_STONE'u istiyor: yalnız biri yapılır (en yüksek pct: 2★ Squirtle'a Su Taşı).
 const conflict = contract(advice(null, { board: craftBoard, synergies: {}, inventory: ["FOSSIL_STONE", "CHARCOAL", "MYSTIC_WATER"] }))
 assert.deepEqual(conflict.craft, [{ item: "WATER_STONE", components: ["FOSSIL_STONE", "MYSTIC_WATER"],
-  target: "SQUIRTLE", targetIndex: 1, pct: 90, reason: "SQUIRTLE için meta item, ort. 3.5 sıra" }])
+  target: "SQUIRTLE", targetIndex: 1, pct: 89, reason: "SQUIRTLE için meta item, ort. 3.5 sıra" }])
 const both = contract(advice(null, { board: craftBoard, synergies: {}, inventory: ["FOSSIL_STONE", "CHARCOAL", "MYSTIC_WATER", "FOSSIL_STONE"] }))
 assert.deepEqual(both.craft.map((c) => [c.item, c.targetIndex]), [["WATER_STONE", 1], ["FIRE_STONE", 0]])
 assert.equal(both.craft[1].reason, "Charmander için meta item, ort. 3.2 sıra")
@@ -323,8 +324,8 @@ assert.equal(advisor.analyze(ctx, { ...legacySnap, ...waterTeam, shop: ["SQUIRTL
 // Kancayı tarayıcı olmadan çalıştırıp Redux / Colyseus koleksiyonlarını doğrular.
 const hookSource = read("extension/page/game-hook.js")
 function hookSnapshot({ reduxChoices, reduxBoard = [], reduxSynergies = {}, liveChoices,
-  liveBoard = reduxBoard, liveSynergies = reduxSynergies, legacy = false, live = false }) {
-  const reduxPlayer = { id: "test-player", board: reduxBoard, synergies: reduxSynergies, choices: reduxChoices }
+  liveBoard = reduxBoard, liveSynergies = reduxSynergies, legacy = false, live = false, elo }) {
+  const reduxPlayer = { id: "test-player", elo, board: reduxBoard, synergies: reduxSynergies, choices: reduxChoices }
   const state = { network: { uid: "test-player" }, game: { players: [reduxPlayer], shop: [],
     ...(legacy ? { pokemonsProposition: ["OLD_PKM"], itemsProposition: ["OLD_ITEM"] } : {}) } }
   const messages = []
@@ -351,6 +352,7 @@ function hookSnapshot({ reduxChoices, reduxBoard = [], reduxSynergies = {}, live
 const collection = (values) => ({ forEach: (fn) => values.forEach(fn) })
 const liveChoice = { id: "live", type: "starter", pokemons: collection(["CHARMANDER", "SQUIRTLE"]), items: collection(["FIRE_STONE"]), costs: collection([0, 1]) }
 const queuedItem = choose("item", [], ["WATER_STONE"])
+assert.equal(hookSnapshot({ elo: 1320 }).elo, 1320)
 const captured = hookSnapshot({ reduxChoices: [choose("unique", ["BULBASAUR"])], live: true, liveChoices: collection([liveChoice, queuedItem]), legacy: true })
 assert.deepEqual(captured.choices, [{ id: "live", type: "starter", pokemons: ["CHARMANDER", "SQUIRTLE"], items: ["FIRE_STONE"], costs: [0, 1] }, queuedItem])
 assert.deepEqual(captured.pokemonsProposition, ["CHARMANDER", "SQUIRTLE"])
@@ -453,7 +455,7 @@ test("planRecommendations: çekirdek ve dükkan adayları, gerekçeler, sınır 
     assert.deepEqual(Object.keys(rec).sort(), ["fit", "pkm", "rarity", "reasons"])
     assert.ok(pctValid(rec.fit))
     assert.equal(rec.rarity, data.pokemons[rec.pkm][0])
-    assert.ok(rec.reasons.every((r) => ["comp", "next", "syn", "meta"].includes(r.kind)))
+    assert.ok(rec.reasons.every((r) => ["comp", "next", "syn", "meta", "plan", "live"].includes(r.kind)))
     if (i) assert.ok(recs[i - 1].fit >= rec.fit)
   }
   assert.deepEqual(advisor.planRecommendations(plannerCtx, plan, { limit: 2 }), recs.slice(0, 2))
@@ -564,3 +566,185 @@ test("planlayıcı: eksik veri ve boş/bozuk girdiler hata üretmez, eski API sa
 })
 
 console.log("advice.test.mjs: seçim, dükkan, eski API ve snapshot testleri geçti")
+
+
+test("buildContext: otomatik elo en az Love, tüm elo eşikleri ve kayıt bazında geri düşme", () => {
+  const row = (n, item = "A") => [3, n, 1, [item]]
+  const meta = { pokemons: {
+    LEVEL_BALL: { OLD: row(100), LOW: row(2), ONLY_LOW: row(3) },
+    NET_BALL: { A: row(60), B: row(60), LOW: row(4) },
+    SAFARI_BALL: { A: row(10), B: row(70), LOW: row(5) },
+    LOVE_BALL: { A: row(1), B: row(80), LOW: row(6), GOOD: row(90) },
+    BEAST_BALL: { A: row(100, "BEAST") }
+  }, items: { LEVEL_BALL: { X: [4, 100, ["OLD"]] }, NET_BALL: { X: [3, 60, ["A"]] },
+    LOVE_BALL: { X: [2, 1, ["B"]] } }, regions: { Home: [3, 100] }, thresholds: ctx.thresholds }
+  const args = { data, meta, settings: { tier: "auto", minGames: 50 } }
+  const c = advisor.buildContext(args)
+  assert.equal(c.targetTier, "LOVE_BALL")
+  assert.equal(c.tierPokemons.A, meta.pokemons.NET_BALL.A)
+  assert.equal(c.tierPokemons.B, meta.pokemons.LOVE_BALL.B)
+  assert.equal(c.tierPokemons.OLD, meta.pokemons.LEVEL_BALL.OLD)
+  assert.equal(c.tierPokemons.LOW, meta.pokemons.LEVEL_BALL.LOW)
+  assert.equal(c.tierItems.X, meta.items.NET_BALL.X)
+  assert.equal(c.regionsMeta, meta.regions)
+  const again = advisor.buildContext({ ...args, snap: { elo: 1100 } })
+  assert.equal(c.tierPokemons, again.tierPokemons)
+  assert.equal(c.tierItems, again.tierItems)
+  assert.notEqual(advisor.buildContext({ ...args, settings: { minGames: 20 } }).tierPokemons, c.tierPokemons)
+  assert.notEqual(advisor.buildContext({ ...args, meta: { ...meta } }).tierPokemons, c.tierPokemons)
+  for (const [elo, tier] of [[0, "LOVE_BALL"], [1149, "LOVE_BALL"], [1150, "LOVE_BALL"],
+    [1199, "LOVE_BALL"], [1200, "PREMIER_BALL"], [1250, "QUICK_BALL"], [1300, "POKE_BALL"],
+    [1350, "SUPER_BALL"], [1400, "ULTRA_BALL"], [1500, "MASTER_BALL"], [1600, "BEAST_BALL"]]) {
+    assert.equal(advisor.buildContext({ ...args, snap: { elo } }).targetTier, tier)
+  }
+  for (const tier of ["LEVEL_BALL", "NET_BALL", "SAFARI_BALL"]) {
+    assert.equal(advisor.buildContext({ ...args, settings: { tier }, snap: { elo: 1700 } }).targetTier, tier)
+  }
+  assert.deepEqual(advisor.buildContext({ data }).tierPokemons, {})
+})
+
+const waterPlan = [planned("SQUIRTLE"), planned("MAGIKARP", 2), planned("LOTAD", 1)]
+const following = { ...snap, board: [unit("BLASTOISE"), unit("GYARADOS"), unit("LOMBRE")] }
+const diverging = { ...snap, board: [unit("CHARMANDER"), unit("VULPIX"), unit("GROWLITHE")] }
+const contextTeam = { ...ctx, clusters: [], plan: waterPlan,
+  tierPokemons: { LAPRAS: [4, 100, 0, []], PONYTA: [4, 100, 0, []] } }
+
+test("teamContext: aile/yedek uyumu, başlangıç güveni ve plandan canlı takıma geçiş", () => {
+  const followed = advisor.teamContext(contextTeam, following, waterPlan)
+  const deviated = advisor.teamContext(contextTeam, diverging, waterPlan)
+  assert.equal(followed.adherence, 1)
+  assert.ok(followed.planWeight >= 0.8)
+  assert.equal(deviated.adherence, 0)
+  assert.ok(deviated.planWeight <= 0.2)
+  assert.equal(advisor.teamContext(contextTeam, following, []).planWeight, 0)
+  assert.equal(advisor.teamContext(contextTeam, snap, waterPlan).planWeight, 0.8)
+  const bench = advisor.teamContext(contextTeam, { ...diverging, board: [...diverging.board, unit("SQUIRTLE", 0)] }, waterPlan)
+  assert.equal(bench.adherence, 1 / 3)
+  assert.ok(bench.planWeight > deviated.planWeight)
+  assert.equal(advisor.teamContext(contextTeam, following, waterPlan), followed)
+  assert.ok(followed.families.get("SQUIRTLE") > deviated.families.get("SQUIRTLE"))
+  const pick = choose("addPick", ["LAPRAS", "PONYTA"])
+  const first = contract(advisor.boardAdvice(contextTeam, { ...following, choices: [pick] })).choice.options
+  const second = contract(advisor.boardAdvice(contextTeam, { ...diverging, choices: [pick] })).choice.options
+  assert.equal(first[0].verdict, "best")
+  assert.equal(second[1].verdict, "best")
+  assert.ok(first[0].reasons.some((r) => r.includes("Planına göre")))
+  assert.ok(second[1].reasons.some((r) => r.includes("Anlık takımına göre")))
+  const earlyCtx = { ...contextTeam, plan: [planned("LAPRAS")] }
+  const early = advisor.boardAdvice(earlyCtx, { ...snap, choices: [choose("starter", ["LAPRAS", "PONYTA"])], shop: ["LAPRAS", "PONYTA"] })
+  assert.equal(early.choice.options[0].verdict, "best")
+  assert.equal(early.shop[0].verdict, "good")
+  assert.ok(early.shop[0].reasons.includes("Planına göre"))
+  const analysis = advisor.analyze(contextTeam, { ...diverging, pokemonsProposition: pick.pokemons })
+  assert.equal(analysis.pokemonPropositions[0].option, "PONYTA")
+})
+
+test("planRecommendations: canlı oyun bağlamında sapılan plan yerine anlık sinerji öne çıkar", () => {
+  const c = { ...contextTeam, tierPokemons: {}, thresholds: { FIRE: [4], WATER: [4] } }
+  const recs = (live) => advisor.planRecommendations({ ...c, snap: live }, waterPlan, { limit: 1000 })
+  const follow = recs(following), deviate = recs(diverging)
+  const score = (rows, pkm) => rows.find((r) => r.pkm === pkm)?.fit ?? 0
+  assert.ok(score(follow, "POLIWAG") > score(follow, "CYNDAQUIL"))
+  assert.ok(score(deviate, "CYNDAQUIL") > score(deviate, "POLIWAG"))
+  assert.ok(deviate.some((r) => r.reasons.some((r) => r.kind === "live")))
+})
+
+test("WEIGHTS: donmuş varsayılanlar ve ctx.weights öneri sıralamasını değiştirebilir", () => {
+  assert.ok(Object.isFrozen(advisor.WEIGHTS))
+  const c = { ...contextTeam, plan: [], tierPokemons: { LAPRAS: [3, 100, 0, []], PONYTA: [4, 100, 0, []] } }
+  const state = { ...diverging, choices: [choose("addPick", ["LAPRAS", "PONYTA"])] }
+  // Varsayılanlar veriyle ayarlandığı için karşılaştırma sabit bir ağırlık setiyle yapılır
+  const base = { PKM_META_W: 0.6, PKM_TEAM_W: 0.4, SYN_NEXT_BONUS: 40, SYN_BONUS: 20, SYN_CAP: 60 }
+  const baseline = advisor.boardAdvice({ ...c, weights: base }, state).choice.options
+  const tuned = advisor.boardAdvice({ ...c, weights: { ...base, SYN_NEXT_BONUS: 0 } }, state).choice.options
+  assert.equal(baseline[1].verdict, "best")
+  assert.equal(tuned[0].verdict, "best")
+  const defaultNext = advisor.WEIGHTS.SYN_NEXT_BONUS
+  const weights = { ...base }
+  const mutable = { ...c, weights }
+  const original = advisor.teamContext(mutable, state)
+  advisor.boardAdvice(mutable, state)
+  weights.SYN_NEXT_BONUS = 0
+  assert.notEqual(advisor.teamContext(mutable, state), original)
+  assert.deepEqual(advisor.boardAdvice(mutable, state).choice.options, tuned)
+  // ctx.weights değişimi donmuş varsayılanlara sızmaz
+  assert.equal(advisor.WEIGHTS.SYN_NEXT_BONUS, defaultNext)
+})
+
+test("gerçek meta: Muscle Band uygun Garchomp taşıyıcısını adlandırır; istenmeyen item düşük", () => {
+  const meta = JSON.parse(read("tests/fixtures/meta.json"))
+  const board = [ { ...unit("GARCHOMP"), stars: 3 },
+    { ...unit("RHYPERIOR"), stars: 3, items: ["LEFTOVERS", "ASSAULT_VEST", "ROCKY_HELMET"] },
+    { ...unit("FLYGON"), stars: 3 } ]
+  const state = { ...snap, board, choices: [choose("item", [], ["MUSCLE_BAND", "POWER_LENS"])] }
+  const c = advisor.buildContext({ data, meta, snap: state, settings: { tier: "auto", minGames: 50 },
+    t: ctx.t, names: { ...ctx.names, pkm: (n) => ({ GARCHOMP: "Garchomp", RHYPERIOR: "Rhyperior", FLYGON: "Flygon" })[n] ?? n } })
+  const before = JSON.stringify({ state, meta })
+  const team = advisor.teamContext(c, state)
+  const fit = advisor.itemHolderFit(c, team, "MUSCLE_BAND")
+  assert.equal(fit.holder.name, "GARCHOMP")
+  assert.ok(fit.reasons.some((r) => r.includes("Garchomp için")))
+  const unwanted = advisor.itemHolderFit(c, team, "POWER_LENS")
+  assert.equal(unwanted.holder, null)
+  assert.ok(fit.score > unwanted.score + 40)
+  const result = contract(advisor.boardAdvice(c, state))
+  assert.equal(result.choice.options[0].verdict, "best")
+  assert.ok(result.choice.options[0].reasons.some((r) => r.includes("Garchomp için")))
+  assert.ok(result.choice.options[0].pct > result.choice.options[1].pct)
+  assert.equal(advisor.itemHolderFit(c, team, "MUSCLE_BAND"), fit)
+  assert.equal(JSON.stringify({ state, meta }), before)
+})
+
+test("itemHolderFit: popüler taşıyıcı, yıldız, dolu yuva, bileşen ve hemen yap aynı hedefi kullanır", () => {
+  const c = { ...ctx, tierPokemons: { CHARIZARD: [3, 100, 1, []], BLASTOISE: [4, 100, 1, []] },
+    tierItems: { FIRE_STONE: [3, 100, ["CHARIZARD"]], WATER_STONE: [3, 100, ["BLASTOISE"]] }, clusters: [] }
+  const state = { ...snap, board: [unit("SQUIRTLE"), { ...unit("CHARMANDER"), stars: 2 }], inventory: ["FOSSIL_STONE"] }
+  const fit = advisor.itemHolderFit(c, state, "CHARCOAL")
+  assert.equal(fit.holder.name, "CHARMANDER")
+  assert.equal(fit.result, "FIRE_STONE")
+  assert.equal(fit.partial, false)
+  const built = { ...state, inventory: ["FOSSIL_STONE", "CHARCOAL"] }
+  assert.equal(advisor.boardAdvice(c, built).craft[0].target, "CHARMANDER")
+  assert.equal(advisor.analyze(c, built).craft[0].for, "CHARMANDER")
+  const full = { ...state, board: [{ ...unit("CHARMANDER"), items: ["A", "B", "C"] }] }
+  assert.equal(advisor.itemHolderFit(c, full, "FIRE_STONE").holder, null)
+  const stronger = { ...state, board: [unit("CHARMANDER"), { ...unit("CHARMELEON"), stars: 2 }] }
+  assert.equal(advisor.itemHolderFit(c, stronger, "FIRE_STONE").holder.name, "CHARMELEON")
+  const strong = advisor.itemHolderFit(c, state, "FIRE_STONE").score
+  const weak = advisor.itemHolderFit({ ...c, weights: { HOLDER_POPULAR: 0 } }, state, "FIRE_STONE")
+  assert.ok(strong > weak.score)
+  assert.equal(weak.holder, null)
+  const weights = { HOLDER_POPULAR: 48 }
+  const override = { ...c, weights }
+  const cachedTeam = advisor.teamContext(override, state)
+  assert.ok(advisor.itemHolderFit(override, cachedTeam, "FIRE_STONE").score > 0)
+  weights.HOLDER_POPULAR = 0
+  assert.equal(advisor.itemHolderFit(override, cachedTeam, "FIRE_STONE").holder, null)
+})
+
+
+test("hemen yap: daha güçlü yedek veya sanal plan taşıyıcısı sahadaki uygun hedefi gizlemez", () => {
+  const c = { ...ctx, tierPokemons: { CHARIZARD: [3, 100, 1, ["FIRE_STONE"]], BLASTOISE: [3, 100, 1, []] },
+    tierItems: { FIRE_STONE: [3, 100, ["BLASTOISE"]] }, plan: [planned("CHARIZARD")], clusters: [] }
+  const state = { ...snap, board: [unit("SQUIRTLE"), { ...unit("CHARIZARD", 0), stars: 3, items: ["A", "B"] }],
+    inventory: ["FOSSIL_STONE", "CHARCOAL"] }
+  assert.equal(advisor.boardAdvice(c, state).craft[0].target, "SQUIRTLE")
+  assert.equal(advisor.analyze(c, state).craft[0].for, "SQUIRTLE")
+})
+
+test("gerçek meta: asa seçimi taşıyıcı aramaz, Peri sayısını söyler ve meta sırasına göre önerir", () => {
+  const meta = JSON.parse(read("tests/fixtures/meta.json"))
+  const wands = ["HP_SWAP_WAND", "SPIRIT_WAND", "LONG_WAND"]
+  const state = { ...snap, board: [{ ...unit("FLABEBE_BLUE"), types: ["FAIRY", "FLORA"] }, { ...unit("PICHU"), types: ["ELECTRIC", "FAIRY", "BABY"] }],
+    choices: [choose("wand", [], wands)] }
+  const c = advisor.buildContext({ data, meta, snap: state, settings: { tier: "auto", minGames: 50 }, t: ctx.t, names: ctx.names })
+  const options = advisor.boardAdvice(c, state).choice.options
+  // Beklenen en iyi: bu seviyede ortalama sırası en düşük asa (gerçek oyunda üçü de ~%33 "kullanım yok" çıkıyordu)
+  const expected = wands.reduce((a, b) => c.tierItems[b][0] < c.tierItems[a][0] ? b : a)
+  assert.equal(wands[options.find((o) => o.verdict === "best").index], expected)
+  for (const o of options) {
+    assert.ok(o.reasons[0].includes("2"), o.reasons[0])
+    assert.ok(!o.reasons.includes(ctx.t("advice.noUse")))
+    assert.notEqual(o.verdict, "avoid")
+  }
+})

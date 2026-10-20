@@ -14,9 +14,9 @@
     }
   }
 
-  const defaults = { overlay: true, tier: "LEVEL_BALL", minGames: 50 }
+  const defaults = { overlay: true, tier: "auto", minGames: 50 }
   // text: seçili dildeki oyun metinleri (Pokémon / item / sinerji adları)
-  const state = { settings: defaults, meta: null, text: null, data: null, snap: null, screen: null, screenAt: -Infinity }
+  const state = { settings: defaults, meta: null, text: null, data: null, snap: null, plan: [], screen: null, screenAt: -Infinity }
   const I18n = window.PacI18n
   const t = (key, vars) => I18n.t(key, vars)
   const host = document.createElement("div")
@@ -286,17 +286,10 @@
     if (ready && !hiddenAll && state.settings.overlay !== false && state.snap && typeof window.PacAdvisor?.boardAdvice === "function") {
       if (dirty) {
         try {
-          const tier = state.settings.tier
-          advice = window.PacAdvisor.boardAdvice({
-            data: state.data,
-            tierPokemons: state.meta?.pokemons?.[tier] ?? {},
-            tierItems: state.meta?.items?.[tier] ?? {},
-            clusters: state.meta?.clusters ?? [],
-            minGames: state.settings.minGames,
-            thresholds: state.meta?.thresholds,
-            names,
-            t
-          }, state.snap)
+          advice = window.PacAdvisor.boardAdvice(window.PacAdvisor.buildContext({
+            data: state.data, meta: state.meta, settings: state.settings, snap: state.snap,
+            plan: state.plan, names, t
+          }), state.snap)
           dirty = false
         } catch {
           advice = null
@@ -367,6 +360,10 @@
     if (event.source !== window) return
     if (event.data?.type === "pac-yardimci:game") {
       state.snap = event.data.snapshot
+      dirty = true
+      schedule()
+    } else if (event.data?.type === "pac-yardimci:planner" && Array.isArray(event.data.planner?.board)) {
+      state.plan = event.data.planner.board
       dirty = true
       schedule()
     } else if (event.data?.type === "pac-yardimci:screen") {

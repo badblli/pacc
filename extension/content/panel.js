@@ -45,13 +45,14 @@
   const state = {
     tab: "game",
     game: null,
+    plan: [],
     health: null,
     healthAt: 0,
     lastGame: null,
     open: {},
     query: "",
     item: null,
-    settings: { panel: true, tier: "LEVEL_BALL", minGames: 50, poolTracking: false },
+    settings: { panel: true, tier: "auto", minGames: 50, poolTracking: false },
     meta: null,
     metaError: null,
     // Oyun metinleri (adlar, item açıklamaları): tr → locales/tr/translation.json, en → i18n/game.en.json
@@ -150,8 +151,8 @@
     return `<span class="row muted">${itemIcon(r[0])} + ${itemIcon(r[1])}</span>`
   }
 
-  const tierPokemons = () => state.meta?.pokemons?.[state.settings.tier] ?? {}
-  const tierItems = () => state.meta?.items?.[state.settings.tier] ?? {}
+  const tierPokemons = () => advisorCtx().tierPokemons
+  const tierItems = () => advisorCtx().tierItems
 
   // ---------- sekmeler ----------
 
@@ -517,6 +518,7 @@
   const pct = (p) => (p >= 0.995 ? pctLabel(100) : p < 0.005 && p > 0 ? t("num.pctBelow1") : pctLabel(Math.round(p * 100)))
 
   function reasonText(r) {
+    if (["plan", "live"].includes(r.kind)) return t(`advice.context.${r.kind}`)
     if (r.kind === "next") return t("panel.reason.next", { syn: synName(r.syn) })
     if (r.kind === "syn") return t("panel.reason.syn", { syn: synName(r.syn) })
     return t("panel.reason.comp")
@@ -537,16 +539,8 @@
   }
 
   function advisorCtx() {
-    return {
-      data: state.data,
-      tierPokemons: tierPokemons(),
-      tierItems: tierItems(),
-      clusters: state.meta?.clusters ?? [],
-      minGames: state.settings.minGames,
-      thresholds: state.meta?.thresholds ?? null,
-      names: { pkm: pkmName, syn: synName, item: itemName },
-      t
-    }
+    return window.PacAdvisor.buildContext({ data: state.data, meta: state.meta, settings: state.settings,
+      snap: state.game, plan: state.plan, names: { pkm: pkmName, syn: synName, item: itemName }, t })
   }
 
   function quickReason(snap) {
@@ -934,11 +928,11 @@
   }
 
   function renderFooter() {
-    const tiers = Object.keys(state.meta?.pokemons ?? {})
+    const tiers = ["auto", ...Object.keys(state.meta?.pokemons ?? {})]
     const date = state.meta?.createdAt ? new Date(state.meta.createdAt).toLocaleDateString(I18n.locale()) : "—"
     footer.innerHTML = `
       <label>${h("panel.footer.elo")} <select data-role="tier">${tiers
-        .map((tier) => `<option value="${esc(tier)}"${tier === state.settings.tier ? " selected" : ""}>${h("panel.footer.tierOption", { tier: tierName(tier) })}</option>`)
+        .map((tier) => `<option value="${esc(tier)}"${tier === state.settings.tier ? " selected" : ""}>${tier === "auto" ? h("panel.footer.tierAuto") : h("panel.footer.tierOption", { tier: tierName(tier) })}</option>`)
         .join("")}</select></label>
       <label>${h("panel.footer.minGames")} <select data-role="min">${[10, 30, 50, 100, 200]
         .map((n) => `<option${n === state.settings.minGames ? " selected" : ""}>${n}</option>`)
@@ -1140,7 +1134,13 @@
 
   // game-hook.js (sayfa içi) her değişiklikte takım özetini yollar
   const onGameMessage = (e) => {
-    if (e.source !== window || e.data?.type !== "pac-yardimci:game") return
+    if (e.source !== window) return
+    if (e.data?.type === "pac-yardimci:planner" && Array.isArray(e.data.planner?.board)) {
+      state.plan = e.data.planner.board
+      if (!panel.hidden && state.tab === "game") render()
+      return
+    }
+    if (e.data?.type !== "pac-yardimci:game") return
     const wasInGame = Boolean(state.game)
     const prev = state.game
     state.game = e.data.snapshot

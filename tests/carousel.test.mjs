@@ -102,7 +102,7 @@ test("portallar: aktif/yakın sinerji, plan ve bölgesel fitScore katkıları", 
     row.regional.forEach((r) => percent(r.fit))
     assert.equal(row.meta, null)
     assert.deepEqual(Object.keys(row).sort(), ["map", "meta", "portalId", "reasons", "regional", "score", "synergies", "taken"])
-    assert.ok(row.reasons.every((r) => ["syn", "regional", "meta", "plan"].includes(r.kind)))
+    assert.ok(row.reasons.every((r) => ["syn", "regional", "meta", "plan", "live"].includes(r.kind)))
   }
   assert.equal(JSON.stringify({ ctx, snap }), before)
 })
@@ -254,4 +254,34 @@ test("background: eski format aynı raporda bir kez yeni biçime geçirilir", as
   h.calls.length = 0
   assert.equal(await h.refresh(true), false)
   assert.deepEqual(h.calls, [])
+})
+
+
+test("carousel: plansızken anlık takım taşıyıcısı belirleyici; sapılan planın katkısı azalır", () => {
+  const rows = advisor.rankCarousel(ctx, itemSnap(["BLADE", "WAND"]))
+  assert.equal(rows[0].item, "BLADE")
+  assert.ok(rows[0].reasons.some((r) => r.pkm === "HERO"))
+  const water = advisor.rankCarousel(ctx, itemSnap(["BLADE", "WAND"], { board: [unit("WATERMON")] }))
+  assert.equal(water[0].item, "WAND")
+  const plan = [unit("WATERMON")]
+  const early = advisor.rankCarousel(ctx, itemSnap(["WAND"]), plan)[0]
+  const deviated = advisor.rankCarousel(ctx, itemSnap(["WAND"], { board: [unit(), unit(), unit()] }), plan)[0]
+  assert.ok(early.score > deviated.score)
+  assert.equal(reason(early, "plan"), true)
+  assert.equal(reason(deviated, "live"), true)
+})
+
+test("portallar: plan uyumu değişince canlı sinerjiye döner; ağırlık override etkili", () => {
+  const plan = [unit("WATERMON")]
+  const early = advisor.rankPortals(ctx, portalSnap({ board: [] }), plan)
+  assert.equal(early[0].map, "Tide")
+  const deviate = portalSnap({ board: [unit(), unit(), unit()] })
+  const rows = advisor.rankPortals(ctx, deviate, plan)
+  assert.equal(rows[0].map, "Flame")
+  assert.ok(byMap(early, "Tide").score > byMap(rows, "Tide").score)
+  assert.ok(reason(rows[0], "live"))
+  const noRegional = { ...ctx, data: { ...ctx.data, regions: {} } }
+  const base = advisor.rankPortals(noRegional, portalSnap())[0]
+  const tuned = advisor.rankPortals({ ...noRegional, weights: { PORTAL_NEAR_BONUS: 0 } }, portalSnap())[0]
+  assert.ok(base.score > tuned.score)
 })

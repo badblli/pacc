@@ -1,10 +1,11 @@
 {
   "name": "pacc",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "PACC — Poké Auto Chess Coach: on-board advice overlay, coach panel and Turkish translation for Pokémon Auto Chess (Chrome extension)",
   "scripts": {
+    "eval": "node scripts/eval-advice.mjs",
     "build:tr": "node scripts/build-translation.mjs",
     "build:data": "node scripts/build-static-data.mjs",
     "build": "npm run build:data && npm run build:tr",

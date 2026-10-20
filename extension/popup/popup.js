@@ -20,6 +20,8 @@ async function load() {
   $("planner").checked = settings.planner !== false
   $("overlay").checked = settings.overlay !== false
   $("poolTracking").checked = settings.poolTracking === true
+  $("record").checked = settings.record === true
+  await loadRecording()
   const status = $("status")
   status.classList.toggle("err", Boolean(metaError) && !meta)
   if (meta) {
@@ -70,4 +72,42 @@ I18n.onChange(() => {
 I18n.ready.then(() => {
   applyText()
   load()
+})
+
+// İndirme yalnız kullanıcının tıklamasıyla, ek izin istemeden başlar.
+async function loadRecording() {
+  const { gameRecording } = await chrome.storage.local.get("gameRecording")
+  const n = gameRecording?.events?.length ?? 0
+  $("downloadRecording").textContent = t("popup.downloadRecording", { n })
+  $("downloadRecording").disabled = !n
+  $("clearRecording").disabled = !n
+  return gameRecording
+}
+$("record").addEventListener("change", (e) => save({ record: e.target.checked }))
+$("downloadRecording").addEventListener("click", async () => {
+  try {
+    const recording = await loadRecording()
+    if (!recording?.events?.length) return
+    const url = URL.createObjectURL(new Blob([JSON.stringify(recording)], { type: "application/json" }))
+    const date = new Date(recording.recordedAt)
+    const pad = (n) => String(n).padStart(2, "0")
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `pacc-game-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}.json`
+    document.body.append(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    $("recordError").textContent = ""
+  } catch { $("recordError").textContent = t("popup.recordError") }
+})
+$("clearRecording").addEventListener("click", async () => {
+  try {
+    await chrome.storage.local.remove("gameRecording")
+    await loadRecording()
+    $("recordError").textContent = ""
+  } catch { $("recordError").textContent = t("popup.recordError") }
+})
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.gameRecording) loadRecording()
 })

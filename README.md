@@ -147,3 +147,11 @@ The game's terms of use forbid unauthorized automation or tools. This extension 
 ## License
 
 The game is licensed under GPL-3.0. This extension contains no game code; it only derives the language file and item recipe data from the game's repository. If you publish the extension, GPL-3.0 is the simplest choice.
+
+## Record a match and send it to developers
+
+Open the extension popup and enable **Record match (developer)** before playing. Recording is off by default. After the match, turn it off, then click **Download recording (n states)** and send the resulting `pacc-game-YYYYMMDD-HHMM.json` file to the developers. **Delete recording** clears the local capture; delete an old capture before starting a separate match.
+
+Player names and IDs are anonymized and avatar fields are removed before storage. The capture keeps at most about 8 MB, dropping the oldest events when full; it does not contain the meta database. Review the JSON before sharing. Turning recording off retains the existing capture for download.
+
+Developers: put recordings in `tests/fixtures/games/` and run `node --test tests/replay.test.mjs`. `sample-synthetic.json` is a hand-written example, not a real match. For visual replay, serve the repository root (`python -m http.server 8123`), open `http://localhost:8123/tests/replay-harness.html?file=fixtures/games/sample-synthetic.json`, or choose a local recording. Scrub events with the slider; use the original viewport size for recorded overlay coordinates. Replay uses the repository's meta fixture and current default settings, so historical recommendations may differ.

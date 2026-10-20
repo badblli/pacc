@@ -262,6 +262,7 @@
       phase: game.phase,
       money: game.money ?? player.money,
       life: player.life,
+      elo: player.elo,
       rank: player.rank,
       alive: player.alive,
       streak: game.streak ?? player.streak,

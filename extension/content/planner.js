@@ -6,7 +6,7 @@
   const esc = (s) => I18n.escapeHtml(s)
   const state = {
     planner: { open: false, board: [], rects: null }, game: null,
-    settings: { planner: true, tier: "LEVEL_BALL", minGames: 50 },
+    settings: { planner: true, tier: "auto", minGames: 50 },
     meta: null, data: null, text: null, drawer: false, tab: "recommended", selected: null, filter: "", minimized: false, notice: "", pending: null
   }
   const host = document.createElement("div")
@@ -27,10 +27,8 @@
   const family = (key) => state.data?.family?.[key] ?? key
   const title = (cluster) => Object.entries(cluster?.synergies ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 2)
     .map(([syn, n]) => `${name(syn, "synergy")} ${n}`).join(" / ") || t("panel.comp.fallback")
-  const ctx = () => ({
-    data: state.data, tierPokemons: state.meta?.pokemons?.[state.settings.tier] ?? {},
-    tierItems: state.meta?.items?.[state.settings.tier] ?? {}, clusters: state.meta?.clusters ?? [],
-    minGames: state.settings.minGames, thresholds: state.meta?.thresholds ?? null,
+  const ctx = () => window.PacAdvisor.buildContext({
+    data: state.data, meta: state.meta, settings: state.settings, snap: state.game, plan: state.planner.board,
     names: { pkm: name, syn: (k) => name(k, "synergy"), item: (k) => name(k, "item") }, t
   })
   const advice = (method, fallback, ...args) => {
@@ -45,7 +43,8 @@
   const item = (key) => `<span class="item" title="${esc(name(key, "item"))}"><img src="/assets/item/${esc(key)}.png" alt="${esc(name(key, "item"))}"></span>`
   const empty = () => `<p class="empty">${esc(t("panel.planner.empty"))}</p>`
   const disabled = () => state.pending ? "disabled" : ""
-  const reason = (r) => r.kind === "next" ? t("panel.reason.next", { syn: name(r.syn, "synergy") })
+  const reason = (r) => ["plan", "live"].includes(r.kind) ? t(`advice.context.${r.kind}`)
+    : r.kind === "next" ? t("panel.reason.next", { syn: name(r.syn, "synergy") })
     : r.kind === "syn" ? t("panel.reason.syn", { syn: name(r.syn, "synergy") })
       : r.kind === "meta" ? t("panel.planner.metaReason") : t("panel.reason.comp")
 
@@ -302,7 +301,7 @@
   }, 1000)
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return
-    if (changes.settings) state.settings = { planner: true, tier: "LEVEL_BALL", minGames: 50, ...changes.settings.newValue }
+    if (changes.settings) state.settings = { planner: true, tier: "auto", minGames: 50, ...changes.settings.newValue }
     if (changes.meta) state.meta = changes.meta.newValue
     render()
   })
