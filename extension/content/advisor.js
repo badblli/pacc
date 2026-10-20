@@ -17,26 +17,56 @@
   }
 
   // Evrim ailesi sıralı: [temel, ..., son]; dallanmada (ör. Gardevoir/Gallade) hepsi, yıldız sonra ada göre.
+  // Evrim zinciri tahta rozetleri için saniyede onlarca kez istenir; aile başına bir kez hesapla
+  const chainCache = new WeakMap()
   function familyChain(data, pkm) {
     const base = familyOf(data, pkm)
-    const members = Object.keys(data.pokemons).filter((name) => familyOf(data, name) === base)
-    if (!members.includes(base)) members.push(base)
-    const stars = (name) => data.pokemons[name]?.[1] ?? 0
-    return members.sort((a, b) => (a === base ? -1 : b === base ? 1 : 0) || stars(a) - stars(b) || a.localeCompare(b))
+    let byBase = chainCache.get(data)
+    if (!byBase) chainCache.set(data, (byBase = new Map()))
+    let chain = byBase.get(base)
+    if (!chain) {
+      const members = Object.keys(data.pokemons).filter((name) => familyOf(data, name) === base)
+      if (!members.includes(base)) members.push(base)
+      const stars = (name) => data.pokemons[name]?.[1] ?? 0
+      chain = members.sort((a, b) => (a === base ? -1 : b === base ? 1 : 0) || stars(a) - stars(b) || a.localeCompare(b))
+      byBase.set(base, chain)
+    }
+    return [...chain]
   }
 
   // Bir Pokémon için meta istatistiği: önce kendisi, yoksa aynı ailenin en çok
   // oynanan üyesi (ör. tahtada Charmeleon varsa Charizard'ın itemleri).
+  // Aile dizini: meta'daki ~1200 Pokémonu her çağrıda baştan taramak yerine aile başına
+  // sonuçları bir kez hesaplar. Portal ve planlayıcı önerileri bunu yüzlerce kez çağırıyordu
+  // (oyunda takılmaya yol açan O(n²) döngü). Anahtar: tierPokemons nesnesi + minGames.
+  const familyIndexCache = new WeakMap()
+  function familyIndex(ctx) {
+    const tier = ctx.tierPokemons
+    if (!tier || typeof tier !== "object") return new Map()
+    const minGames = ctx.minGames ?? 0
+    let byMin = familyIndexCache.get(tier)
+    if (!byMin) familyIndexCache.set(tier, (byMin = new Map()))
+    let index = byMin.get(minGames)
+    if (index) return index
+    index = new Map()
+    for (const [name, stat] of Object.entries(tier)) {
+      if (!Array.isArray(stat)) continue
+      const fam = familyOf(ctx.data, name)
+      const entry = index.get(fam) ?? { played: null, best: null }
+      // statFor: ailenin item verisi olan en çok oynanan üyesi
+      if (stat[3]?.length && (!entry.played || stat[1] > entry.played.stat[1])) entry.played = { name, stat }
+      // bestFamilyRank: yeterli oyunu olan en iyi ortalama sıra
+      if (stat[1] >= minGames && (!entry.best || stat[0] < entry.best.rank)) entry.best = { name, rank: stat[0] }
+      index.set(fam, entry)
+    }
+    byMin.set(minGames, index)
+    return index
+  }
+
   function statFor(ctx, pkm) {
     const tier = ctx.tierPokemons
     if (tier[pkm]?.[3]?.length) return { name: pkm, stat: tier[pkm] }
-    const fam = familyOf(ctx.data, pkm)
-    let best = null
-    for (const [name, stat] of Object.entries(tier)) {
-      if (familyOf(ctx.data, name) !== fam || !stat[3]?.length) continue
-      if (!best || stat[1] > best.stat[1]) best = { name, stat }
-    }
-    return best
+    return familyIndex(ctx).get(familyOf(ctx.data, pkm))?.played ?? null
   }
 
   function countBy(list) {
@@ -267,13 +297,7 @@
 
   // Bir Pokémonun ailesinin meta'daki en iyi ortalama sırası (yeterli oyunu olan)
   function bestFamilyRank(ctx, pkm) {
-    const fam = familyOf(ctx.data, pkm)
-    let best = null
-    for (const [name, stat] of Object.entries(ctx.tierPokemons)) {
-      if (familyOf(ctx.data, name) !== fam || stat[1] < ctx.minGames) continue
-      if (!best || stat[0] < best.rank) best = { name, rank: stat[0] }
-    }
-    return best
+    return familyIndex(ctx).get(familyOf(ctx.data, pkm))?.best ?? null
   }
 
   // Bir Pokémonun takımına ne kadar uyduğunu puanlar (ek seçim ve bölgesel öneri için ortak).

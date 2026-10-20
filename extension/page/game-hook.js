@@ -45,6 +45,25 @@
 
   // Yedek yol: kanca kaçırıldıysa (ör. sayfa zaten yüklüyse) React ağacındaki
   // <Provider store={...}> bileşeninden store'u bul.
+  // React ağacını taramak pahalı (binlerce fiber); bulunamazsa en fazla 3 sn'de bir dene
+  let storeTriedAt = 0
+  function ensureStore() {
+    if (!store && Date.now() - storeTriedAt >= 3000) {
+      storeTriedAt = Date.now()
+      store = findStoreInReact()
+    }
+    return store
+  }
+  // 40 ms'yi aşan işleri konsola yaz: oyunda takılma olursa nedenini görebilmek için
+  const clock = () => (typeof performance !== "undefined" ? performance.now() : Date.now())
+  function timed(label, fn) {
+    const start = clock()
+    try { return fn() } finally {
+      const ms = clock() - start
+      if (ms > 40) console.warn(`[PACC perf] ${label}: ${ms.toFixed(0)} ms`)
+    }
+  }
+
   function findStoreInReact() {
     const rootEl = document.getElementById("root") ?? document.body.firstElementChild
     const key = rootEl && Object.keys(rootEl).find((k) => k.startsWith("__reactContainer$"))
@@ -64,15 +83,25 @@
   // ---- 2) Colyseus GameState ----
   // Colyseus decoder kök durumu refs.set(0, state) ile kaydeder. Map.set'i sadece
   // anahtar 0 olduğunda kontrol eden ince bir sarmalayıcıyla bu nesneyi yakalıyoruz.
+  // Performans: oyun Map.set'i her karede binlerce kez çağırır. Sarmalayıcı sadece kök
+  // bulunana kadar takılı kalır (lobi ve oyuna giriş); kök bulununca orijinal Map.set geri
+  // konur, kök kaybolunca (oyun bitti / yeniden bağlanma) tekrar takılır.
   const roots = []
   const origSet = Map.prototype.set
-  Map.prototype.set = function (key, value) {
-    if (key === 0 && value !== null && typeof value === "object") {
+  function hookedSet(key, value) {
+    if (key === 0 && value !== null && typeof value === "object" && roots.at(-1)?.deref() !== value) {
       roots.push(new WeakRef(value))
       if (roots.length > 8) roots.shift()
     }
     return origSet.call(this, key, value)
   }
+  function setMapHook(on) {
+    const current = Map.prototype.set
+    if (on && current === origSet) Map.prototype.set = hookedSet
+    // Başka biri bizden sonra sarmaladıysa dokunma
+    else if (!on && current === hookedSet) Map.prototype.set = origSet
+  }
+  setMapHook(true)
 
   // ---- 3) Phaser oyunu (tahta üstü konumlar için) ----
   // Oyun Phaser'ı paketin içine gömüyor; Phaser.Game nesnesi global değil. Phaser.Game kurucusu
@@ -178,7 +207,7 @@
   }
 
   function snapshot() {
-    if (!store) store = findStoreInReact()
+    ensureStore()
     const st = store?.getState?.()
     const uid = st?.network?.uid
     const game = st?.game
@@ -276,7 +305,7 @@
     const scene = g?.scene?.getScene?.("gameScene")
     const canvas = g?.canvas
     if (!scene || !canvas?.isConnected || scene.spectate) return null
-    if (!store) store = findStoreInReact()
+    ensureStore()
     const uid = store?.getState?.()?.network?.uid ?? scene.uid
     const board = scene.board
     if (!uid || !board?.pokemons || board.player?.id !== uid) return null
@@ -385,10 +414,17 @@
   }
 
   let lastPlanner = ""
+  let lastPlannerRaw = null
+  let lastPlannerOpen = false
   function publishPlanner() {
     try {
-      const saved = readPlannerStorage()
       const modal = plannerModal()
+      // Performans: planlayıcı kapalı kaldıkça ve depo metni değişmedikçe çözümleme/karşılaştırma yapma
+      const raw = window.localStorage.getItem(PLANNER_KEY)
+      if (!modal && !lastPlannerOpen && raw === lastPlannerRaw && lastPlanner) return
+      lastPlannerRaw = raw
+      lastPlannerOpen = !!modal
+      const saved = readPlannerStorage()
       const planner = {
         open: !!modal,
         board: Array.isArray(saved?.value) ? saved.value : [],
@@ -449,17 +485,21 @@
   }
 
   let lastScreen = ""
+  let lastScreenAt = 0
   setInterval(() => {
     publishPlanner()
     let screen = null
     try {
-      screen = screenInfo()
+      screen = timed("ekran konumları", screenInfo)
     } catch {
       screen = null
     }
     const json = JSON.stringify(screen)
-    // Konum varken her turda yolla (overlay bayatlığı ölçüyor); null'ı sadece değişince
-    if (screen || json !== lastScreen) window.postMessage({ type: "pac-yardimci:screen", screen }, location.origin)
+    // Konum değişince hemen; değişmediyse saniyede bir (overlay 1,5 sn'lik bayatlık sınırı kullanıyor)
+    if (json !== lastScreen || (screen && Date.now() - lastScreenAt >= 1000)) {
+      window.postMessage({ type: "pac-yardimci:screen", screen }, location.origin)
+      lastScreenAt = Date.now()
+    }
     lastScreen = json
   }, 250)
 
@@ -477,8 +517,9 @@
   setInterval(() => {
     let snap = null
     let failed = false
+    setMapHook(!gameState())
     try {
-      snap = snapshot()
+      snap = timed("oyun durumu", snapshot)
     } catch (err) {
       failed = true
       console.debug("[PACC] durum okunamadı", err)

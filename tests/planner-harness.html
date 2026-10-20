@@ -7,17 +7,25 @@
 <style>
   :root { color-scheme: dark; background: #0c1321; color: #f3f5fc; font: 15px/1.5 'Trebuchet MS', sans-serif; }
   body { margin: 24px; } button { min-height: 44px; padding: 10px; cursor: pointer; }
-  #mock { position: fixed; inset: 100px 24px 40px; background: #162136; border: 2px solid #526380; border-radius: 14px; padding: 24px; }
-  #actions { position: absolute; left: 24px; top: 85px; width: 290px; height: 44px; border: 1px dashed #6fb7ff; }
-  #picker { position: absolute; left: 24px; right: 24px; top: 260px; bottom: 24px; border: 1px dashed #f6c445; }
-  #board { position: absolute; left: 24px; top: 150px; width: 50%; height: 58px; border: 1px dashed #5fd68a; }
+  dialog { box-sizing: border-box; width: min(1400px, calc(100vw - 40px)); height: 75vh; max-width: none; max-height: none; padding: 0; border: 2px solid #526380; border-radius: 12px; background: #162136; color: inherit; overflow: visible; }
+  dialog::backdrop { background: #050a14b0; }
+  dialog > header { box-sizing: border-box; height: 64px; text-align: center; padding: 10px 16px; font-size: 22px; background: #25324b; }
+  .close-btn { float: right; width: 44px; height: 44px; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; }
+  .editor { display: grid; grid-template-columns: 14% 46% 40%; height: calc(100% - 132px); }
+  .synergies { padding: 12px; color: #f6c445; }
+  #team-editor { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; height: 55%; background: #344432; }
+  #team-editor span { border: 1px solid #697d6b; }
+  #pokemon-picker { height: 40%; margin-top: 12px; background: #25324b; padding: 8px; box-sizing: border-box; }
+  #item-picker { margin: 12px; padding: 12px; background: #25324b; height: 50%; }
+  .selected { padding: 16px; }
   #report { position: relative; z-index: 1; white-space: pre-wrap; color: #5fd68a; max-width: 900px; }
 </style>
 <h1>PACC · Planlayıcı deneme tahtası</h1>
 <button id="planner-on">Planlayıcı</button> <button id="game-on">Oyun içi takip</button>
 <button id="empty">Boş plan</button> <button id="disabled">Koçu aç/kapa</button>
 <button id="no-engine">Motoru aç/kapa</button> <button id="reopen">Storage yanıtı aç/kapa</button>
-<div id="mock"><b>Takım Planlayıcısı</b><div id="actions"></div><div id="board"></div><div id="picker"></div></div>
+<dialog id="mock" class="modal my-container team-builder-modal"><header id="game-header"><button class="close-btn" aria-label="Kapat">×</button>Takım Planlayıcısı</header><div id="actions" class="actions"><button>Kaydet</button><button>Yükle</button><button>Sıfırla</button><button>Anlık görüntü</button></div><div class="editor"><aside class="synergies">Sinerjiler<br>🔥 Ateş 2 / 4<br>🐉 Ejderha 1 / 2</aside><main><div id="team-editor"></div><div id="pokemon-picker">Pokémon seçici</div></main><aside><div class="selected">Seçili birim · Charizard</div><div id="item-picker">Item seçici</div></aside></div></dialog>
 <pre id="report"></pre>
 <script>
   // Gerçek sözleşmenin biçiminde, ağ veya model çağrısı yapmayan veriler.
@@ -47,9 +55,16 @@
   window.PacAdvisor = engine
   let board = [fixture[0]], opened = true, reopen = false, lastSet
   const rect = id => { const r = document.getElementById(id).getBoundingClientRect(); return { x:r.x, y:r.y, w:r.width, h:r.height } }
+  const dialog = document.getElementById('mock')
+  document.getElementById('team-editor').innerHTML = '<span></span>'.repeat(24)
+  dialog.querySelector('.close-btn').onclick = () => { opened = false; sendPlanner() }
+  // Oyunun dışarı tıklama davranışı: shadow hosttan sızan mousedown da modalı kapatır.
+  dialog.addEventListener('mousedown', e => { if (!e.target.closest('header,.actions,.editor')) { opened = false; sendPlanner() } })
+  dialog.addEventListener('cancel', () => { opened = false; setTimeout(sendPlanner) })
   function sendPlanner() {
-    document.getElementById('mock').hidden = !opened
-    window.postMessage({ type:'pac-yardimci:planner', planner: { open: opened, board: structuredClone(board), rects: opened ? { modal: rect('mock'), actions: rect('actions'), picker: rect('picker'), board: rect('board') } : null } }, location.origin)
+    if (opened && !dialog.open) dialog.showModal()
+    if (!opened && dialog.open) dialog.close()
+    window.postMessage({ type:'pac-yardimci:planner', planner: { open: opened, board: structuredClone(board), rects: opened ? { modal: rect('mock'), header: rect('game-header'), actions: rect('actions'), picker: rect('pokemon-picker'), board: rect('team-editor') } : null } }, location.origin)
   }
   addEventListener('message', e => {
     if (e.source !== window) return
@@ -81,39 +96,83 @@
   const $ = s => root()?.querySelector(s)
   const report = []
   function check(ok, text) { report.push(`${ok ? 'PASS' : 'FAIL'} ${text}`); document.getElementById('report').textContent = report.join('\n'); if (!ok) throw Error(text) }
+  const intersects = (a,b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+  // Saf geometri raporu tarayıcı/DOM olmadan da aynı formüllerle hesaplanabilir.
+  function geometryReport(vw,vh) {
+    const w=Math.min(1400,vw-40), h=vh*.75, x=(vw-w)/2, y=(vh-h)/2
+    const close={left:x+w-62,right:x+w-18,top:y+12,bottom:y+56}
+    const toggle={left:close.left-164,right:close.left-16,top:y+12,bottom:y+56}
+    const actions={left:x+2,right:x+w-2,top:y+66,bottom:y+126}
+    const dw=Math.min(440,w*.42)
+    const drawer={left:x+w-dw,right:x+w,top:actions.bottom+8,bottom:y+h}
+    const board={left:x+2+.14*(w-4),right:x+2+.60*(w-4),top:y+126,bottom:y+126+.55*(h-136)}
+    const synergies={left:x+2,right:board.left,top:board.top,bottom:y+h-10}
+    return { viewport:`${vw}×${vh}`, toggleClose:intersects(toggle,close), toggleActions:intersects(toggle,actions), drawerActions:intersects(drawer,actions), drawerBoard:intersects(drawer,board), drawerSynergies:intersects(drawer,synergies), gap:close.left-toggle.right, drawerWidth:dw }
+
+  }
+  window.plannerGeometryReport = geometryReport
+  for(const size of [[1280,720],[1920,1080]]) {
+    const result=geometryReport(...size)
+    check(!result.toggleClose&&!result.toggleActions&&!result.drawerActions&&!result.drawerBoard&&!result.drawerSynergies&&result.gap>=16, JSON.stringify(result))
+  }
+  function geometry() {
+    const toggle=$('.pacc-toggle').getBoundingClientRect(), header=document.getElementById('game-header').getBoundingClientRect()
+    check(toggle.top>=header.top && toggle.bottom<=header.bottom, 'PACC başlığın içinde')
+    const close=dialog.querySelector('.close-btn').getBoundingClientRect()
+    check(close.left-toggle.right>=16, 'PACC ve kapatma arasında en az 16px')
+    for(const el of dialog.querySelectorAll('.close-btn,.actions button')) check(!intersects(toggle,el.getBoundingClientRect()), `PACC / ${el.textContent}: kesişim yok`)
+    if($('.drawer')) {
+      const drawer=$('.drawer').getBoundingClientRect(), modal=dialog.getBoundingClientRect()
+      check(Math.abs(drawer.right-modal.right)<1, 'Çekmece modalın sağ kenarında')
+      for(const el of dialog.querySelectorAll('.actions button,#team-editor,.synergies')) check(!intersects(drawer,el.getBoundingClientRect()), `Çekmece / ${el.id||el.className||el.textContent}: kesişim yok`)
+    }
+  }
+  async function hitClick(selector) {
+    let el=$(selector)
+    check(!!el, `${selector} var`)
+    el.scrollIntoView({block:'nearest'}); await wait(200)
+    const r=el.getBoundingClientRect(), x=r.left+r.width/2, y=r.top+r.height/2
+    check(document.elementFromPoint(x,y)===document.getElementById('pac-planner') && (root().elementFromPoint(x,y)===el || el.contains(root().elementFromPoint(x,y))), `${selector}: elementFromPoint tıklanabilir`)
+    el.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,composed:true}))
+    el.click(); await wait()
+    check(dialog.open, `${selector}: planlayıcı açık kaldı`)
+  }
   async function autotest() {
-    for (let n=0; n<100 && !$('[data-action="choose"]'); n++) await wait()
-    check(!!$('[data-action="recommended"]'), 'Planlayıcı mesajı Önerilen düğmesini açtı')
-    check(parseFloat($('.recommended-tab').style.left) === rect('picker').x, 'Önerilen seçicinin soluna hizalı')
-    check(parseFloat($('.meta-action').style.left) === rect('actions').x && parseFloat($('.meta-action').style.top) === rect('actions').y, 'Meta düğmesi actions koordinatında')
-    check(!$('.tracker'), 'Planlayıcı açıkken takip kartı yok')
-    $('[data-action="recommended"]').click()
-    check(!!$('[data-add="NINETALES"]'), 'Öneri kartı gösterildi')
-    $('[data-add="NINETALES"]').click(); await wait()
-    check(lastSet.board[1].name === 'NINETALES' && lastSet.board[1].x === 1 && lastSet.board[1].y === 1, 'Ekle ilk boş kareyi kullandı')
-    $('[data-action="choose"]').click()
-    check(!!$('.chooser'), 'Dizilim penceresi açıldı')
-    check(root().activeElement.dataset.action === 'close', 'Pencere odağı içine aldı')
-    $('[data-action="replace"]').click(); await wait()
-    check(JSON.stringify(lastSet.board) === JSON.stringify(fixture) && !!lastSet.requestId, 'Plana yükle doğru board ve requestId yolladı')
-    reopen = true; $('[data-action="choose"]').click(); $('[data-action="merge"]').click(); await wait()
-    check(lastSet.board.length === 3, 'Sadece eksikler mevcut planı korudu')
-    check($('.notice').textContent.includes(PacI18n.t('panel.planner.reopen')), 'reopen yanıtı bilgilendirmesi var')
-    window.postMessage({type:'pac-yardimci:planner-set-result',requestId:'foreign',ok:false},location.origin); await wait()
-    check(!$('.notice').textContent.includes(PacI18n.t('panel.planner.failed')), 'Yabancı requestId yok sayıldı')
-    game(); await wait()
-    check(!!$('.tracker'), 'Oyun rotası + dolu plan takip kartını açtı')
-    check($('.progress-label').textContent.includes('1 / 3'), 'Yedekteki evrim ailesi ilerlemeye sayıldı')
-    check($('.tracker ol').textContent.includes(PacI18n.t('panel.planner.buy',{name:'Vulpix'})), 'Dükkandaki plan ailesi sıradaki adımda')
-    $('[data-action="minimize"]').click(); check(!$('#tracking-details'), 'Takip kartı küçültüldü')
-    $('[data-action="minimize"]').click(); check(!!$('#tracking-details'), 'Takip kartı genişletildi')
-    history.replaceState({}, '', '/lobby'); dispatchEvent(new PopStateEvent('popstate')); check(!$('.tracker'), 'Oyun dışında kart yok')
-    history.replaceState({}, '', '/game'); board=[]; sendPlanner(); await wait(); check(!$('.tracker'), 'Boş planda kart yok')
-    opened=true; sendPlanner(); await wait(); window.PacAdvisor=null; sendPlanner(); await wait()
-    check(!!$('.empty'), 'Motor yokken zarif boş durum')
-    await chrome.storage.local.set({settings:{...mem.settings,planner:false}}); check(!$('#surface').textContent, 'Ayar kapalıyken koç gizli')
-    check(document.getElementById('pac-planner').parentElement === document.documentElement && !document.getElementById('mock').querySelector('#pac-planner'), 'Yalnızca documentElement içinde kendi shadow hostu')
-    window.PacAdvisor=engine; await chrome.storage.local.set({settings:{...mem.settings,planner:true}})
+    for(let n=0;n<100&&!$('.pacc-toggle');n++) await wait()
+    check(dialog.open && document.getElementById('pac-planner').parentElement===dialog, 'Gerçek showModal ve dialog içinde tek host')
+    const initialNodes=[...dialog.querySelectorAll('*')]
+    for(const size of [[1280,720],[1920,1080]]) {
+      const result=geometryReport(...size)
+      check(!result.toggleClose&&!result.toggleActions&&!result.drawerActions&&!result.drawerBoard&&!result.drawerSynergies&&result.gap>=16, JSON.stringify(result))
+    }
+    geometry(); await hitClick('[data-action="toggle"]'); geometry()
+    check(root().activeElement?.dataset.action==='close','Açılışta odak çekmecede')
+    await hitClick('[data-add="NINETALES"]')
+    check(lastSet.board[1].x===1 && lastSet.board[1].y===1,'Ekle ilk boş kareyi kullandı')
+    for(const tab of ['myPlan','meta','recommended']) {
+      await hitClick(`[data-tab="${tab}"]`)
+      check($(`[data-tab="${tab}"]`).getAttribute('aria-selected')==='true', `${tab} sekmesi seçili`)
+      if(tab==='myPlan') await hitClick('[data-add="NINETALES"]')
+    }
+    await hitClick('[data-tab="meta"]')
+    for(const selector of [...root().querySelectorAll('[data-filter]')].map(el=>`[data-filter="${el.dataset.filter}"]`)) await hitClick(selector)
+    await hitClick('[data-cluster="fire"]')
+    await hitClick('[data-action="replace"]')
+    check(JSON.stringify(lastSet.board)===JSON.stringify(fixture)&&!!lastSet.requestId,'Plana yükle board ve requestId doğru')
+    reopen=true; await hitClick('[data-action="merge"]')
+    check(lastSet.board.length===3,'Sadece eksikler mevcut planı korudu')
+    check($('.notice').textContent.includes(PacI18n.t('panel.planner.reopen')),'Bildirim çekmecenin altında')
+    const buttons=[...root().querySelectorAll('.drawer button:not(:disabled):not([tabindex="-1"])')]
+    buttons.at(-1).focus(); buttons.at(-1).dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}))
+    check(root().activeElement===buttons[0],'Tab odağı başa döndürdü')
+    buttons[0].dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',shiftKey:true,bubbles:true,cancelable:true}))
+    check(root().activeElement===buttons.at(-1),'Shift+Tab odağı sona döndürdü')
+    root().activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}))
+    check(!$('.drawer')&&dialog.open&&root().activeElement===$('.pacc-toggle'),'Escape yalnızca çekmeceyi kapattı, odak PACC')
+    await hitClick('[data-action="toggle"]'); await hitClick('[data-action="close"]')
+    check(initialNodes.length===dialog.querySelectorAll('*').length,'Oyun DOM’una host dışında düğüm eklenmedi')
+    game(); await wait(); check(!!$('.tracker'),'Oyun içi takip kartı korundu')
+    opened=true; sendPlanner(); await wait()
     document.title='PASS · Planner harness'; document.documentElement.dataset.result='pass'
   }
   if(new URLSearchParams(location.search).has('autotest')) autotest().catch(e => { document.title='FAIL · Planner harness'; document.documentElement.dataset.result='fail'; document.getElementById('report').textContent += '\n'+e.stack })

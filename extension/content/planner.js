@@ -7,8 +7,7 @@
   const state = {
     planner: { open: false, board: [], rects: null }, game: null,
     settings: { planner: true, tier: "LEVEL_BALL", minGames: 50 },
-    meta: null, data: null, text: null, recommended: false, summary: false,
-    chooser: false, selected: null, filter: "", minimized: false, notice: "", pending: null
+    meta: null, data: null, text: null, drawer: false, tab: "recommended", selected: null, filter: "", minimized: false, notice: "", pending: null
   }
   const host = document.createElement("div")
   host.id = "pac-planner"
@@ -60,10 +59,9 @@
 
   function summary(plan, fit) {
     const best = fit.best?.[0]
-    return `${button("summary", `★ ${best ? t("panel.planner.fit", { n: best.fit }) : t("panel.planner.coach")}`, `aria-expanded="${state.summary}" aria-controls="coach-details"`)}
-      ${state.summary ? `<div id="coach-details" class="details"><b>${esc(best ? title(best.cluster) : t("panel.planner.coach"))}</b>
+    return `<div class="plan-fit"><small>${esc(t("panel.planner.fitLabel"))}</small><strong>${esc(best ? t("panel.planner.fit", { n: best.fit }) : "—")}</strong><b>${esc(best ? title(best.cluster) : t("panel.planner.coach"))}</b></div>
         <h3>${esc(t("panel.planner.missing"))}</h3>${(fit.missing ?? []).map((p) => `<div class="unit-line">${portrait(p.pkm)}<span>${esc(name(p.pkm))}</span>${button("add", t("panel.planner.add"), `data-add="${esc(p.pkm)}" ${disabled()}`)}</div>`).join("") || empty()}
-        <h3>${esc(t("panel.planner.items"))}</h3>${advice("planItems", [], plan).map((p) => `<div class="unit-line">${portrait(p.pkm)}<span>${esc(name(p.pkm))}</span><span>${p.items.map(item).join("")}</span></div>`).join("") || empty()}</div>` : ""}`
+        <h3>${esc(t("panel.planner.items"))}</h3>${advice("planItems", [], plan).map((p) => `<div class="unit-line">${portrait(p.pkm)}<span>${esc(name(p.pkm))}</span><span>${p.items.map(item).join("")}</span></div>`).join("") || empty()}`
   }
 
   function chooser(plan) {
@@ -75,10 +73,9 @@
     const families = new Set(plan.map((p) => family(p.name)))
     const core = (c) => [...(c.pokemons ?? [])].sort((a, b) => b.frequency - a.frequency).slice(0, 8)
     const preview = selected ? advice("compToPlan", [], selected, {}) : []
-    return `<div class="veil"><section class="chooser card" role="dialog" aria-modal="true" aria-labelledby="chooser-title">
-      <header><div><small>${esc(t("panel.planner.eyebrow"))}</small><h2 id="chooser-title">${esc(t("panel.planner.start"))}</h2></div>${button("close", t("panel.close"))}</header>
+    return `<div class="meta-content">
       <div class="filters" role="group" aria-label="${esc(t("panel.planner.filters"))}">${button("filter", t("panel.planner.all"), `data-filter="" aria-pressed="${!state.filter}"`)}${filters.map((s) => button("filter", name(s, "synergy"), `data-filter="${esc(s)}" aria-pressed="${state.filter === s}"`)).join("")}</div>
-      <div class="chooser-columns"><div class="comps">${visible.map((c) => `<button class="comp" data-cluster="${esc(c.id)}" aria-pressed="${selected?.id === c.id}"><b>${esc(title(c))}</b>
+      <div class="meta-sections"><div class="comps">${visible.map((c) => `<button class="comp" data-cluster="${esc(c.id)}" aria-pressed="${selected?.id === c.id}"><b>${esc(title(c))}</b>
         <span class="metrics">${esc(t("panel.planner.metrics", { rank: Number(c.rank).toFixed(2), win: c.winrate, games: I18n.number(c.count) }))}</span>
         <span class="core">${core(c).map((p) => portrait(p.name, families.has(family(p.name)))).join("")}</span></button>`).join("") || empty()}</div>
       <aside class="preview"><h3>${esc(t("panel.planner.preview"))}</h3><b>${esc(selected ? title(selected) : t("panel.planner.coach"))}</b>
@@ -89,7 +86,7 @@
         }).join("")}</div><small class="planned">○ ${esc(t("panel.planner.inPlan"))}</small>
         ${button("replace", t("panel.planner.replace"), `class="primary" ${!preview.length || state.pending ? "disabled" : ""}`)}
         ${button("merge", t("panel.planner.merge"), !preview.length || state.pending ? "disabled" : "")}
-      </aside></div></section></div>`
+      </aside></div></div>`
   }
 
   function nextSteps(plan, items) {
@@ -134,16 +131,18 @@
         <div class="chips">${(fit.synergies ?? []).map((s) => `<span>${esc(name(s.syn, "synergy"))} <b>${Number(state.game?.synergies?.[s.syn] ?? 0)}/${Number(s.next ?? s.count)}</b></span>`).join("")}</div></div>`}</section>`
   }
 
-  // Köprü koordinatları dışında oyunun DOM'una veya seçicilerine bağımlılık yoktur.
+  // Yerleşim köprü koordinatlarını kullanır; kapatma düğmesi yalnızca boşluk ölçümü için okunur.
   function position(selector, r, extra = {}) {
     const el = surface.querySelector(selector)
     if (!el || !r || ![r.x, r.y, r.w, r.h].every(Number.isFinite)) return
     Object.assign(el.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, ...extra })
   }
+  let drawerVisible = false
   function render() {
     if (!state.ready) return
     if (state.settings.planner === false) {
       surface.innerHTML = ""
+      drawerVisible = false
       try { if (host.matches(":popover-open")) host.hidePopover() } catch {}
       host.removeAttribute("popover")
       mountHost(false)
@@ -151,19 +150,22 @@
     }
     const focus = root.activeElement
     const focusData = focus?.dataset ? { ...focus.dataset } : null
-    const scrolls = [...surface.querySelectorAll(".comps,.recommendations,.coach,.chooser")].map((el) => [el.className, el.scrollTop])
+    const scrolls = [...surface.querySelectorAll(".drawer-body")].map((el) => [el.className, el.scrollTop])
     const plan = state.planner.board
     const fit = advice("planFit", { best: [], missing: [], synergies: [] }, plan)
     const rects = state.planner.rects
-    const open = state.planner.open && rects
-    if (!open) state.chooser = false
-    // Üç kontrol tek araç çubuğunda: oyunun kendi düğmelerinin üstüne binmesinler diye başlık çubuğunda durur
-    surface.innerHTML = `${open ? `<div class="toolbar"><div class="recommended-tab">${button("recommended", t("panel.planner.recommended"), `aria-expanded="${state.recommended}" aria-controls="recommendations"`)}</div>
-      <div class="meta-action">${button("choose", t("panel.planner.start"), 'class="primary"')}</div><section class="coach card">${summary(plan, fit)}</section></div>
-      ${state.recommended ? `<section id="recommendations" class="picker card"><header><h3>${esc(t("panel.planner.recommended"))}</h3>${button("recommended", t("panel.close"))}</header>${recommendations(plan)}</section>` : ""}
-      ${state.chooser ? chooser(plan) : ""}` : ""}
-      ${!state.planner.open && /^\/game(?:\/|$)/.test(location.pathname) && plan.length ? tracker(plan, fit) : ""}
-      ${state.notice ? `<div class="notice card" role="status">${esc(state.notice)}</div>` : ""}`
+    // Konumlar eksikse (eski köprü, yarım ölçüm) hiçbir şey çizme; modal dikdörtgeni şart
+    const okRect = (r) => Boolean(r) && [r.x, r.y, r.w, r.h].every(Number.isFinite)
+    const open = state.planner.open && okRect(rects?.modal)
+    if (!open) state.drawer = false
+    const entering = open && state.drawer && !drawerVisible
+    drawerVisible = Boolean(open && state.drawer)
+    const noticeHtml = state.notice ? `<div class="notice" role="status">${esc(state.notice)}</div>` : ""
+    surface.innerHTML = `${open ? `<button type="button" class="pacc-toggle" data-action="toggle" aria-expanded="${state.drawer}" aria-controls="planner-drawer" aria-label="${esc(t("panel.planner.drawer"))}"><img src="${esc(chrome.runtime.getURL("icons/icon-48.png"))}" alt=""><b>${esc(t("app.name"))}</b><span class="badge">${esc(t("panel.planner.badge", { n: fit.best?.[0]?.fit ?? 0 }))}</span></button>
+      ${state.drawer ? `<section id="planner-drawer" class="drawer" data-enter="${entering}" role="dialog" aria-labelledby="drawer-title"><header class="drawer-heading"><div><small>${esc(t("panel.planner.eyebrow"))}</small><h2 id="drawer-title">${esc(t("panel.planner.coach"))}</h2></div>${button("close", "×", `aria-label="${esc(t("panel.close"))}"`)}</header>
+      <div class="tabs" role="tablist" aria-label="${esc(t("panel.planner.drawer"))}">${[["recommended", "panel.planner.recommended"], ["meta", "panel.planner.meta"], ["myPlan", "panel.planner.myPlan"]].map(([tab, key]) => button("tab", t(key), `role="tab" id="tab-${tab}" data-tab="${tab}" aria-selected="${state.tab === tab}" tabindex="${state.tab === tab ? 0 : -1}" aria-controls="drawer-panel"`)).join("")}</div>
+      <div class="drawer-body" id="drawer-panel" role="tabpanel" aria-labelledby="tab-${state.tab}">${state.tab === "meta" ? chooser(plan) : state.tab === "myPlan" ? summary(plan, fit) : recommendations(plan)}</div>${noticeHtml}</section>` : ""}` : ""}
+      ${!state.planner.open && /^\/game(?:\/|$)/.test(location.pathname) && plan.length ? tracker(plan, fit) + noticeHtml : ""}`
     const inDialog = mountHost(Boolean(open))
     try {
       if (open && !inDialog) {
@@ -178,23 +180,34 @@
       // Eski tarayıcılarda sabit konum ve z-index kullanılmaya devam edilir.
     }
     if (open) {
-      position(".picker", rects.picker, { height: `${rects.picker.h}px` })
-      // Başlık yoksa pencerenin üst kenarı; sağda oyunun kapatma düğmesine 64px yer bırak
-      const bar = rects.header ?? { x: rects.modal.x, y: rects.modal.y, w: rects.modal.w, h: 52 }
-      const toolbar = surface.querySelector(".toolbar")
-      if (toolbar && [bar.x, bar.y, bar.w, bar.h].every(Number.isFinite)) Object.assign(toolbar.style, {
-        top: `${Math.max(0, bar.y + Math.max(0, (bar.h - 44) / 2))}px`,
-        right: `${Math.max(0, window.innerWidth - (bar.x + bar.w) + 64)}px`
-      })
+      const bar = rects.header ?? { ...rects.modal, h: 56 }
+      // Kapatma düğmesinin gerçek sınırı varsa kullan; eski köprülerde 44px hedef ve 16px boşluk ayır.
+      const close = host.parentNode?.querySelector?.(":scope > header .close-btn")?.getBoundingClientRect()
+      const right = close?.left ?? bar.x + bar.w - 44
+      position(".pacc-toggle", { x: right - 16 - 148, y: bar.y + (bar.h - 44) / 2, w: 148, h: 44 })
+      const w = Math.min(440, rects.modal.w * .42)
+      let top = bar.y + bar.h
+      let bottom = rects.modal.y + rects.modal.h
+      const left = rects.modal.x + rects.modal.w - w
+      // Oyun eylemleri sağ sütundaysa o şeridi açık bırak; tahtanın üstüne taşma.
+      const actions = rects.actions
+      if (actions && actions.x + actions.w > left && actions.y + actions.h > top && actions.y < bottom) {
+        if (actions.y + actions.h / 2 < (top + bottom) / 2) top = actions.y + actions.h + 8
+        else bottom = actions.y - 8
+      }
+      position(".drawer", { x: rects.modal.x + rects.modal.w - w, y: top, w, h: bottom - top }, { height: `${Math.max(0, bottom - top)}px` })
     }
+
     for (const [className, top] of scrolls) {
-      const el = [...surface.querySelectorAll(".comps,.recommendations,.coach,.chooser")].find((el) => el.className === className)
+      const el = [...surface.querySelectorAll(".drawer-body")].find((el) => el.className === className)
       if (el) el.scrollTop = top
     }
-    if (focusData) [...surface.querySelectorAll("button")].find((b) => Object.entries(focusData).every(([k, v]) => b.dataset[k] === v))?.focus({ preventScroll: true })
+    if (focusData) [...surface.querySelectorAll("button:not(:disabled)")].find((b) => Object.entries(focusData).every(([k, v]) => b.dataset[k] === v))?.focus({ preventScroll: true })
+    // Bekleyen işlemde düğme devre dışı kaldıysa odağı dialog dışına düşürme.
+    if (open && state.drawer && !root.activeElement?.closest?.(".drawer")) surface.querySelector('[data-action="close"]')?.focus({ preventScroll: true })
   }
 
-  let noticeTimer, requestTimer, serial = 0, returnFocus
+  let noticeTimer, requestTimer, serial = 0
   function notice(key) {
     state.notice = t(key)
     clearTimeout(noticeTimer)
@@ -217,10 +230,10 @@
     }
     notice("panel.planner.full")
   }
-  function closeChooser() {
-    state.chooser = false
+  function closeDrawer() {
+    state.drawer = false
     render()
-    ;(surface.querySelector('[data-action="choose"]') ?? returnFocus)?.focus()
+    surface.querySelector('[data-action="toggle"]')?.focus()
   }
   root.addEventListener("click", (e) => {
     const el = e.target.closest("button")
@@ -228,28 +241,38 @@
     if (el.dataset.add) return add(el.dataset.add)
     if (el.dataset.cluster) { state.selected = el.dataset.cluster; render(); return }
     const action = el.dataset.action
-    if (action === "recommended") state.recommended = !state.recommended
-    if (action === "summary") state.summary = !state.summary
+    if (action === "toggle" && state.drawer) return closeDrawer()
+    if (action === "toggle") state.drawer = true
+    if (action === "tab") state.tab = el.dataset.tab
     if (action === "minimize") state.minimized = !state.minimized
     if (action === "filter") state.filter = el.dataset.filter
-    if (action === "close") return closeChooser()
-    if (action === "choose") { returnFocus = el; state.chooser = true }
+    if (action === "close") return closeDrawer()
     if (action === "replace" || action === "merge") {
       const cluster = state.meta?.clusters?.find((c) => c.id === state.selected)
       if (cluster) sendPlan(advice("compToPlan", [], cluster, { keepPlan: action === "merge" ? state.planner.board : null }))
       return
     }
     render()
-    if (action === "choose") surface.querySelector('[data-action="close"]')?.focus()
+    if (action === "tab") { const body = surface.querySelector(".drawer-body"); if (body) body.scrollTop = 0 }
+    if (action === "toggle") surface.querySelector('[data-action="close"]')?.focus()
   })
   // Oyunun modalı dialog'a gelen mousedown'ı "dışarı tıklandı" sanıp kapanmasın, oyunun tıklama işleyicileri tetiklenmesin
   for (const type of ["mousedown", "pointerdown", "mouseup", "pointerup"]) root.addEventListener(type, (e) => e.stopPropagation())
   for (const type of ["keydown", "keyup", "keypress"]) root.addEventListener(type, (e) => {
     e.stopPropagation()
-    if (type !== "keydown" || !state.chooser) return
-    if (e.key === "Escape") { e.preventDefault(); closeChooser() }
+    if (type !== "keydown" || !state.drawer) return
+    if (e.key === "Escape") { e.preventDefault(); closeDrawer() }
+    if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) && root.activeElement?.dataset.action === "tab") {
+      e.preventDefault()
+      const tabs = ["recommended", "meta", "myPlan"]
+      const index = tabs.indexOf(state.tab)
+      state.tab = tabs[e.key === "Home" ? 0 : e.key === "End" ? 2 : (index + (e.key === "ArrowRight" ? 1 : 2)) % 3]
+      render()
+      surface.querySelector(`[data-tab="${state.tab}"]`)?.focus()
+      const body = surface.querySelector(".drawer-body"); if (body) body.scrollTop = 0
+    }
     if (e.key === "Tab") {
-      const buttons = [...surface.querySelectorAll('.chooser button:not(:disabled)')]
+      const buttons = [...surface.querySelectorAll('.drawer button:not(:disabled):not([tabindex="-1"])')]
       const first = buttons[0], last = buttons.at(-1)
       if (e.shiftKey && root.activeElement === first) { e.preventDefault(); last?.focus() }
       else if (!e.shiftKey && root.activeElement === last) { e.preventDefault(); first?.focus() }
@@ -264,10 +287,9 @@
       if (state.planner.open) return
     } else if (e.data?.type === "pac-yardimci:planner-set-result" && state.pending?.requestId === e.data.requestId) {
       clearTimeout(requestTimer)
-      if (e.data.ok) { state.planner.board = state.pending.board; state.chooser = false }
+      if (e.data.ok) { state.planner.board = state.pending.board }
       state.pending = null
       notice(e.data.ok ? e.data.note === "reopen" ? "panel.planner.reopen" : "panel.planner.saved" : "panel.planner.failed")
-      if (e.data.ok) surface.querySelector('[data-action="choose"]')?.focus()
     } else return
     render()
   })

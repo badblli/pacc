@@ -274,6 +274,13 @@
   }
 
   function measure(now) {
+    const started = performance.now()
+    try { measureInner(now) } finally {
+      const ms = performance.now() - started
+      if (ms > 40) console.warn(`[PACC perf] tahta önerileri: ${ms.toFixed(0)} ms`)
+    }
+  }
+  function measureInner(now) {
     lastMeasure = now
     if (!extAlive()) return teardown()
     if (ready && !hiddenAll && state.settings.overlay !== false && state.snap && typeof window.PacAdvisor?.boardAdvice === "function") {

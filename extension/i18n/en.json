@@ -212,7 +212,6 @@
   "panel.planner.items": "Item plan",
   "panel.planner.metaReason": "Strong meta performance",
   "panel.planner.eyebrow": "PACC / TEAM PLANNER",
-  "panel.planner.start": "Start from a meta comp",
   "panel.planner.filters": "Filter by synergy",
   "panel.planner.all": "All synergies",
   "panel.planner.metrics": "Avg. {{rank}} · 1st {{win}}% · {{games}} games",
@@ -230,7 +229,7 @@
   "panel.planner.next": "Next steps",
   "panel.planner.wait": "Watch for planned units and item components.",
   "panel.planner.waitGame": "Waiting for live game data.",
-  "panel.planner.recommended": "★ Recommended",
+  "panel.planner.recommended": "Recommended",
   "panel.planner.failed": "Plan could not be updated. Please try again.",
   "panel.planner.full": "Your plan is full (24 units).",
   "panel.planner.reopen": "Close and reopen the planner to see the update.",
@@ -246,5 +245,10 @@
   "panel.carousel.reason.craft": "Combines immediately with {{item}}",
   "panel.carousel.reason.component": "Component for {{item}}",
   "panel.carousel.reason.want": "Wanted by {{pkm}} in your plan",
-  "panel.carousel.reason.comp": "Composition item"
+  "panel.carousel.reason.comp": "Composition item",
+  "panel.planner.drawer": "Planner coach",
+  "panel.planner.meta": "Meta comps",
+  "panel.planner.myPlan": "My plan",
+  "panel.planner.fitLabel": "Closest meta composition",
+  "panel.planner.badge": "{{n}}%"
 }

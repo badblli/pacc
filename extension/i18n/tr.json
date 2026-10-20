@@ -212,7 +212,6 @@
   "panel.planner.items": "Item planı",
   "panel.planner.metaReason": "Metada güçlü performans",
   "panel.planner.eyebrow": "PACC / TAKIM PLANLAYICI",
-  "panel.planner.start": "Meta dizilimden başla",
   "panel.planner.filters": "Sinerjiye göre filtrele",
   "panel.planner.all": "Tüm sinerjiler",
   "panel.planner.metrics": "Ort. {{rank}} · 1.lik %{{win}} · {{games}} oyun",
@@ -230,7 +229,7 @@
   "panel.planner.next": "Sıradaki adımlar",
   "panel.planner.wait": "Plandaki birimleri ve item parçalarını bekle.",
   "panel.planner.waitGame": "Canlı oyun verisi bekleniyor.",
-  "panel.planner.recommended": "★ Önerilen",
+  "panel.planner.recommended": "Önerilen",
   "panel.planner.failed": "Plan güncellenemedi. Tekrar deneyin.",
   "panel.planner.full": "Plan dolu (24 birim).",
   "panel.planner.reopen": "Planlayıcıyı kapatıp açınca görünür.",
@@ -246,5 +245,10 @@
   "panel.carousel.reason.craft": "{{item}} ile hemen birleşir",
   "panel.carousel.reason.component": "{{item}} için parça",
   "panel.carousel.reason.want": "Planındaki {{pkm}} istiyor",
-  "panel.carousel.reason.comp": "Dizilim itemi"
+  "panel.carousel.reason.comp": "Dizilim itemi",
+  "panel.planner.drawer": "Planlayıcı koçu",
+  "panel.planner.meta": "Meta dizilimler",
+  "panel.planner.myPlan": "Planım",
+  "panel.planner.fitLabel": "En yakın meta dizilimi",
+  "panel.planner.badge": "%{{n}}"
 }
