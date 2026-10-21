@@ -5,7 +5,25 @@
 <title>PACC · Seçim koçu deneme sahnesi</title>
 <!-- Depo kökünden python -m http.server 8123; /tests/carousel-harness.html?autotest=1 -->
 <style>
-  :root { color-scheme: dark; font: 15px/1.5 'Trebuchet MS', sans-serif; background: #0c1321; color: #f3f5fc; }
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../extension/fonts/Jost-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../extension/fonts/Jost-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+  :root { color-scheme: dark; font: 15px/1.5 "Jost", sans-serif; background: #0c1321; color: #f3f5fc; }
   body { margin: 0; } .timer { height: 54px; display: grid; place-content: center; border-bottom: 2px solid #485b7a; background: #1b263c; color: #f6c445; }
   main { padding: 24px; max-width: 320px; } h1 { font-size: 20px; } button { min-height: 44px; padding: 8px 12px; margin: 4px 0; cursor: pointer; }
   #mock { position: fixed; inset: 380px 24px 24px; border: 2px dashed #485b7a; border-radius: 16px; display: grid; place-content: center; color: #b9c7de; pointer-events: none; }
@@ -37,7 +55,8 @@
     { portalId:'forest', map:'HowlingForest2', score:88, synergies:['GRASS','BUG'], regional:[{pkm:'VENUSAUR'},{pkm:'SCYTHER'},{pkm:'LEAFEON'}], meta:{rank:3.15,count:300} },
     { portalId:'fire', map:'MtBlaze', score:70, synergies:['FIRE','DRAGON'], regional:[{pkm:'CHARIZARD'},{pkm:'NINETALES'}], meta:{rank:3.82,count:250} }
   ]
-  const engine = { rankCarousel: () => itemRows, rankPortals: () => portalRows }
+  // D8'den beri carousel.js ctx'i buildContext ile kurar; sahte motor da sağlamalı
+  const engine = { buildContext: (o) => o, rankCarousel: () => itemRows, rankPortals: () => portalRows }
   window.PacAdvisor = engine
   let kind = 'items'
   function send(next = kind) {

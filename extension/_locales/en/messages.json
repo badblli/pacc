@@ -3,6 +3,10 @@
     "message": "PACC — Auto Chess Coach",
     "description": "Extension name. \"PACC\" (Poké Auto Chess Coach) is the brand name and stays untranslated."
   },
+  "badgeNew": {
+    "message": "NEW",
+    "description": "Badge on the toolbar icon when a newer PACC release exists (max 4 characters)."
+  },
   "extShortName": {
     "message": "PACC"
   },

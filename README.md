@@ -50,12 +50,12 @@ All data comes from the game's own public meta report (`/meta-v2`, `/meta/pokemo
 Being careful with extensions is right. Here is exactly what PACC can and cannot do, and how to check it yourself:
 
 - **Runs on one site only.** PACC's only site permission is `https://pokemon-auto-chess.com/*`. It cannot see any other tab or website.
-- **Talks to one server only.** The only address in the code is `https://pokemon-auto-chess.com`, used for the game's public meta report. No analytics, no tracking, no server of its own, nothing about you is sent anywhere. See [PRIVACY.md](PRIVACY.md).
+- **Talks to two public addresses only.** `https://pokemon-auto-chess.com` for the game's public meta report, and (unless you turn off *Check for updates*) GitHub's public release info for this repo at most twice a day, to tell you when a new version is out. No analytics, no tracking, no server of its own, nothing about you is sent anywhere. See [PRIVACY.md](PRIVACY.md).
 - **Never plays for you.** It does not click, drag, buy or send anything to the game. It only draws badges and panels on top of the page. The one thing it changes is your own Team Planner, and only when you press **Load into plan** (the planner is stored in your browser).
 - **No hidden code.** Everything is in this repo (GPL-3.0). There is no remote code and no minified bundle; the release zip is built from the `extension/` folder by `npm run pack`.
 - **Few permissions.** `storage` (settings and the meta cache), `alarms` (check the meta report every 6 hours), `declarativeNetRequest` (only for the optional Turkish translation).
 
-**Check it yourself:** on `chrome://extensions` open PACC → *Details* to see the permissions; or open DevTools → *Network* while playing and you will only see requests to pokemon-auto-chess.com.
+**Check it yourself:** on `chrome://extensions` open PACC → *Details* to see the permissions; or open DevTools → *Network* while playing and you will only see requests to pokemon-auto-chess.com (plus the occasional update check to api.github.com).
 
 ## Installation (2 minutes)
 

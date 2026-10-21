@@ -312,7 +312,7 @@
   async function init() {
     await I18n.ready
     const results = await Promise.allSettled([
-      fetch(chrome.runtime.getURL("content/planner.css")).then((r) => r.text()),
+      Promise.all(["theme", "planner"].map((name) => fetch(chrome.runtime.getURL(`content/${name}.css`)).then((r) => r.text()))).then((sheets) => sheets.join("\n")),
       fetch(chrome.runtime.getURL("data/static.json")).then((r) => r.json()),
       chrome.storage.local.get(["settings", "meta"]), I18n.gameText()
     ])

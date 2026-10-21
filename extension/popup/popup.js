@@ -8,7 +8,27 @@ function applyText() {
   document.documentElement.lang = I18n.lang
   for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n)
   document.title = t("app.name")
+  // Açıklamalar satırda gizli; seçeneğin üzerine gelince ipucu olarak görünür
+  for (const small of document.querySelectorAll(".opt small")) small.closest(".opt").title = small.textContent
   $("refresh").textContent = t(downloading ? "popup.downloading" : "popup.refresh")
+}
+
+// Daha yeni bir sürüm varsa üstte indirme bağlantısı (bilgi arka plan denetiminden gelir)
+const newer = (a, b) => {
+  const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number)
+  for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0)
+  return false
+}
+async function showUpdate(settings) {
+  const { update } = await chrome.storage.local.get("update")
+  const link = $("update")
+  const show = settings.updateCheck !== false && update?.version && newer(update.version, chrome.runtime.getManifest?.().version ?? "0.0.0") &&
+    typeof update.url === "string" && update.url.startsWith("https://github.com/badblli/pacc/releases/")
+  link.hidden = !show
+  if (show) {
+    link.href = update.url
+    link.textContent = t("popup.updateAvailable", { version: update.version })
+  }
 }
 
 async function load() {
@@ -18,6 +38,8 @@ async function load() {
   $("translation").checked = settings.translation ?? I18n.resolveLang(settings.uiLang) === "tr"
   $("panel").checked = settings.panel !== false
   $("alert").checked = settings.alert !== false
+  $("updateCheck").checked = settings.updateCheck !== false
+  await showUpdate(settings)
   $("alertSound").value = ["ball_catch", "chime"].includes(settings.alertSound) ? settings.alertSound : "level_up"
   $("planner").checked = settings.planner !== false
   $("overlay").checked = settings.overlay !== false
@@ -46,6 +68,7 @@ async function save(patch) {
 $("uiLang").addEventListener("change", (e) => save({ uiLang: e.target.value }))
 $("translation").addEventListener("change", (e) => save({ translation: e.target.checked }))
 $("alert").addEventListener("change", (e) => save({ alert: e.target.checked }))
+$("updateCheck").addEventListener("change", (e) => save({ updateCheck: e.target.checked }))
 // Seçilen oyun sesini bir kez dinlet (oyunun sitesinden; çan yalnız oyunda çalar)
 const GAME_SOUNDS = { level_up: "level_up.mp3", ball_catch: "ball_catch.ogg" }
 $("alertSound").addEventListener("change", (e) => {
@@ -125,3 +148,9 @@ $("clearRecording").addEventListener("click", async () => {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.gameRecording) loadRecording()
 })
+
+// Popup açılınca arka plan denetimi tetiklenir (12 saat sınırı orada); sonuç gelince bant yenilenir
+Promise.resolve(chrome.runtime.sendMessage?.({ type: "check-update" })).then(async () => {
+  const { settings = {} } = await chrome.storage.local.get("settings")
+  await showUpdate(settings)
+}).catch(() => {})

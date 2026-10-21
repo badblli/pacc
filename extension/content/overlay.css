@@ -1,17 +1,13 @@
 :host {
   all: initial;
-  --ink: #101b23;
-  --green: #8cf2a4;
-  --red: #ff8c91;
-  --edge: #283e49;
   pointer-events: none !important;
 }
-.surface, .tooltip { font: 12px/1.45 "Trebuchet MS", Verdana, sans-serif; color: #f2f8f3; }
+.surface, .tooltip { font: 12px/1.45 "Jost", sans-serif; color: var(--pacc-fg); }
 *, *::before, *::after { box-sizing: border-box; pointer-events: none !important; }
-.mark { position: fixed; border: 2px solid var(--green); color: var(--green); }
+.mark { position: fixed; border: 2px solid var(--pacc-green); color: var(--pacc-green); }
 .best { border-width: 3px; animation: beacon 2.4s ease-in-out infinite; }
-.good { border-width: 1px; box-shadow: inset 0 0 0 1px #102b20; }
-.avoid { color: var(--red); border-color: var(--red); background: #be25351c; }
+.good { color: var(--pacc-blue); border-color: var(--pacc-blue); border-width: 2px; box-shadow: inset 0 0 0 1px var(--pacc-edge); }
+.avoid { color: var(--pacc-red); border-color: var(--pacc-red); background: color-mix(in srgb, var(--pacc-red) 11%, transparent); }
 .badge {
   position: absolute;
   top: -12px;
@@ -21,9 +17,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  background: var(--ink);
+  background: var(--pacc-tertiary);
   border: 1px solid currentColor;
-  box-shadow: 2px 2px 0 #060d13b3;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pacc-edge) 70%, transparent);
   font-weight: 700;
   letter-spacing: .2px;
 }
@@ -34,8 +30,8 @@
   left: 3px;
   right: 3px;
   padding: 4px 6px;
-  background: #101b23ed;
-  color: #f2f8f3;
+  background: var(--pacc-tertiary);
+  color: var(--pacc-fg);
   border-left: 2px solid currentColor;
   font-size: 11px;
   overflow: hidden;
@@ -47,22 +43,22 @@
 .tooltip {
   position: fixed;
   padding: 10px 12px;
-  background: #101b23fa;
-  border: 1px solid var(--edge);
-  border-top: 2px solid var(--green);
-  box-shadow: 3px 3px 0 #050c14a6;
+  background: var(--pacc-box);
+  border: 1px solid var(--pacc-edge);
+  border-top: 2px solid var(--pacc-green);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pacc-edge) 65%, transparent);
   overflow-wrap: anywhere;
   max-height: calc(100vh - 16px);
   overflow: hidden;
 }
-.tooltip { border-top-color: var(--accent, var(--green)); }
+.tooltip { border-top-color: var(--accent, var(--pacc-green)); }
 .tooltip[hidden], .toast[hidden], .surface[hidden] { display: none; }
-.tooltip strong { display: block; margin-bottom: 6px; color: #fff; }
+.tooltip strong { display: block; margin-bottom: 6px; color: var(--pacc-fg); }
 .tooltip div + div { margin-top: 4px; }
-.tooltip .chain { color: #a6bbc0; }
-.tooltip .chain b { color: #fff; }
+.tooltip .chain { color: var(--pacc-muted); }
+.tooltip .chain b { color: var(--pacc-fg); }
 /* Tahtadaki item birleştirme işaretleri: --c tarif rengi */
-.craft { position: fixed; --c: #ffd166; color: var(--c); }
+.craft { position: fixed; --c: var(--pacc-gold); color: var(--c); }
 .craft .reason { display: none; }
 .craft.part { border: 2px dashed var(--c); border-radius: 6px; box-shadow: 0 0 10px color-mix(in srgb, var(--c) 45%, transparent); }
 .craft.part .badge {
@@ -72,7 +68,7 @@
   padding: 0 4px;
   border-radius: 11px;
   border-color: var(--c);
-  color: #101b23;
+  color: var(--pacc-edge);
   background: var(--c);
   text-align: center;
   font-size: 14px;
@@ -99,16 +95,16 @@
   bottom: 24px;
   transform: translateX(-50%);
   padding: 7px 12px;
-  font: 12px/1.45 "Trebuchet MS", Verdana, sans-serif;
-  color: #f2f8f3;
-  background: #101b23f2;
-  border: 1px solid var(--edge);
-  border-left: 3px solid var(--green);
-  box-shadow: 3px 3px 0 #050c14a6;
+  font: 12px/1.45 "Jost", sans-serif;
+  color: var(--pacc-fg);
+  background: var(--pacc-box);
+  border: 1px solid var(--pacc-edge);
+  border-left: 3px solid var(--pacc-green);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pacc-edge) 65%, transparent);
 }
 @keyframes beacon {
-  0%, 100% { box-shadow: 0 0 0 1px #8cf2a42e, 0 0 9px #8cf2a422; }
-  50% { box-shadow: 0 0 0 3px #8cf2a422, 0 0 16px #8cf2a447; }
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--pacc-green) 18%, transparent), 0 0 9px color-mix(in srgb, var(--pacc-green) 13%, transparent); }
+  50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--pacc-green) 13%, transparent), 0 0 16px color-mix(in srgb, var(--pacc-green) 28%, transparent); }
 }
 @keyframes craftpulse {
   0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent); }
@@ -117,7 +113,7 @@
 @media (prefers-reduced-motion: reduce) { .best, .craft.ring { animation: none; } }
 
 /* Yerleşim rozeti craft halkasının sağında kalır; oyun girdilerini yakalamaz. */
-.placement { position: fixed; color: #7cc8ff; }
+.placement { position: fixed; color: var(--pacc-blue); }
 .placement .reason { display: none; }
 .placement .badge {
   top: 0;
@@ -130,3 +126,16 @@
   font-size: 18px;
   line-height: 22px;
 }
+
+/* Siyah dış çerçeve, canvas üzerinde renkli işaretlerin sınırını korur. */
+.mark, .craft.part, .craft.ring { outline: 2px solid var(--pacc-edge); }
+.badge { border: var(--pacc-thin); border-radius: 6px; }
+.tooltip, .toast { border: var(--pacc-thick); border-radius: 12px; }
+.tooltip { border-top-color: var(--accent, var(--pacc-green)); }
+.toast { border-left-color: var(--pacc-green); }
+.craft.part .badge, .craft.ring .badge { border-color: var(--pacc-edge); }
+/* Küçük karar etiketlerinde dolu anlam rengi ve siyah yazı canvas üstünde okunur kalır. */
+.best .badge { background: var(--pacc-green); color: var(--pacc-edge); }
+.good .badge { background: var(--pacc-blue); color: var(--pacc-edge); }
+.avoid .badge { background: var(--pacc-red); color: var(--pacc-edge); }
+/* --c ve --accent mevcut tarif çiftinin rengini JS'ten alır; çiftler ayırt edilir. */

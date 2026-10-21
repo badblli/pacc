@@ -1,0 +1,25 @@
+/* Oyun teması bütün gölge köklere miras kalır; yedekler varsayılan oyun temasıdır. */
+:host {
+  --pacc-bg: var(--color-bg-primary, #61738a);
+  --pacc-box: var(--color-bg-secondary, #54596b);
+  --pacc-tertiary: var(--color-bg-tertiary, #464c5c);
+  --pacc-fg: var(--color-fg-primary, #fff);
+  --pacc-muted: var(--color-fg-secondary, #c3cddf);
+  --pacc-accent: var(--color-bg-accent, #1195ec);
+  --pacc-gold: var(--color-fg-gold, #ffc107);
+  --pacc-positive: var(--color-bg-positive, #34a00c);
+  --pacc-green: var(--color-fg-green, #8ede1d);
+  --pacc-red: var(--color-fg-red, #f74f4f);
+  --pacc-blue: var(--color-fg-accent, #69b7eb);
+  --pacc-edge: var(--color-bg-black, #000);
+  --pacc-thin: var(--border-thin, 2px solid #000);
+  --pacc-thick: var(--border-thick, 4px solid #000);
+}
+
+.pacc-container { background: var(--pacc-bg); border: var(--pacc-thick); border-radius: 12px; color: var(--pacc-fg); font-family: "Jost", sans-serif; }
+.pacc-box { background: var(--pacc-box); border: var(--pacc-thin); border-radius: 12px; }
+.pacc-button { font: inherit; color: var(--pacc-fg); background: var(--pacc-accent); border: var(--pacc-thin); border-radius: 12px; padding: 8px 14px; cursor: pointer; box-shadow: inset -4px -4px color-mix(in srgb, var(--pacc-edge) 35%, transparent); }
+.pacc-button:active { box-shadow: inset 4px 4px color-mix(in srgb, var(--pacc-edge) 35%, transparent); }
+.pacc-button:focus-visible { outline: 3px solid var(--pacc-gold); outline-offset: 2px; }
+.pacc-button:disabled { opacity: .55; cursor: default; }
+.pacc-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; color: var(--pacc-blue); background: var(--pacc-tertiary); border: var(--pacc-thin); border-radius: 12px; }

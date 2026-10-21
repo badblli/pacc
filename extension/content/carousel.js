@@ -96,7 +96,7 @@
   async function init() {
     await I18n.ready
     const [css, data, stored, text] = await Promise.all([
-      fetch(chrome.runtime.getURL("content/carousel.css")).then((r) => { if (!r.ok) throw Error(); return r.text() }),
+      Promise.all(["theme", "carousel"].map((name) => fetch(chrome.runtime.getURL(`content/${name}.css`)).then((r) => { if (!r.ok) throw Error("CSS"); return r.text() }))).then((sheets) => sheets.join("\n")),
       fetch(chrome.runtime.getURL("data/static.json")).then((r) => { if (!r.ok) throw Error(); return r.json() }),
       chrome.storage.local.get(["settings", "meta"]), I18n.gameText().catch(() => null)
     ])

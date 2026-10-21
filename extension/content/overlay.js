@@ -497,7 +497,7 @@
       await I18n.ready
       if (!extAlive()) return teardown()
       const [css, text, data, stored] = await Promise.all([
-        fetch(url("content/overlay.css")).then((res) => res.text()),
+        Promise.all(["theme", "overlay"].map((name) => fetch(url(`content/${name}.css`)).then((res) => res.text()))).then((sheets) => sheets.join("\n")),
         I18n.gameText(I18n.lang), json("data/static.json"),
         chrome.storage.local.get(["settings", "meta"])
       ])

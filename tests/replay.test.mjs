@@ -3,12 +3,36 @@ import { readFileSync, readdirSync, existsSync } from "node:fs"
 import test from "node:test"
 import vm from "node:vm"
 import { performance } from "node:perf_hooks"
+import { gunzipSync } from "node:zlib"
 import { loadEvaluation } from "../scripts/eval-advice.mjs"
 
 const games = new URL("./fixtures/games/", import.meta.url)
-const files = existsSync(games) ? readdirSync(games).filter((f) => f.endsWith(".json")) : []
+const files = existsSync(games) ? readdirSync(games).filter((f) => /\.json(\.gz)?$/.test(f)) : []
 if (!files.length) test("replay: kayıt klasörü boş", { skip: true }, () => {})
 const { advisor, data, meta } = loadEvaluation()
+function readRecording(file) {
+  const raw = readFileSync(new URL(file, games))
+  return expandRecording(JSON.parse((file.endsWith(".gz") ? gunzipSync(raw) : raw).toString("utf8")))
+}
+// Biçim 2: lobi ayrı "lobby" olaylarında (yalnız değişen oyuncular, ara ara tam kopya).
+// Oyun durumlarına lobiyi geri ekler; ilk tam kopyadan önceki durumlar lobisiz kalır.
+function expandRecording(recording) {
+  let players = null, ids = []
+  const events = []
+  for (const event of recording.events) {
+    if (event.type === "lobby") {
+      if (event.payload.full) players = new Map()
+      if (players) for (const p of event.payload.players) players.set(p.id, p)
+      ids = event.payload.ids
+      continue
+    }
+    if (event.type === "game" && event.payload && players && !event.payload.lobby) {
+      event.payload.lobby = ids.map((id) => players.get(id)).filter(Boolean)
+    }
+    events.push(event)
+  }
+  return { ...recording, events }
+}
 // Testler paralel koşarken ya da makine meşgulken tek çağrı 50 ms'yi aşabilir (boşta ~3 ms).
 // Aşılırsa iki kez daha ölçülür; gerçek yavaşlama üç ölçümde de aşar.
 function timed(name, fn) {
@@ -29,7 +53,8 @@ function percentages(value) {
   }
 }
 for (const file of files) test(`replay: ${file}`, () => {
-  const recording = JSON.parse(readFileSync(new URL(file, games), "utf8"))
+  const recording = // Büyük kayıtlar sıkıştırılmış (.json.gz) saklanır
+  readRecording(file)
   assert.equal(recording.format, 1)
   let plan = [], count = 0
   for (const event of recording.events) {
@@ -155,7 +180,11 @@ test("recorder: lobi, hayalet geçmişi ve kendi kimliği aynı eşlemeyle anoni
     opponent: { id: `ghost-${ids[3]}`, name: "private-other", avatarId: "private-avatar" }, uid: ids[0],
     opponentId: ids[3], playerId: ids[0] }
   await r.send("game", snap)
-  const payload = r.memory.gameRecording.events[0].payload
+  // Lobi ayrı bir "lobby" olayında saklanır (biçim 2); oyun durumuna geri eklenerek sınanır
+  assert.equal(r.memory.gameRecording.format, 2)
+  assert.deepEqual(r.memory.gameRecording.events.map((e) => e.type), ["lobby", "game"])
+  assert.equal(r.memory.gameRecording.events[1].payload.lobby, undefined)
+  const payload = expandRecording(structuredClone(r.memory.gameRecording)).events[0].payload
   const own = payload.lobby.find((p) => p.id === "self")
   assert.equal(own.name, "self")
   assert.equal(payload.uid, "self")
@@ -176,9 +205,21 @@ test("recorder: lobi, hayalet geçmişi ve kendi kimliği aynı eşlemeyle anoni
   assert.doesNotMatch(JSON.stringify(r.memory.gameRecording), /private-|avatar/i)
   const updated = { ...snap, opponent: { id: ids[5], name: "private-next" } }
   await r.send("game", updated)
-  const next = r.memory.gameRecording.events[1].payload
+  // Lobi değişmediyse yeni lobi olayı yazılmaz; geri kurulan lobi aynıdır
+  assert.deepEqual(r.memory.gameRecording.events.map((e) => e.type), ["lobby", "game", "game"])
+  const next = expandRecording(structuredClone(r.memory.gameRecording)).events[1].payload
   assert.equal(next.opponent.id, byRawId.get(ids[5]))
   assert.deepEqual(next.lobby, payload.lobby)
+  // Tek oyuncu değişince yalnız o oyuncu yazılır
+  // Oyun durumu aynıysa yeni oyun olayı yazılmaz, yalnız lobi farkı; sonraki durum farkı alır
+  const moved = { ...updated, lobby: updated.lobby.map((p, i) => i === 0 ? { ...p, life: 90 } : p) }
+  await r.send("game", moved)
+  await r.send("game", { ...moved, opponentId: ids[2] })
+  const delta = r.memory.gameRecording.events.at(-2)
+  assert.equal(delta.type, "lobby")
+  assert.equal(delta.payload.full, false)
+  assert.equal(delta.payload.players.length, 1)
+  assert.equal(expandRecording(structuredClone(r.memory.gameRecording)).events.at(-1).payload.lobby.find((p) => p.life === 90)?.id, byRawId.get(ids[1]))
 })
 
 test("recorder: UTF-8 boyut sınırında en eski olay atılır", async () => {
@@ -231,4 +272,23 @@ test("popup: kayıt anahtarı, Blob indirmesi ve silme gerçek kodla çalışır
   await element("clearRecording").click()
   assert.equal(memory.gameRecording, undefined)
   assert.equal(element("downloadRecording").disabled, true)
+})
+
+// Gerçek maç: her savaşın rakibi, o aşamanın hazırlığındaki tahminde olmalı.
+// Aşama başında oyun bir an önceki savaşın rakibiyle "savaş" fazı yollar; gerçek rakip aşamanın SON savaş anlık görüntüsündedir.
+for (const file of files) test(`rakip tahmini: ${file}`, (t) => {
+  const games = readRecording(file).events.filter((e) => e.type === "game" && e.payload).map((e) => e.payload)
+  if (!games.some((s) => Array.isArray(s.lobby))) return t.skip("kayıtta lobi yok")
+  const fights = new Map()
+  for (const s of games) if (s.phase === 1) fights.set(s.stage, s.opponent?.id ?? "pve")
+  let checked = 0
+  for (const [stage, actual] of fights) {
+    const pick = games.filter((s) => s.phase === 0 && s.stage === stage).at(-1)
+    if (!pick || pick.lobby?.find((p) => p.id === pick.uid)?.alive === false) continue
+    const result = advisor.nextOpponents(advisor.buildContext({ data, meta, settings: {}, snap: pick }), pick)
+    if (actual === "pve") assert.equal(result.kind, "pve", `aşama ${stage}`)
+    else assert.ok(result.candidates.some((c) => c.id === actual && c.pct > 0), `aşama ${stage}: ${actual} tahminde yok`)
+    checked++
+  }
+  assert.ok(checked >= 10, `yalnız ${checked} savaş sınandı`)
 })

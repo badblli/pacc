@@ -12,6 +12,8 @@
       <span><span data-i18n="app.name"></span><small data-i18n="popup.tagline"></small></span>
     </h1>
 
+    <a id="update" class="update" target="_blank" rel="noopener" hidden></a>
+
     <label class="lang">
       <span data-i18n="popup.lang"></span>
       <select id="uiLang">
@@ -21,50 +23,61 @@
       </select>
     </label>
 
-    <label class="opt">
-      <input type="checkbox" id="translation" />
-      <span>
-        <b data-i18n="popup.translation"></b>
-        <small data-i18n="popup.translationHint"></small>
-      </span>
-    </label>
-
-    <label class="opt">
-      <input type="checkbox" id="panel" />
-      <span>
-        <b data-i18n="popup.panel"></b>
-        <small data-i18n="popup.panelHint"></small>
-      </span>
-    </label>
-
-    <label class="opt">
-      <input type="checkbox" id="planner" />
-      <span>
-        <b data-i18n="popup.planner"></b>
-        <small data-i18n="popup.plannerHint"></small>
-      </span>
-    </label>
-
-    <label class="opt">
-      <input type="checkbox" id="overlay" />
-      <span>
-        <b data-i18n="popup.overlay"></b>
-        <small data-i18n="popup.overlayHint"></small>
-      </span>
-    </label>
-
-    <label class="opt">
-      <input type="checkbox" id="poolTracking" />
-      <span>
-        <b data-i18n="popup.pool"></b>
-        <small data-i18n="popup.poolHint"></small>
-      </span>
-    </label>
-
-    <label class="opt">
-      <input type="checkbox" id="alert" />
-      <span><b data-i18n="popup.alert"></b></span>
-    </label>
+    <!-- Seçenekler tek kutuda, birer satır; açıklamalar ipucu olarak (popup.js title yazar) -->
+    <div class="group">
+      <label class="opt">
+        <input type="checkbox" id="translation" />
+        <span>
+          <b data-i18n="popup.translation"></b>
+          <small data-i18n="popup.translationHint"></small>
+        </span>
+      </label>
+  
+      <label class="opt">
+        <input type="checkbox" id="panel" />
+        <span>
+          <b data-i18n="popup.panel"></b>
+          <small data-i18n="popup.panelHint"></small>
+        </span>
+      </label>
+  
+      <label class="opt">
+        <input type="checkbox" id="planner" />
+        <span>
+          <b data-i18n="popup.planner"></b>
+          <small data-i18n="popup.plannerHint"></small>
+        </span>
+      </label>
+  
+      <label class="opt">
+        <input type="checkbox" id="overlay" />
+        <span>
+          <b data-i18n="popup.overlay"></b>
+          <small data-i18n="popup.overlayHint"></small>
+        </span>
+      </label>
+  
+      <label class="opt">
+        <input type="checkbox" id="poolTracking" />
+        <span>
+          <b data-i18n="popup.pool"></b>
+          <small data-i18n="popup.poolHint"></small>
+        </span>
+      </label>
+  
+      <label class="opt">
+        <input type="checkbox" id="updateCheck" />
+        <span>
+          <b data-i18n="popup.updateCheck"></b>
+          <small data-i18n="popup.updateCheckHint"></small>
+        </span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="alert" />
+        <span><b data-i18n="popup.alert"></b></span>
+      </label>
+  
+    </div>
 
     <label class="lang">
       <span data-i18n="popup.alertSound"></span>
@@ -75,16 +88,23 @@
       </select>
     </label>
 
-    <label class="opt">
-      <input type="checkbox" id="record" />
-      <span><b data-i18n="popup.record"></b><small data-i18n="popup.recordHint"></small></span>
-    </label>
-    <button id="downloadRecording" disabled></button>
-    <button id="clearRecording" data-i18n="popup.clearRecording" disabled></button>
-    <p id="recordError" role="status"></p>
+    <details class="dev">
+      <summary data-i18n="popup.developer"></summary>
+      <label class="opt">
+        <input type="checkbox" id="record" />
+        <span><b data-i18n="popup.record"></b><small data-i18n="popup.recordHint"></small></span>
+      </label>
+      <div class="row">
+        <button id="downloadRecording" disabled></button>
+        <button id="clearRecording" data-i18n="popup.clearRecording" disabled></button>
+      </div>
+      <p id="recordError" role="status"></p>
+    </details>
 
-    <div class="status" id="status" data-i18n="popup.checking"></div>
-    <button id="refresh" data-i18n="popup.refresh"></button>
+    <div class="row meta-row">
+      <div class="status" id="status" data-i18n="popup.checking"></div>
+      <button id="refresh" data-i18n="popup.refresh"></button>
+    </div>
 
     <p class="foot" data-i18n="popup.foot"></p>
     <p class="brand">

@@ -183,7 +183,7 @@ test("alert: varsayılan oyunun seviye atlama sesi; çalamazsa ya da çan seçil
   fail = false
   await ball.send(snap())
   await ball.send(snap({ phase: 0 }))
-  assert.match(played.at(-1), /ball_catch.ogg$/)
+  assert.match(played.at(-1), /ball_catch\.ogg$/)
   const chime = await harness({ gameAudio: Audio, alertSound: "chime" })
   await chime.interact()
   await chime.send(snap())

@@ -285,3 +285,34 @@ test("portallar: plan uyumu değişince canlı sinerjiye döner; ağırlık over
   const tuned = advisor.rankPortals({ ...noRegional, weights: { PORTAL_NEAR_BONUS: 0 } }, portalSnap())[0]
   assert.ok(base.score > tuned.score)
 })
+
+// Yeni sürüm denetimi: sahte GitHub yanıtıyla rozet ve bağlantı denetimi
+test("background: yeni sürüm rozeti ve yalnız kendi depomuzun bağlantısı", async () => {
+  const state = { settings: {} }, badges = []
+  const noopEvent = { addListener() {} }
+  let release = { tag_name: "v9.0.0", html_url: "https://github.com/badblli/pacc/releases/tag/v9.0.0" }, fetched = 0
+  const context = vm.createContext({
+    chrome: { runtime: { onInstalled: noopEvent, onStartup: noopEvent, onMessage: noopEvent, getManifest: () => ({ version: "1.5.0" }) },
+      storage: { local: { get: async () => state, set: async (data) => Object.assign(state, data) }, onChanged: noopEvent },
+      alarms: { onAlarm: noopEvent }, commands: { onCommand: noopEvent }, i18n: { getMessage: () => "NEW", getUILanguage: () => "en" },
+      action: { setBadgeText: async ({ text }) => badges.push(text), setBadgeBackgroundColor: async () => {} } }, console,
+    fetch: async () => { fetched++; return { ok: true, json: async () => copy(release) } }
+  })
+  vm.runInContext(read("extension/background.js"), context)
+  const check = (force = false) => vm.runInContext(`checkUpdate({ force: ${force} })`, context)
+  assert.equal(await check(), true)
+  assert.equal(badges.at(-1), "NEW")
+  assert.equal(state.update.version, "9.0.0")
+  assert.equal(await check(), true)
+  assert.equal(fetched, 1, "12 saat içinde yeniden sorulmaz")
+  release = { tag_name: "v1.5.0", html_url: "https://evil.example/x" }
+  assert.equal(await check(true), false)
+  assert.equal(badges.at(-1), "")
+  assert.equal(state.update.url, "https://github.com/badblli/pacc/releases/latest")
+  release = { tag_name: "latest-build" }
+  await assert.rejects(check(true))
+  state.settings = { updateCheck: false }
+  state.update = { version: "9.9.9", url: "https://github.com/badblli/pacc/releases/latest", checkedAt: 0 }
+  assert.equal(await check(), false)
+  assert.equal(fetched, 3, "kapalıyken sorulmaz")
+})

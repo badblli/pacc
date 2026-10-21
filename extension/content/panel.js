@@ -1340,7 +1340,7 @@
       if (dead) return
       applyShellText()
       loaded = await Promise.all([
-        fetch(ext("content/panel.css")).then((r) => r.text()),
+        Promise.all(["theme", "panel"].map((name) => fetch(ext(`content/${name}.css`)).then((r) => r.text()))).then((sheets) => sheets.join("\n")),
         I18n.gameText(I18n.lang),
         loadJson("data/static.json"),
         store.get(["settings", "meta", "metaError", "lastGame", "panelBox"])

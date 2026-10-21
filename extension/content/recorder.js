@@ -7,15 +7,23 @@
   let queue = Promise.resolve()
   const previous = new Map(), aliases = new Map()
   let selfId = null
+  // Lobi (8 oyuncunun tahtası) her durumda tekrar yazılınca 20 dakikada 8 MB doluyordu.
+  // Biçim 2: lobi ayrı "lobby" olaylarında, yalnız değişen oyuncular; dakikada bir tam kopya (full),
+  // böylece en eski olaylar silinse de kalan kayıt ilk tam kopyadan geri kurulabilir.
+  const KEYFRAME_MS = 60 * 1000
+  let lastLobby = new Map(), lastIds = "", keyframeAt = -Infinity
   const size = (value) => new TextEncoder().encode(JSON.stringify(value)).length + 1
-  const empty = () => ({ format: 1, recordedAt: new Date().toISOString(),
+  const empty = () => ({ format: 2, recordedAt: new Date().toISOString(),
     extensionVersion: chrome.runtime.getManifest().version, events: [] })
   function reset(value) {
-    recording = value?.format === 1 && Array.isArray(value.events) ? value : empty()
+    recording = (value?.format === 1 || value?.format === 2) && Array.isArray(value.events) ? value : empty()
     bytes = size(recording)
     previous.clear()
     aliases.clear()
     selfId = null
+    lastLobby = new Map()
+    lastIds = ""
+    keyframeAt = -Infinity
     for (const event of recording.events) previous.set(event.type, JSON.stringify(event.payload))
   }
   function alias(id) {
@@ -77,6 +85,19 @@
       if (changes[KEY]?.newValue === undefined && changes[KEY]) reset(null)
     }).catch(() => {})
   })
+  // En eski olaylar silinerek 8 MB sınırında kalır; olay sığmıyorsa false
+  function push(entry) {
+    const length = size(entry)
+    if (length > LIMIT - 1024) return false
+    while (recording.events.length && bytes + length > LIMIT - 1024) {
+      const removed = recording.events.shift()
+      bytes -= size(removed)
+      if (previous.get(removed.type) === JSON.stringify(removed.payload)) previous.delete(removed.type)
+    }
+    recording.events.push(entry)
+    bytes += length
+    return true
+  }
   window.addEventListener("message", (event) => {
     if (event.source !== window) return
     if (typeof event.data?.type !== "string" || !event.data.type.startsWith("pac-yardimci:")) return
@@ -90,18 +111,23 @@
     queue = queue.then(async () => {
       await ready
       if (!enabled) return
+      if (type === "game" && Array.isArray(payload?.lobby)) {
+        const lobby = payload.lobby
+        delete payload.lobby
+        const full = t - keyframeAt >= KEYFRAME_MS
+        const ids = lobby.map((p) => p.id), idsJson = JSON.stringify(ids)
+        const changed = lobby.filter((p) => full || lastLobby.get(p.id) !== JSON.stringify(p))
+        if (full || changed.length || idsJson !== lastIds) {
+          push({ t, type: "lobby", payload: { full, ids, players: changed } })
+          if (full) keyframeAt = t
+          lastIds = idsJson
+          for (const p of changed) lastLobby.set(p.id, JSON.stringify(p))
+          recording.format = 2
+        }
+      }
       const json = JSON.stringify(payload)
       if (previous.get(type) === json) return
-      const entry = { t, type, payload }, length = size(entry)
-      if (length > LIMIT - 1024) return
-      while (recording.events.length && bytes + length > LIMIT - 1024) {
-        const removed = recording.events.shift()
-        bytes -= size(removed)
-        if (previous.get(removed.type) === JSON.stringify(removed.payload)) previous.delete(removed.type)
-      }
-      recording.events.push(entry)
-      bytes += length
-      previous.set(type, json)
+      if (push({ t, type, payload })) previous.set(type, json)
       scheduleSave()
     }).catch(() => {})
   })

@@ -2,11 +2,14 @@
   "extName": {
     "message": "PACC — Auto Chess Koçu"
   },
+  "badgeNew": {
+    "message": "YENİ"
+  },
   "extShortName": {
     "message": "PACC"
   },
   "extDescription": {
-    "message": "Pokémon Auto Chess için oyun içi koç ve Türkçe çeviri: takımına göre dizilim, item, dükkan ve karusel önerileri."
+    "message": "Pokémon Auto Chess için oyun içi koç ve Türkçe çeviri: takımına göre dizilim, item, dükkan ve Ortak Seçim önerileri."
   },
   "actionTitle": {
     "message": "PACC"

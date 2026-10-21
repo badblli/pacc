@@ -52,7 +52,7 @@ Veriler oyunun kendi meta raporundan gelir (`/meta-v2`, `/meta/pokemons`, `/meta
 Eklentilere karşı dikkatli olmak doğru. PACC'ın neyi yapıp neyi yapamadığı ve bunu nasıl kendin kontrol edeceğin:
 
 - **Sadece tek sitede çalışır.** PACC'ın tek site izni `https://pokemon-auto-chess.com/*`. Başka hiçbir sekmeyi ya da siteyi göremez.
-- **Sadece tek sunucuyla konuşur.** Koddaki tek adres `https://pokemon-auto-chess.com`; oyunun herkese açık meta raporu için kullanılır. Analiz, takip, kendi sunucusu yok; senin hakkında hiçbir şey dışarı gönderilmez. Bkz. [PRIVACY.md](PRIVACY.md).
+- **Yalnız iki herkese açık adresle konuşur.** Oyunun meta raporu için `https://pokemon-auto-chess.com` ve (*Güncellemeleri denetle* kapalı değilse) yeni sürüm çıktığında haber vermek için günde en fazla iki kez GitHub'daki bu deponun herkese açık sürüm bilgisi. Analiz, takip, kendi sunucusu yok; senin hakkında hiçbir şey dışarı gönderilmez. Bkz. [PRIVACY.md](PRIVACY.md).
 - **Senin yerine oynamaz.** Hiçbir şeye tıklamaz, sürüklemez, satın almaz, oyuna bir şey göndermez. Sadece sayfanın üstüne rozet ve panel çizer. Değiştirdiği tek şey kendi Takım Planlayıcın, o da yalnızca **Plana yükle**'ye bastığında (planlayıcı senin tarayıcında saklanır).
 - **Gizli kod yok.** Her şey bu repoda (GPL-3.0). Uzaktan yüklenen ya da sıkıştırılmış kod yok; sürüm zip'i `extension/` klasöründen `npm run pack` ile üretilir.
 - **Az izin.** `storage` (ayarlar ve meta önbelleği), `alarms` (meta raporunu 6 saatte bir kontrol), `declarativeNetRequest` (sadece isteğe bağlı Türkçe çeviri için).
