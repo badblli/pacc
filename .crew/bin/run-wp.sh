@@ -4,7 +4,7 @@
 #   .crew/bin/board.py assign <wp-id> <agent-id>    # first: who does it (<planDir>/team.json)
 #   .crew/bin/run-wp.sh <wp-id> [base-ref]          # new worktree ../<repo>-wt/<wp-id>
 #   WP_IN_PLACE=1 .crew/bin/run-wp.sh <wp-id>       # use the current checkout instead
-#   WP_RESUME_RUN=<run dir> .crew/bin/run-wp.sh <wp-id>   # continue a transiently failed run
+#   WP_RESUME_RUN=<run dir> .crew/bin/run-wp.sh <wp-id>   # continue a transiently failed or paused run
 #
 # Logs: <stateDir>/runs/<wp-id>/<timestamp>/ (events.jsonl, report.md, status); conversation:
 # <stateDir>/chat/<wp-id>.jsonl. Lead feedback to a running/finished agent: .crew/bin/tell.sh.
@@ -12,16 +12,19 @@ set -euo pipefail
 # Bash reads a script while running it; run from a private copy so the lead can edit the team
 # scripts while agents are working.
 if [[ -z "${TEAM_SCRIPT_DIR:-}" ]]; then
-  export TEAM_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  TEAM_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  export TEAM_SCRIPT_DIR
   copy="$(mktemp)"
   cp "$0" "$copy"
   exec bash "$copy" "$@"
 fi
+# shellcheck source=lib.sh
 source "$TEAM_SCRIPT_DIR/lib.sh"
 
 wp="${1:?usage: run-wp.sh <wp-id> [base-ref]}"
-# Default base: the remote's default branch (origin/HEAD), else origin/main.
-default_ref="$(git -C "$root" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || { git -C "$root" rev-parse -q --verify origin/main >/dev/null && echo origin/main; } || echo main)"
+# Default base: the remote's default branch (origin/HEAD), else origin/main, else main (no remote).
+default_ref="$(git -C "$root" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null \
+  || { git -C "$root" rev-parse -q --verify origin/main >/dev/null && echo origin/main; } || echo main)"
 base="${2:-$default_ref}"
 spec="$plan_dir/wp/$wp.md"
 if [[ ! -f "$spec" ]]; then
@@ -45,8 +48,8 @@ else
   fi
 fi
 
-# Agents cannot install packages (sandbox, no network): link the main checkout's node_modules
-# into the worktree so type checks and builds work. Junctions need no admin rights on Windows.
+# Optional dependency sharing. The linked directory is writable from the worktree and points
+# outside it, so keep this disabled unless the project owner accepts that risk.
 link_node_modules() {
   local src rel
   while IFS= read -r src; do
@@ -59,7 +62,9 @@ link_node_modules() {
     fi
   done < <(find "$root" -maxdepth 3 -type d -name node_modules -not -path "*/node_modules/*" 2>/dev/null)
 }
-[[ "${WP_IN_PLACE:-0}" == "1" ]] || link_node_modules
+if [[ "${WP_IN_PLACE:-0}" != "1" && "${CREW_LINK_NODE_MODULES:-0}" == "1" ]]; then
+  link_node_modules
+fi
 
 run="${WP_RESUME_RUN:-$state_dir/runs/$wp/$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$run"
@@ -93,13 +98,14 @@ fi
 
 max_attempts="${WP_ATTEMPTS:-4}"
 attempt=1
-while [[ $status -ne 0 && $attempt -lt $max_attempts ]] && is_transient_failure "$run"; do
-  # Check if it's a quota failure
+while [[ $status -ne 0 && $attempt -lt $max_attempts ]] \
+  && { is_quota_failure "$run" "$engine" || is_transient_failure "$run"; }; do
+  # A quota failure pauses the run or fails over. WP_RESUME_RUN on a paused run means the limit has
+  # reset: its first pass resumes the thread instead of pausing again on the old failure event.
   resume_at=""
-  if grep '"type":"turn.failed"' "$run/events.jsonl" | tail -1 | grep -qEi 'usage limit|try again at'; then
-    resume_at="$(grep '"type":"turn.failed"' "$run/events.jsonl" | tail -1 | grep -oEi 'try again at [^"]+' || echo 'later')"
-  elif grep '"event":"result"' "$run/events.jsonl" | tail -1 | grep -qEi 'usage limit|try again at|quota|exhausted|429'; then
-    resume_at="$(grep '"event":"result"' "$run/events.jsonl" | tail -1 | grep -oEi 'try again at [^"]+' || echo 'later')"
+  if [[ ! ( -n "${WP_RESUME_RUN:-}" && $attempt -eq 1 ) ]] && is_quota_failure "$run" "$engine"; then
+    resume_at="$(last_failure "$run" "$engine" | grep -oEi 'try again at [^"]+' | head -1 || true)"
+    resume_at="${resume_at:-later}"
   fi
 
   if [[ -n "$resume_at" ]]; then
