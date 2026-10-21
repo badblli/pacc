@@ -8,15 +8,19 @@ PACC (Poké Auto Chess Coach) is a Chrome extension for [Pokémon Auto Chess](ht
 
 **Author:** [badblli](https://github.com/badblli) · **Repository:** [github.com/badblli/pacc](https://github.com/badblli/pacc)
 
-![Starter pick in a real game: PACC marks Chespin as "Recommended · 70%" and explains why](docs/screenshots/starter-pick.jpg)
+![Starter pick in a real game: PACC marks Squirtle as "✓ Recommended · 14%" and the other options as "Good option"; the PACC panel on the right shows the suggestion, the pick order and the economy, and the plan tracker sits top left](docs/screenshots/starter-pick-tr.jpg)
 
-*Starter pick in a real game: badges on every option, and the tooltip shows the reason and the evolution chain.*
+*Starter pick in a real game (Turkish interface): a badge with a fit percentage on every option. The panel on the right (My game tab) shows the suggestion, the pick order for your plan and the economy; the plan tracker is at the top left.*
 
-<details><summary>Coach panel during the same pick</summary>
+### Screenshots
 
-![PACC panel showing the suggested pick order](docs/screenshots/panel-pick.jpg)
+![The PACC side drawer in the game's Team Planner, on the Meta comps tab: synergy filter and meta comps with average placement and number of games](docs/screenshots/planner-drawer-tr.jpg)
 
-</details>
+*Team Planner coach (Turkish interface): the PACC drawer on the **Meta comps** tab. Filter by synergy, pick a comp by average placement and games played, and load it into the planner.*
+
+![PACC card during the region portal pick: "Region selection — recommended order" ranks the portals by your plan; the live plan tracker is on the left](docs/screenshots/region-pick-tr.jpg)
+
+*Region portal pick (Turkish interface): PACC ranks the portals by your plan (synergies, sample Pokémon, average placement); the live plan tracker is on the left.*
 
 ## Features
 
