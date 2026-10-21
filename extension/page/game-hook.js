@@ -1,5 +1,5 @@
 // Sayfanın kendi JS ortamında (MAIN world) çalışır. Oyunun Redux store'unu ve
-// Colyseus oyun durumunu yakalar, SADECE senin takımının özetini panelin
+// Colyseus oyun durumunu yakalar, takım ve görünür lobi özetini panelin
 // content script'ine postMessage ile yollar. Oyuna ağ mesajı göndermez;
 // kullanıcı isteğiyle yalnız takım planlayıcısının dizilimini günceller.
 //
@@ -208,6 +208,38 @@
     }
   }
 
+  const unitsOf = (pl) =>
+    toArray(pl?.board).map((p) => ({
+      name: p.name,
+      x: p.positionX,
+      y: p.positionY,
+      stars: p.stars,
+      items: toArray(p.items),
+      types: toArray(p.types)
+    }))
+
+  let lobbyCache = new Map()
+  function lobbySnapshot(players) {
+    const next = new Map()
+    const lobby = players.map((p) => {
+      const value = {
+        id: p.id, name: p.name, alive: p.alive, life: p.life,
+        history: toArray(p.history).map((h) => h.id),
+        board: unitsOf(p).map(({ name, stars, items, x, y }) => ({ name, stars, items, x, y })),
+        synergies: toObject(p.synergies),
+        ...(p.doubleUpTeamId ? { doubleUpTeamId: p.doubleUpTeamId } : {})
+      }
+      // Şema yerinde değişebilir; referans eşitliği yerine küçük özeti karşılaştır.
+      const json = JSON.stringify(value)
+      const old = lobbyCache.get(p.id)
+      const entry = old?.json === json ? old : { json, value }
+      next.set(p.id, entry)
+      return entry.value
+    })
+    lobbyCache = next
+    return lobby
+  }
+
   function snapshot() {
     ensureStore()
     const st = store?.getState?.()
@@ -222,16 +254,6 @@
     const reduxPlayer = game.players?.find?.((p) => p.id === uid)
     const player = live ?? reduxPlayer
     if (!player) return null
-
-    const unitsOf = (pl) =>
-      toArray(pl?.board).map((p) => ({
-        name: p.name,
-        x: p.positionX,
-        y: p.positionY,
-        stars: p.stars,
-        items: toArray(p.items),
-        types: toArray(p.types)
-      }))
 
     const xp = game.experienceManager ?? player.experienceManager ?? {}
     const choices = toArray(live?.choices ?? reduxPlayer?.choices).map((c) => ({
@@ -250,7 +272,7 @@
 
     // Havuz hesabı için tüm oyuncuların tahtalarındaki kopya sayısı (1★=1, 2★=3, 3★=9)
     const taken = {}
-    const allPlayers = gs ? toArray(gs.players) : (game.players ?? [])
+    const allPlayers = toArray(gs?.players ?? game.players)
     for (const pl of allPlayers) {
       toArray(pl?.board).forEach((p) => {
         const copies = p.stars >= 3 ? 9 : p.stars === 2 ? 3 : 1
@@ -296,6 +318,7 @@
           }
         : null,
       players: allPlayers.length,
+      lobby: lobbySnapshot(allPlayers),
       taken
     }
   }

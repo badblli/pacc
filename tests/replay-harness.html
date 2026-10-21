@@ -89,7 +89,7 @@
 <script>
   // Önce meta, sonra gerçek content script'leri: kayıt sayfasında oyun kancası çalışmaz.
   replayReady.then(async () => {
-    for(const name of ['planner','carousel','overlay','panel']) await new Promise((resolve,reject) => {
+    for(const name of ['planner','carousel','overlay','now','panel']) await new Promise((resolve,reject) => {
       const script=document.createElement('script'); script.src=new URL(`content/${name}.js`,extensionBase); script.onload=resolve; script.onerror=reject; document.body.append(script)
     })
     const file=harnessURL.searchParams.get('file')

@@ -673,6 +673,99 @@
   }
 
   // ---------- 5) Rakip ----------
+  function nextOpponents(ctx, snap) {
+    const unknown = () => ({ kind: "unknown", candidates: [] })
+    if (!ctx?.data || snap?.phase !== 0 || !Number.isInteger(snap.stage) || snap.stage < 1) return unknown()
+    if (Array.isArray(snap.lobby) && snap.lobby.some((p) => p?.doubleUpTeamId)) return unknown()
+    const cache = perSnap("nextOpponents", ctx, snap, () => ({}))
+    if (cache.result && cache.tier === ctx.tierPokemons && cache.thresholds === ctx.thresholds && cache.minGames === ctx.minGames) return cache.result
+    const compute = () => {
+      // stage, hazırlıktan hemen sonra oynanacak savaşın stageLevel değeridir.
+      if ([1, 2, 3, 9, 14, 19, 24, 28, 32, 36, 40].includes(snap.stage)) return { kind: "pve", candidates: [] }
+      if (!Array.isArray(snap.lobby)) return unknown()
+      const players = snap.lobby.filter((p) => p?.alive === true)
+      if (players.length < 2 || players.length > 8 ||
+          players.some((p) => typeof p.id !== "string" || !Array.isArray(p.history) || p.history.some((id) => typeof id !== "string")) ||
+          new Set(players.map((p) => p.id)).size !== players.length) return unknown()
+      const self = players.findIndex((p) => p.id === snap.uid)
+      if (self < 0) return unknown()
+
+      // opponents sunucuya özeldir; aynı savaşların senkron history kayıtlarını say.
+      // PvE ve elenmiş oyuncular count'a girmez; geçmiş uzunluğu uzaklıkta aynen korunur.
+      const directed = players.map((a) => players.map((b) => {
+        let count = 0, last = -1
+        a.history.forEach((id, i) => {
+          if (id === b.id || id === `ghost-${b.id}`) { count++; last = i }
+        })
+        return { count, distance: a.history.length - last }
+      }))
+      let bestCount = Infinity, bestDistance = -Infinity, total = 0
+      const hits = new Map()
+      function accept(count, distance, opponent) {
+        if (count > bestCount || (count === bestCount && distance < bestDistance)) return
+        if (count < bestCount || distance > bestDistance) {
+          bestCount = count
+          bestDistance = distance
+          total = 0
+          hits.clear()
+        }
+        total++
+        hits.set(opponent, (hits.get(opponent) ?? 0) + 1)
+      }
+      // İlk kalan oyuncuyu her olası eşle birleştir: her tam eşleme yalnız bir kez üretilir.
+      function pair(remaining, count, distance, opponent) {
+        if (!remaining.length) { accept(count, distance, opponent); return }
+        const [a, ...rest] = remaining
+        for (let i = 0; i < rest.length; i++) {
+          const b = rest[i], ab = directed[a][b], ba = directed[b][a]
+          pair(rest.filter((_, j) => i !== j), count + ab.count + ba.count,
+            distance + ab.distance + ba.distance, a === self ? b : b === self ? a : opponent)
+        }
+      }
+      const indices = players.map((_, i) => i)
+      if (players.length % 2 === 0) pair(indices, 0, 0, null)
+      else {
+        // Hayalet kırmızı tarafın geçmişini artırmaz; yalnız artan mavi oyuncunun maliyeti alınır.
+        for (const blue of indices) for (const red of indices) {
+          if (blue === red) continue
+          const ghost = directed[blue][red]
+          pair(indices.filter((i) => i !== blue), ghost.count, ghost.distance, blue === self ? red : null)
+        }
+      }
+
+      // Yüzde birime yuvarlama artıklarını paylaştır: toplam tam 100 yüzde olur.
+      const odds = [...hits].map(([index, count]) => ({ index, count, pct: Math.floor(count * 100 / total), remainder: count * 100 % total }))
+      odds.sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+      const missing = 100 - odds.reduce((sum, o) => sum + o.pct, 0)
+      for (let i = 0; i < missing; i++) odds[i].pct++
+      const rarity = { COMMON: 1, UNCOMMON: 2, RARE: 3, EPIC: 4, ULTRA: 5, UNIQUE: 6, LEGENDARY: 7, HATCH: 4, SPECIAL: 1 }
+      const strength = (u) => (u.stars ?? 1) * (rarity[ctx.data.pokemons?.[u.name]?.[0]] ?? 1)
+      const rank = (u) => {
+        const stat = ctx.tierPokemons?.[u.name]
+        return stat?.[1] >= (ctx.minGames ?? 0) && Number.isFinite(stat[0]) ? stat[0] : Infinity
+      }
+      const candidates = odds.map(({ index, pct }) => {
+        const p = players[index]
+        const board = (p.board ?? []).filter((u) => u.y > 0 && !EMPTY.has(u.name))
+        const synergies = Object.entries(p.synergies ?? {})
+          .map(([syn, n]) => ({ syn, n, tier: (ctx.thresholds?.[syn] ?? []).filter((t) => t <= n).length }))
+          .filter((s) => s.tier > 0)
+          .sort((a, b) => b.tier - a.tier || b.n - a.n || a.syn.localeCompare(b.syn))
+          .slice(0, 3).map(({ syn, n }) => [syn, n])
+        const top = board.sort((a, b) => strength(b) - strength(a) || rank(a) - rank(b) || b.stars - a.stars || a.name.localeCompare(b.name))
+          .slice(0, 2).map(({ name, stars }) => ({ name, stars }))
+        return { id: p.id, name: p.name, pct, life: p.life, units: board.length, synergies, top }
+      }).sort((a, b) => b.pct - a.pct || a.id.localeCompare(b.id))
+      return { kind: "pvp", candidates }
+    }
+    // Aynı snapshot'ta elo/örnek eşiği değişirse adayların meta özeti yenilenir.
+    cache.result = compute()
+    cache.tier = ctx.tierPokemons
+    cache.thresholds = ctx.thresholds
+    cache.minGames = ctx.minGames
+    return cache.result
+  }
+
   function opponentSummary(ctx, snap) {
     const o = snap.opponent
     if (!o) return null
@@ -1462,6 +1555,7 @@
     compToPlan,
     boardAdvice,
     placementAdvice,
+    nextOpponents,
     familyChain,
     analyze(ctx, snap) {
       const inventory = snap.inventory

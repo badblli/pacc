@@ -525,7 +525,7 @@
   }
 
   // Açılır bölüm. Panel her saniye yeniden çizildiği için açık/kapalı durumunu state.open'da tutuyoruz.
-  function section(id, title, body, { open = false, hl = false, badge = "" } = {}) {
+  function detailSection(id, title, body, { open = false, hl = false, badge = "" } = {}) {
     const isOpen = state.open[id] ?? open
     return `<details class="card sec${hl ? " hl" : ""}" data-sec="${id}"${isOpen ? " open" : ""}>
       <summary><b>${title}</b>${badge ? ` <span class="badge">${badge}</span>` : ""}</summary>
@@ -585,21 +585,18 @@
       ${units}</div>`
   }
 
-  function viewGame() {
-    const snap = state.game
-    if (!gameReady()) {
-      return `${viewLastGame()}<div class="empty">${esc(healthLabel())}.<br><br>${h("panel.game.waitHint")}</div>`
-    }
-    const a = window.PacAdvisor.analyze(advisorCtx(), snap)
+  function gameDetails(snap, a) {
     const owned = (p) => a.mineFamilies.has(a.familyOf(p))
-    const onBoard = snap.board.filter((p) => p.y > 0).length
     const parts = []
-
-    parts.push(`<div class="status">${h("panel.game.status", {
+    const onBoard = snap.board.filter(p => p.y > 0).length
+    const buckets = { status: `<div class="status">${h("panel.game.status", {
       stage: snap.stage, level: snap.level ?? "?", money: snap.money, life: snap.life ?? "?", board: onBoard, bench: snap.board.length - onBoard
-    })}${snap.inventory ? h("panel.game.statusItems", { count: snap.inventory.length }) : ""}</div>`)
-    parts.push(quickReason(snap))
-
+    })}${snap.inventory ? h("panel.game.statusItems", { count: snap.inventory.length }) : ""}</div>${quickReason(snap)}` }
+    // Eski bölüm içerikleri kaybolmadan altı kapalı satırda toplanır.
+    const section = (id, title, body) => {
+      buckets[id] = `<div class="detail-block"><b>${title}</b>${body}</div>`
+      return ""
+    }
     // --- acil seçimler en üstte ---
     if (a.pokemonPropositions.length) {
       parts.push(
@@ -697,7 +694,7 @@
         .join("")
       if (rows) parts.push(section("syn", h("panel.sec.syn"), rows, { open: true }))
     } else if (!state.meta?.thresholds) {
-      parts.push(`<div class="note">${h("panel.syn.noThresholds")}</div>`)
+      buckets.syn = `<div class="note">${h("panel.syn.noThresholds")}</div>`
     }
 
     if (a.shop.length) {
@@ -826,7 +823,102 @@
       )
     }
 
-    return parts.join("")
+    const groups = [
+      ["syn", h("panel.details.synergies"), ["syn"], a.synergies.length],
+      ["shop", h("panel.details.shop"), ["status", "shop", "eco", "placement"], a.shop.length],
+      ["items", h("panel.details.items"), ["items", "craft", "pick", "itempick"], a.items.length],
+      ["comps", h("panel.details.comps"), ["comps"], a.comps.length],
+      ["pool", h("panel.details.pool"), ["pool", "region"], (state.settings.poolTracking ? a.pool.length : 0) + a.regional.length],
+      ["opp", h("panel.details.opponent"), ["opp"], a.opponent ? 1 : 0]
+    ]
+    return `<h3 class="details-title">${h("panel.details.title")}</h3>${groups.map(([id, title, ids, count]) =>
+      detailSection(id, title, ids.map(key => buckets[key] ?? "").join("") || h("panel.details.empty"),
+        { badge: h("panel.details.count", { count }) })).join("")}${parts.join("")}`
+  }
+
+  function choiceTitle(choice) {
+    if (choice?.kind === "item" || choice?.type === "item") return t("panel.now.chooseItem")
+    const titles = { unique: "panel.now.unique", legendary: "panel.now.legendary", starter: "panel.now.starter" }
+    return t(titles[choice?.type] ?? "panel.now.choosePokemon")
+  }
+
+  function choiceOptions(choice, snap) {
+    if (!choice?.options?.length) return ""
+    const current = snap.choices?.[0]
+    const options = [...choice.options].sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1))
+    const name = o => {
+      const key = choice.kind === "item" ? current?.items?.[o.index] : current?.pokemons?.[o.index]
+      if (choice.kind === "item") return itemName(key)
+      return (Array.isArray(key) ? key : state.data.duos?.[key] ?? [key]).map(pkmName).join(" & ")
+    }
+    const percent = o => o.pct == null ? t("panel.now.noData") : pctLabel(o.pct)
+    return `<div class="choice-options">${options.slice(0, 2).map((o, i) => {
+      const label = i === 0 ? t("panel.now.best") : t("panel.now.good")
+      return `<div class="choice-option ${i === 0 ? "best" : ""}"><b>${esc(name(o))}</b>
+        <span class="choice-rating">${esc(label)} · ${esc(percent(o))}</span>
+        <div class="desc">${(o.reasons ?? []).map(esc).join(" · ")}</div></div>`
+    }).join("")}${options.length > 2 ? `<div class="desc choice-rest">${options.slice(2).map(o => `${esc(name(o))} ${esc(percent(o))}`).join(" · ")}</div>` : ""}</div>`
+  }
+
+  function nextOpponent(ctx, snap, choosing) {
+    if (typeof window.PacAdvisor.nextOpponents !== "function") return ""
+    const next = window.PacAdvisor.nextOpponents(ctx, snap)
+    if (next?.kind === "pve") return `<div class="card next-opponent">${h("panel.opp.pve")}</div>`
+    if (next?.kind !== "pvp" || !next.candidates?.length) return ""
+    const [first, ...rest] = next.candidates
+    const line = c => `${esc(c.name)} ${esc(pctLabel(c.pct))}`
+    const body = `<div class="row"><strong class="opponent-pct">${esc(pctLabel(first.pct))}</strong><div class="grow"><b>${esc(first.name)}</b>
+      <div class="desc">${h("panel.opp.stats", { life: first.life ?? "?", units: first.units ?? "?" })}</div></div></div>
+      <div class="chips">${(first.synergies ?? []).slice(0, 3).map(([syn, n]) => `<span class="chip opponent-syn" data-type="${esc(syn)}"><img src="/assets/types/${esc(syn)}.svg" alt="">${esc(synName(syn))} ${esc(n)}</span>`).join("")}</div>
+      ${(first.top ?? []).length ? `<div class="desc">${h("panel.opp.strong", { units: first.top.map(u => `${pkmName(u.name)} ${"★".repeat(Math.min(3, Math.max(1, u.stars || 1)))}`).join(", ") })}</div>` : ""}
+      ${rest.length ? `<div class="desc opponent-rest">${rest.map(line).join(" · ")}</div>` : ""}`
+    if (choosing) return detailSection("next-opponent", next.candidates.map(line).join(", "), body)
+    return `<section class="card next-opponent"><h3>${h("panel.opp.next")}</h3>${body}</section>`
+  }
+
+  function targetCard(a, snap) {
+    const planned = state.plan.filter(p => p.name && p.y > 0)
+    const comp = a.comps[0]
+    const core = planned.length ? planned : comp?.core ?? []
+    if (!core.length) return ""
+    const families = new Set(snap.board.filter(p => p.y > 0).map(p => a.familyOf(p.name)))
+    const unique = [...new Map(core.map(p => [a.familyOf(p.name), p])).values()]
+    const missing = unique.filter(p => !families.has(a.familyOf(p.name)))
+    const have = unique.length - missing.length
+    const synergies = planned.length
+      ? [...new Set(planned.flatMap(p => pkmTypes(p.name)))].slice(0, 3)
+      : Object.entries(comp.cluster.synergies ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([syn]) => syn)
+    return `<section class="card target-card"><div class="row"><h3 class="grow">${h("panel.target.title", { name: synergies.map(synName).join(" · ") || t("panel.target.plan") })}</h3><b>${have} / ${unique.length}</b></div>
+      <progress max="${unique.length}" value="${have}" aria-label="${h("panel.target.progress")}"></progress>
+      <div class="desc">${missing.length ? h("panel.target.missing", { names: missing.slice(0, 3).map(p => pkmName(p.name)).join(", ") + (missing.length > 3 ? ` +${missing.length - 3}` : "") }) : h("panel.target.complete")}</div></section>`
+  }
+
+  function viewGame() {
+    const snap = state.game
+    if (!gameReady()) return `${viewLastGame()}<div class="empty">${esc(healthLabel())}.<br><br>${h("panel.game.waitHint")}</div>`
+    const ctx = advisorCtx()
+    const a = window.PacAdvisor.analyze(ctx, snap)
+    const board = window.PacAdvisor.boardAdvice(ctx, snap)
+    const actions = window.PacNow.nowActions({ analysis: a, board, snap })
+    const activeChoice = board.choice ?? (actions[0]?.kind === "choice" ? { type: actions[0].title } : null)
+    const saving = snap.money < (snap.maxInterest ?? 5) * 10 && (snap.life ?? 100) > 30
+    const chip = saving ? `<div class="eco-chip">${h("panel.now.saving", { target: (snap.maxInterest ?? 5) * 10, left: (snap.maxInterest ?? 5) * 10 - snap.money, interest: snap.maxInterest ?? 5 })}</div>` : ""
+    const labels = [h("panel.now.stage", { n: snap.stage }), h("panel.now.level", { n: snap.level ?? "?" }), h("panel.now.gold", { n: snap.money }), h("panel.now.life", { n: snap.life ?? "?" })]
+    const actionHtml = actions.map(action => {
+      let title = action.title, detail = action.detail
+      if (action.kind === "choice") title = choiceTitle(board.choice ?? { type: action.title })
+      if (action.kind === "craft") { title = t("panel.now.craft", { name: itemName(action.title) }); detail = t("panel.now.holder", { name: pkmName(action.detail) }) }
+      if (action.kind === "shop") title = t("panel.now.shop", { name: pkmName(action.title) })
+      if (action.kind === "placement") { title = t("panel.now.placement"); detail = action.title }
+      if (action.kind === "eco") { title = t("panel.now.economy"); detail = action.title }
+      // Seçim adımında başlık kartın kendisinde; gerekçeler seçenek kutularında yazıyor, tekrar etme
+      if (action.kind === "choice" && board.choice) return `<li data-kind="choice">${choiceOptions(board.choice, snap)}</li>`
+      return `<li data-kind="${action.kind}"><b>${esc(title)}</b><div class="desc">${esc(detail)}</div>${action.kind === "choice" ? choiceOptions(board.choice, snap) : ""}</li>`
+    }).join("")
+    return `<div class="status-chips">${labels.map(label => `<span>${label}</span>`).join("")}</div>${chip}
+      <section class="card now-card"><h3>${activeChoice ? esc(choiceTitle(activeChoice)) : h("panel.now.title")}</h3>
+        ${actions.length ? `<ol class="now-actions">${actionHtml}</ol>` : `<div class="desc">${h("panel.now.empty")}</div>`}</section>
+      ${nextOpponent(ctx, snap, actions[0]?.kind === "choice")}${targetCard(a, snap)}${gameDetails(snap, a)}`
   }
 
   // ---------- çerçeve ----------
@@ -856,9 +948,7 @@
       </header>
       <nav>
         <button data-tab="game"></button>
-        <button data-tab="pokemon"></button>
-        <button data-tab="comps"></button>
-        <button data-tab="items"></button>
+        <button data-tab="meta"></button>
       </nav>
       <main></main>
       <footer></footer>
@@ -885,7 +975,7 @@
     const close = root.querySelector('[data-role="close"]')
     close.title = t("panel.close")
     close.setAttribute("aria-label", t("panel.close"))
-    for (const b of root.querySelectorAll("nav button")) b.textContent = t(`panel.tab.${b.dataset.tab}`)
+    for (const b of root.querySelectorAll("nav button")) b.textContent = b.dataset.tab === "meta" ? t("panel.now.meta") : t(`panel.tab.${b.dataset.tab}`)
     for (const g of root.querySelectorAll(".grip")) g.title = t("panel.resize")
   }
   applyShellText()
@@ -914,7 +1004,7 @@
   function render() {
     if (dead) return
     updateHealth()
-    for (const b of root.querySelectorAll("nav button")) b.classList.toggle("active", b.dataset.tab === state.tab)
+    for (const b of root.querySelectorAll("nav button")) b.classList.toggle("active", b.dataset.tab === (state.tab === "game" ? "game" : "meta"))
     if (!state.text || !state.data) {
       main.innerHTML = `<div class="empty">${h("panel.loading")}</div>`
       return
@@ -926,7 +1016,9 @@
       const scroll = main.scrollTop
       const keep = queryFocus()
       const views = { game: viewGame, pokemon: viewPokemon, comps: viewComps, items: viewItems }
-      main.innerHTML = views[state.tab]()
+      const metaTabs = state.tab === "game" ? "" : `<div class="meta-tabs">${["pokemon", "comps", "items"].map(tab =>
+        `<button data-tab="${tab}" aria-pressed="${state.tab === tab}">${h(`panel.tab.${tab}`)}</button>`).join("")}</div>`
+      main.innerHTML = metaTabs + views[state.tab]()
       main.scrollTop = scroll
       restoreQueryFocus(keep)
     }
@@ -966,7 +1058,7 @@
 
   function defaultBox() {
     const v = viewport()
-    const width = Math.min(440, v.w - 32)
+    const width = Math.min(360, v.w - 32)
     const height = Math.max(BOX_MIN.height, Math.min(Math.round(v.h * 0.72), v.h - 88))
     return { left: v.w - 16 - width, top: Math.max(8, v.h - 72 - height), width, height }
   }
@@ -1010,7 +1102,7 @@
     if (!el) return
     if (el.classList.contains("launcher")) return toggle()
     if (el.dataset.tab) {
-      state.tab = el.dataset.tab
+      state.tab = el.dataset.tab === "meta" ? "pokemon" : el.dataset.tab
       main.scrollTop = 0
       return render()
     }

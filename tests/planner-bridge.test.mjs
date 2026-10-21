@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import test from "node:test"
 import vm from "node:vm"
+import { performance } from "node:perf_hooks"
 
 const source = readFileSync(new URL("../extension/page/game-hook.js", import.meta.url), "utf8")
 const copy = (value) => JSON.parse(JSON.stringify(value))
@@ -62,7 +63,7 @@ function harness({ raw = null, pathname = "/lobby" } = {}) {
   })
   vm.runInContext(`Date.now = () => ${NOW}`, context)
   // Saf yardımcıları yalnız test ortamında aç; üretim dosyasına global API ekleme.
-  vm.runInContext(source.replace(/\}\)\(\)\s*$/, "globalThis.helpers = { isPlannerBoard, plannerStorageValue, roots };\n})()"), context)
+  vm.runInContext(source.replace(/\}\)\(\)\s*$/, "globalThis.helpers = { isPlannerBoard, plannerStorageValue, roots, snapshot };\n})()"), context)
   return {
     context, window, dom, stored, writes, events, messages,
     helpers: context.helpers,
@@ -287,7 +288,9 @@ test("canlı game ve screen yükleri köprüden önceki kancayla aynıdır", () 
     regionalPokemons: [], additionalPokemons: [],
     board: [{ name: "PIKACHU", x: 1, y: 2, stars: 1, items: ["LEFTOVERS"], types: ["ELECTRIC"] }],
     inventory: null, shop: ["PIKACHU"], choices: [], itemsProposition: [], pokemonsProposition: [],
-    synergies: {}, opponent: null, players: 1, taken: { PIKACHU: 1 }, carousel: null
+    synergies: {}, opponent: null, players: 1, taken: { PIKACHU: 1 }, carousel: null,
+    lobby: [{ id: "self", alive: true, life: 100, history: [], synergies: {},
+      board: [{ name: "PIKACHU", stars: 1, items: ["LEFTOVERS"], x: 1, y: 2 }] }]
   })
   assert.deepEqual(h.of("health").at(-1), { type: "pac-yardimci:health", status: "ok", inGame: true })
   h.tick()
@@ -296,6 +299,82 @@ test("canlı game ve screen yükleri köprüden önceki kancayla aynıdır", () 
   assert.equal(h.of("screen").length, 1)
   assert.equal(h.of("game").length, 1)
   assert.equal(h.of("health").length, 2)
+})
+
+test("lobi Redux'tan yedeklenir, canlı Colyseus tercih edilir, değişmeyen özetler yeniden kullanılır", () => {
+  const h = harness({ pathname: "/game/test" })
+  const players = [
+    { id: "self", name: "Kendim", alive: true, life: 100, history: [{ id: "pve" }, { id: "ghost-other", name: "Rakip", avatar: "resim" }],
+      board: [{ name: "PIKACHU", positionX: 1, positionY: 2, stars: 2, items: ["LEFTOVERS"] }], synergies: { ELECTRIC: 2 } },
+    { id: "other", name: "Rakip", alive: false, life: 0, history: [{ id: "self" }], board: [], synergies: {} }
+  ]
+  const state = { network: { uid: "self" }, game: { phase: 0, stageLevel: 4, players } }
+  h.dom.root = { __reactContainer$test: { memoizedProps: { store: { getState: () => state } } } }
+  const first = h.helpers.snapshot()
+  assert.equal(first.players, 2)
+  assert.deepEqual(copy(first.lobby), [
+    { id: "self", name: "Kendim", alive: true, life: 100, history: ["pve", "ghost-other"],
+      board: [{ name: "PIKACHU", x: 1, y: 2, stars: 2, items: ["LEFTOVERS"] }], synergies: { ELECTRIC: 2 } },
+    { id: "other", name: "Rakip", alive: false, life: 0, history: ["self"], board: [], synergies: {} }
+  ])
+  const second = h.helpers.snapshot()
+  assert.equal(second.lobby[0], first.lobby[0])
+  assert.equal(second.lobby[1], first.lobby[1])
+
+  const live = { ...players[1], alive: true, life: 75, history: [...players[1].history],
+    board: new Map([["u", { name: "UXIE", positionX: 2, positionY: 3, stars: 1, items: new Set(["LEFTOVERS"]) }]]),
+    synergies: new Map([["PSYCHIC", 2]]), doubleUpTeamId: "team" }
+  const gs = { players: new Map([["self", players[0]], ["other", live]]), simulations: {}, floatingItems: new Map() }
+  h.helpers.roots.push({ deref: () => gs })
+  const third = h.helpers.snapshot()
+  assert.equal(third.lobby[0], second.lobby[0])
+  assert.notEqual(third.lobby[1], second.lobby[1])
+  assert.equal(third.lobby[1].life, 75)
+  assert.equal(third.lobby[1].doubleUpTeamId, "team")
+  assert.deepEqual(copy(third.lobby[1].board), [{ name: "UXIE", stars: 1, items: ["LEFTOVERS"], x: 2, y: 3 }])
+  assert.deepEqual(copy(third.lobby[1].synergies), { PSYCHIC: 2 })
+  const changes = [
+    () => live.history.push({ id: "ghost-self" }),
+    () => live.board.get("u").items.add("CHOICE_SPECS"),
+    () => { live.board.get("u").positionX = 4 },
+    () => live.synergies.set("PSYCHIC", 4),
+    () => { live.doubleUpTeamId = "" },
+    () => { live.alive = false }
+  ]
+  let previous = third
+  for (const change of changes) {
+    change()
+    const next = h.helpers.snapshot()
+    assert.equal(next.lobby[0], previous.lobby[0])
+    assert.notEqual(next.lobby[1], previous.lobby[1])
+    previous = next
+  }
+  assert.deepEqual(copy(third.lobby[1].history), ["self"])
+  assert.deepEqual(copy(previous.lobby[1].history), ["self", "ghost-self"])
+  assert.equal(Object.hasOwn(previous.lobby[1], "doubleUpTeamId"), false)
+})
+
+test("8 oyuncu, 192 birim ve dolu geçmişle snapshot 40 ms sınırının altında", () => {
+  const h = harness({ pathname: "/game/test" })
+  const players = Array.from({ length: 8 }, (_, i) => ({
+    id: String(i), name: `Oyuncu ${i}`, alive: true, life: 100,
+    history: Array.from({ length: 40 }, (_, j) => ({ id: String(j % 8) })),
+    board: Array.from({ length: 24 }, (_, j) => ({ name: "PIKACHU", positionX: j % 8,
+      positionY: Math.floor(j / 8), stars: 3, items: ["LEFTOVERS", "CHOICE_SPECS", "SHELL_BELL"] })),
+    synergies: { ELECTRIC: 4, FIRE: 6, WATER: 2 }
+  }))
+  const state = { network: { uid: "0" }, game: { phase: 0, stageLevel: 25, players } }
+  h.dom.root = { __reactContainer$test: { memoizedProps: { store: { getState: () => state } } } }
+  h.helpers.roots.push({ deref: () => ({ players: new Map(players.map((p) => [p.id, p])), simulations: {}, floatingItems: new Map() }) })
+  let elapsed = Infinity
+  for (let i = 0; i < 3 && elapsed >= 40; i++) {
+    const start = performance.now()
+    const snap = h.helpers.snapshot()
+    elapsed = performance.now() - start
+    assert.equal(snap.lobby.length, 8)
+    assert.equal(snap.players, 8)
+  }
+  assert.ok(elapsed < 40, `snapshot: ${elapsed.toFixed(2)} ms`)
 })
 
 test("Redux aboneliği faz, seçim, carousel ve aşamayı interval beklemeden yayınlar", () => {

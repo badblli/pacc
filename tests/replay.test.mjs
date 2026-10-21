@@ -39,6 +39,9 @@ for (const file of files) test(`replay: ${file}`, () => {
     count++
     const snap = event.payload
     const ctx = timed("buildContext", () => advisor.buildContext({ data, meta, settings: {}, snap, plan }))
+    const next = timed("nextOpponents", () => advisor.nextOpponents(ctx, snap))
+    percentages(next)
+    assert.ok(next.candidates.length === 0 || next.candidates.reduce((sum, c) => sum + c.pct, 0) === 100)
     const placement = timed("placementAdvice", () => advisor.placementAdvice(ctx, snap))
     percentages(timed("analyze", () => advisor.analyze(ctx, snap)))
     const board = timed("boardAdvice", () => advisor.boardAdvice(ctx, snap))
@@ -140,6 +143,44 @@ test("recorder: varsayılan kapalı, yabancı pencere yok, tekrarlar atlanır, k
   await reload.send("game", snap)
   assert.equal(reload.memory.gameRecording.events.length, 1)
 })
+test("recorder: lobi, hayalet geçmişi ve kendi kimliği aynı eşlemeyle anonimleşir", async () => {
+  const r = await recorder({ record: true })
+  const ids = ["private-self", ...Array.from({ length: 7 }, (_, i) => `private-id-${i}`)]
+  const lobby = ids.map((id, i) => ({ id, name: `private-name-${i}`, alive: true, life: 100,
+    history: [ids[(i + 1) % 8], `ghost-${ids[(i + 1) % 8]}`, ids[0], `ghost-${ids[0]}`, "private-pve"],
+    board: [{ name: "PIKACHU", stars: 2, items: ["LEFTOVERS"], x: 0, y: 1, avatar: "private-unit-avatar" }],
+    synergies: { ELECTRIC: 2 }, avatar: "private-avatar", doubleUpTeamId: "private-team" }))
+  // Anahtar sırası ve lobi sırası eşlemeyi bozmamalı; kendimiz lobinin ortasındayız.
+  const snap = { lobby: [...lobby.slice(1, 4), lobby[0], ...lobby.slice(4)],
+    opponent: { id: `ghost-${ids[3]}`, name: "private-other", avatarId: "private-avatar" }, uid: ids[0],
+    opponentId: ids[3], playerId: ids[0] }
+  await r.send("game", snap)
+  const payload = r.memory.gameRecording.events[0].payload
+  const own = payload.lobby.find((p) => p.id === "self")
+  assert.equal(own.name, "self")
+  assert.equal(payload.uid, "self")
+  assert.equal(payload.playerId, "self")
+  assert.equal(payload.opponent.id, `ghost-${payload.opponentId}`)
+  assert.equal(payload.opponent.name, payload.opponent.id)
+  const byRawId = new Map(snap.lobby.map((p, i) => [p.id, payload.lobby[i].id]))
+  assert.equal(new Set(payload.lobby.map((p) => p.id)).size, 8)
+  assert.deepEqual([...byRawId.values()].filter((id) => id !== "self").sort(), ["p1", "p2", "p3", "p4", "p5", "p6", "p7"])
+  for (let i = 0; i < payload.lobby.length; i++) {
+    const p = payload.lobby[i], raw = snap.lobby[i]
+    const target = byRawId.get(raw.history[0])
+    assert.deepEqual(p.history, [target, `ghost-${target}`, "self", "ghost-self", "pve"])
+    assert.equal(p.name, p.id)
+    assert.equal(p.board[0].name, "PIKACHU")
+    assert.equal(p.board[0].items[0], "LEFTOVERS")
+  }
+  assert.doesNotMatch(JSON.stringify(r.memory.gameRecording), /private-|avatar/i)
+  const updated = { ...snap, opponent: { id: ids[5], name: "private-next" } }
+  await r.send("game", updated)
+  const next = r.memory.gameRecording.events[1].payload
+  assert.equal(next.opponent.id, byRawId.get(ids[5]))
+  assert.deepEqual(next.lobby, payload.lobby)
+})
+
 test("recorder: UTF-8 boyut sınırında en eski olay atılır", async () => {
   const r = await recorder({ record: true })
   for (let i = 0; i < 10; i++) await r.send("screen", { i, padding: "ğ".repeat(500_000) })
