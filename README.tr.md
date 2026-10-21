@@ -10,15 +10,19 @@ PACC (Poké Auto Chess Coach), [Pokémon Auto Chess](https://pokemon-auto-chess.
 
 İsim ve logo seçimi için [docs/branding.md](docs/branding.md) dosyasına bak. Logo `node scripts/build-icons.mjs` ile yeniden üretilir.
 
-![Gerçek oyunda starter seçimi: PACC, Chespin'i "Recommended · 70%" olarak işaretleyip nedenini gösteriyor](docs/screenshots/starter-pick.jpg)
+![Gerçek oyunda başlangıç seçimi: PACC, Squirtle'ı "✓ Önerilen · %14", diğerlerini "İyi seçenek" olarak işaretliyor; sağdaki PACC paneli öneriyi, seçim sırasını ve ekonomiyi, sol üstteki kart da planı gösteriyor](docs/screenshots/starter-pick-tr.jpg)
 
-*Gerçek oyunda starter seçimi: her seçenekte rozet var, tooltip gerekçeyi ve evrim zincirini gösteriyor.*
+*Gerçek oyunda başlangıç seçimi: her seçenekte uyum yüzdeli rozet var. Sağdaki panel (Oyunum sekmesi) öneriyi, planına göre seçim sırasını ve ekonomiyi gösteriyor; sol üstte plan takip kartı.*
 
-<details><summary>Aynı seçimde koç paneli</summary>
+### Ekran görüntüleri
 
-![Önerilen seçim sırasını gösteren PACC paneli](docs/screenshots/panel-pick.jpg)
+![Oyunun Takım Planlayıcısı'nda PACC yan çekmecesi Meta dizilimler sekmesinde: sinerji filtresi ve ortalama sıra, oyun sayısıyla meta dizilimler](docs/screenshots/planner-drawer-tr.jpg)
 
-</details>
+*Takım Planlayıcı koçu: PACC çekmecesi **Meta dizilimler** sekmesinde. Sinerjiye göre süz, ortalama sırası ve oyun sayısıyla bir dizilim seç, planlayıcıya yükle.*
+
+![Bölge portalı seçiminde PACC kartı: "Bölge seçimi — önerilen sıra", portallar planına göre sıralı; solda canlı plan takip kartı](docs/screenshots/region-pick-tr.jpg)
+
+*Bölge portalı seçimi: PACC portalları planına göre sıralıyor (sinerjiler, örnek Pokémonlar, ortalama sıra); solda canlı plan takip kartı.*
 
 ## Özellikler
 
