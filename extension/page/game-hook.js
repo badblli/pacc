@@ -22,6 +22,7 @@
   const compose = (...fns) => (fns.length === 0 ? (x) => x : fns.reduce((a, b) => (...args) => a(b(...args))))
   const capture = (createStore) => (...args) => {
     store = createStore(...args)
+    subscribeStore()
     return store
   }
   let devtoolsCompose = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
@@ -52,6 +53,7 @@
       storeTriedAt = Date.now()
       store = findStoreInReact()
     }
+    subscribeStore()
     return store
   }
   // 40 ms'yi aşan işleri konsola yaz: oyunda takılma olursa nedenini görebilmek için
@@ -505,6 +507,47 @@
   }, 250)
 
   let last = ""
+  let subscribedStore = null
+  let unsubscribeStore = null
+  let lastAlertKey = ""
+
+  // Redux bildirimleri arka plan zamanlayıcı kısıtlamasını beklemez.
+  // Tahta ve envanter gibi büyük koleksiyonları bu kontrolde dolaşma.
+  function alertKey() {
+    const state = store?.getState?.()
+    const game = state?.game
+    if (!game || !location.pathname.startsWith("/game")) return ""
+    const gs = gameState()
+    const live = gs?.players?.get?.(state.network?.uid)
+    const reduxPlayer = game.players?.find?.((p) => p.id === state.network?.uid)
+    const choices = live?.choices ?? reduxPlayer?.choices
+    const first = choices?.[0] ?? choices?.at?.(0)
+    const carousel = !!((gs?.floatingItems?.size ?? gs?.floatingItems?.length)
+      || (gs?.portals?.size ?? gs?.portals?.length))
+    return JSON.stringify([game.phase, first?.id ?? null, carousel, game.stageLevel])
+  }
+  function publishEarly() {
+    try {
+      timed("uyarı geçişi", () => {
+        const key = alertKey()
+        if (key === lastAlertKey) return
+        lastAlertKey = key
+        const snap = timed("oyun durumu", snapshot)
+        const json = JSON.stringify(snap)
+        if (json !== last) {
+          last = json
+          window.postMessage({ type: MSG, snapshot: snap }, location.origin)
+        }
+      })
+    } catch (err) { console.debug("[PACC] erken durum okunamadı", err) }
+  }
+  function subscribeStore() {
+    if (!store || store === subscribedStore) return
+    unsubscribeStore?.()
+    subscribedStore = store
+    lastAlertKey = ""
+    unsubscribeStore = store.subscribe?.(publishEarly) ?? null
+  }
   // Panel geç yüklenirse ilk özeti kaçırmasın: panel "hello" deyince son durumu yeniden yolla
   window.addEventListener("message", (e) => {
     if (e.source !== window) return
@@ -521,6 +564,7 @@
     setMapHook(!gameState())
     try {
       snap = timed("oyun durumu", snapshot)
+      lastAlertKey = alertKey()
     } catch (err) {
       failed = true
       console.debug("[PACC] durum okunamadı", err)

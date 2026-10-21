@@ -66,6 +66,8 @@ const csv = (await source("app/models/precomputed/pokemons-data.csv")).trim().sp
 const head = csv.shift().split(",")
 const col = (name) => head.indexOf(name)
 const pokemons = {}
+// Yerleşim önerisi için savaş istatistikleri: name -> [menzil, can, saldırı, savunma, özel savunma]
+const stats = {}
 for (const line of csv) {
   const c = line.split(",")
   const types = ["Type 1", "Type 2", "Type 3", "Type 4"].map((t) => c[col(t)]).filter(Boolean)
@@ -78,6 +80,7 @@ for (const line of csv) {
     Number(c[col("Nb stages")]),
     c[col("Ability")] !== "DEFAULT"
   ]
+  stats[c[col("Name")]] = ["Attack Range", "HP", "Attack", "Defense", "Special Defense"].map((name) => Number(c[col(name)]))
 }
 
 // Duo Pokémonlar (ek seçimlerde "LATIOS_LATIAS" gibi gelir)
@@ -117,6 +120,7 @@ for (const m of regionSrc.matchAll(/\[DungeonPMDO\.(\w+)\]:\s*\{\s*synergies:\s*
 if (
   Object.keys(regions).length < 50 ||
   Object.keys(pokemons).length < 500 ||
+  Object.values(stats).filter((v) => v.every(Number.isFinite) && v[0] >= 1).length < 500 ||
   Object.keys(duos).length < 3 ||
   Object.keys(rarityProbability).length < 9 ||
   !poolSize.COMMON ||
@@ -129,6 +133,6 @@ if (
 }
 
 await mkdir(dirname(OUT), { recursive: true })
-await writeFile(OUT, JSON.stringify({ components, recipes, pkmIndex, family, pokemons, duos, rules, regions }))
+await writeFile(OUT, JSON.stringify({ components, recipes, pkmIndex, family, pokemons, stats, duos, rules, regions }))
 console.log(`✔ ${OUT}`)
 console.log(`  ${components.length} parça, ${Object.keys(recipes).length} tarif, ${Object.keys(pkmIndex).length} Pokémon, ${Object.keys(family).length} evrim, ${Object.keys(pokemons).length} tip kaydı, ${Object.keys(duos).length} duo, ${Object.keys(regions).length} bölge`)

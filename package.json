@@ -1,6 +1,6 @@
 {
   "name": "pacc",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "description": "PACC — Poké Auto Chess Coach: on-board advice overlay, coach panel and Turkish translation for Pokémon Auto Chess (Chrome extension)",

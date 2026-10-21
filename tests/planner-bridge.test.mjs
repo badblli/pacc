@@ -62,7 +62,7 @@ function harness({ raw = null, pathname = "/lobby" } = {}) {
   })
   vm.runInContext(`Date.now = () => ${NOW}`, context)
   // Saf yardımcıları yalnız test ortamında aç; üretim dosyasına global API ekleme.
-  vm.runInContext(source.replace(/\}\)\(\)\s*$/, "globalThis.helpers = { isPlannerBoard, plannerStorageValue };\n})()"), context)
+  vm.runInContext(source.replace(/\}\)\(\)\s*$/, "globalThis.helpers = { isPlannerBoard, plannerStorageValue, roots };\n})()"), context)
   return {
     context, window, dom, stored, writes, events, messages,
     helpers: context.helpers,
@@ -296,4 +296,58 @@ test("canlı game ve screen yükleri köprüden önceki kancayla aynıdır", () 
   assert.equal(h.of("screen").length, 1)
   assert.equal(h.of("game").length, 1)
   assert.equal(h.of("health").length, 2)
+})
+
+test("Redux aboneliği faz, seçim, carousel ve aşamayı interval beklemeden yayınlar", () => {
+  const h = harness({ pathname: "/game/test" })
+  const callbacks = []
+  let boardReads = 0
+  const player = { id: "self", choices: [], get board() { boardReads++; return [] } }
+  const state = { network: { uid: "self" }, game: { phase: 1, stageLevel: 1, players: [player] } }
+  const gs = { players: new Map([["self", player]]), simulations: {}, floatingItems: new Map(), portals: new Map() }
+  h.helpers.roots.push({ deref: () => gs })
+  const store = { getState: () => state, subscribe: (fn) => { callbacks.push(fn); return () => {} } }
+  h.dom.root = { __reactContainer$test: { memoizedProps: { store } } }
+  h.tick(1000)
+  assert.equal(callbacks.length, 1)
+  assert.equal(h.of("game").length, 1)
+  const reads = boardReads
+  // İlgisiz Redux güncellemelerinde tam snapshot ve tahta taraması yapılmaz.
+  for (let i = 0; i < 100; i++) callbacks[0]()
+  assert.equal(boardReads, reads)
+  assert.equal(h.of("game").length, 1)
+  state.game.phase = 0
+  callbacks[0]()
+  assert.equal(h.of("game").at(-1).snapshot.phase, 0)
+  assert.equal(h.of("game").length, 2)
+  player.choices = [{ id: "choice-a" }]
+  callbacks[0]()
+  assert.equal(h.of("game").at(-1).snapshot.choices[0].id, "choice-a")
+  assert.equal(h.of("game").length, 3)
+  gs.floatingItems.set("item", { id: "item", name: "LEFTOVERS" })
+  callbacks[0]()
+  assert.equal(h.of("game").at(-1).snapshot.carousel.kind, "items")
+  assert.equal(h.of("game").length, 4)
+  state.game.stageLevel = 2
+  callbacks[0]()
+  assert.equal(h.of("game").at(-1).snapshot.stage, 2)
+  assert.equal(h.of("game").length, 5)
+  callbacks[0]()
+  h.tick(1000)
+  assert.equal(callbacks.length, 1)
+  assert.equal(h.of("game").length, 5)
+})
+
+test("DevTools üzerinden yakalanan store da hemen abone olur", () => {
+  const h = harness({ pathname: "/game/test" })
+  const callbacks = []
+  const state = { network: { uid: "self" }, game: { phase: 1, stageLevel: 1, players: [{ id: "self", board: [] }] } }
+  const store = { getState: () => state, subscribe: (fn) => { callbacks.push(fn) } }
+  h.window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__((createStore) => createStore)(() => store)()
+  assert.equal(callbacks.length, 1)
+  callbacks[0]()
+  state.game.phase = 0
+  callbacks[0]()
+  assert.equal(h.of("game").length, 2)
+  assert.equal(h.of("game").at(-1).snapshot.phase, 0)
 })

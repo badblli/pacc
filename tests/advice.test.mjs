@@ -55,7 +55,7 @@ const labels = { best: "Önerilen", good: "İyi seçenek", avoid: "Kaçın", neu
 function contract(result) {
   const tags = ["Meta + takım", "Takım uyumu", "Meta güçlü", "Zayıf seçim", "Veri yok"]
   const pctOk = (pct) => pct === null || (Number.isInteger(pct) && pct >= 0 && pct <= 100)
-  assert.deepEqual(Object.keys(result).sort(), ["choice", "craft", "shop"])
+  assert.deepEqual(Object.keys(result).sort(), ["choice", "craft", "placement", "shop"])
   if (result.choice) {
     assert.deepEqual(Object.keys(result.choice).sort(), ["id", "kind", "options", "type"])
     assert.ok(["pokemon", "item"].includes(result.choice.kind))
@@ -747,4 +747,104 @@ test("gerçek meta: asa seçimi taşıyıcı aramaz, Peri sayısını söyler ve
     assert.ok(!o.reasons.includes(ctx.t("advice.noUse")))
     assert.notEqual(o.verdict, "avoid")
   }
+})
+
+// Yerleşim testleri gerçek savaş istatistikleri ve gerçek i18n kataloğuyla çalışır.
+const placed = (name, x, y) => ({ name, x, y, stars: 1, items: [], types: [] })
+const placementSnap = (board, phase = 0) => ({ ...snap, phase, board })
+const placement = (board) => advisor.placementAdvice(ctx, placementSnap(board))
+test("yerleşim: Kural A menzilliyi arkaya, Kural B yakın dövüşçüyü öne alır", () => {
+  const back = placement([placed("GARDEVOIR", 0, 3), placed("GARCHOMP", 1, 3)])
+  assert.equal(back.length, 1)
+  assert.equal(back[0].move, "back")
+  assert.equal(back[0].index, 0)
+  assert.match(back[0].reason, /menzilli \(3\)/)
+  const front = placement([placed("GARCHOMP", 0, 1)])
+  assert.equal(front.length, 1)
+  assert.equal(front[0].move, "front")
+  assert.match(front[0].reason, /yakın dövüşçü/)
+})
+test("yerleşim: ters sıralar iki ipucu yerine tek takas üretir, adlar çevrilir", async () => {
+  const s = placementSnap([placed("GARDEVOIR", 0, 3), placed("GARCHOMP", 1, 1)])
+  const c = { ...ctx, names: { pkm: (key) => ({ GARDEVOIR: "Gardevoir", GARCHOMP: "Garchomp" })[key] } }
+  const tips = advisor.placementAdvice(c, s)
+  assert.deepEqual(tips, [{ index: 0, name: "GARDEVOIR", x: 0, y: 3, move: "swap", with: 1, reason: "Gardevoir ↔ Garchomp yer değiştir" }])
+  assert.deepEqual(advisor.boardAdvice(c, s).placement, tips)
+  assert.deepEqual(advisor.analyze(c, s).placement, tips)
+  // Aynı snapshotın dili değişince önbellekten eski gerekçe gelmez.
+  await i18n.setLang("en")
+  assert.equal(advisor.placementAdvice(c, s)[0].reason, "Swap Gardevoir ↔ Garchomp")
+  await i18n.setLang("tr")
+})
+test("yerleşim: yakın dövüşçüsüz takımın en dayanıklı ön birimi kalır", () => {
+  assert.deepEqual(placement([placed("UXIE", 0, 3), placed("FLOETTE_BLUE", 1, 1)]), [])
+})
+test("yerleşim: menzil 2, özel birim, yedek ve eksik istatistik atlanır", () => {
+  assert.deepEqual(placement([placed("ALTARIA", 0, 3), placed("ALTARIA", 1, 1),
+    placed("UNKNOWN", 2, 3), placed("UNOWN_W", 3, 3), placed("GARCHOMP", 4, 0)]), [])
+})
+test("yerleşim: en fazla üç ipucu, takaslar önce ve birimler tekrarsız", () => {
+  const tips = placement([placed("GARDEVOIR", 0, 3), placed("GARDEVOIR", 1, 3),
+    placed("GARDEVOIR", 2, 3), placed("GARDEVOIR", 3, 3), placed("GARCHOMP", 4, 1)])
+  assert.equal(tips.length, 3)
+  assert.equal(tips[0].move, "swap")
+  assert.deepEqual(tips.slice(1).map((t) => t.move), ["back", "back"])
+  assert.equal(new Set(tips.flatMap((t) => t.with === undefined ? [t.index] : [t.index, t.with])).size, 4)
+})
+test("yerleşim: savaş, kasaba ve bilinmeyen fazda öneri yok", () => {
+  for (const phase of [1, 2, undefined, null]) {
+    const s = { ...snap, phase, board: [placed("GARDEVOIR", 0, 3), placed("GARCHOMP", 1, 1)] }
+    assert.deepEqual(advisor.placementAdvice(ctx, s), [])
+  }
+})
+
+test("yerleşim overlay: hazırlık, faz/ayar/konum doğrulaması ve takasın iki rozeti", () => {
+  const source = read("extension/content/overlay.js")
+  const functions = source.slice(source.indexOf("  function findScreenUnit("), source.indexOf("  // Tahtadaki (canvas)"))
+  const state = { settings: { overlay: true }, snap: placementSnap([placed("GARDEVOIR", 0, 3), placed("GARCHOMP", 1, 1)]),
+    screen: { mode: "pick", units: [
+      { index: 0, name: "GARDEVOIR", x: 0, y: 3, rect: { left: 10, top: 10, width: 40, height: 40 } },
+      { index: 1, name: "GARCHOMP", x: 1, y: 1, rect: { left: 60, top: 60, width: 40, height: 40 } }
+    ] }, screenAt: 0 }
+  const sandbox = { state, advice: { placement: advisor.placementAdvice(ctx, state.snap) }, PHASE_PICK: 0, SCREEN_TTL: 1500,
+    performance: { now: () => 100 }, plainRect: (r) => r, t: ctx.t }
+  vm.createContext(sandbox)
+  vm.runInContext(functions + ";globalThis.collectPlacement = collectPlacement", sandbox)
+  const collect = sandbox.collectPlacement
+  assert.equal(collect().length, 2)
+  assert.ok(collect().every((r) => r.badge === "⇅" && r.lines[0].includes("yer değiştir")))
+  for (const phase of [1, 2]) { state.snap.phase = phase; assert.equal(collect().length, 0) }
+  state.snap.phase = 0
+  for (const mode of ["fight", "town", undefined]) { state.screen.mode = mode; assert.equal(collect().length, 0) }
+  state.screen.mode = "pick"
+  state.settings.overlay = false
+  assert.equal(collect().length, 0)
+  state.settings.overlay = true
+  state.screenAt = -2000
+  assert.equal(collect().length, 0)
+  state.screenAt = 0
+  state.screen.units[0].x = 7
+  assert.equal(collect().length, 1)
+  state.screen.units[1].index = 9
+  assert.equal(collect().length, 1)
+})
+
+test("yerleşim: dolu hedef sırası uygun rol içermiyorsa öneri vermez", () => {
+  const rear = [1, 2].flatMap((y) => Array.from({ length: 8 }, (_, x) => placed("ALTARIA", x, y)))
+  assert.deepEqual(placement([...rear, placed("GARDEVOIR", 0, 3), placed("GARCHOMP", 1, 3)]), [])
+  const front = Array.from({ length: 8 }, (_, x) => placed("ALTARIA", x, 3))
+  assert.deepEqual(placement([...front, placed("GARCHOMP", 0, 1)]), [])
+  // Orta sıradaki yakın dövüşçü Kural A için fırsattır; Kural B yalnız arka sırada işler.
+  const tips = placement([...rear.slice(1), placed("GARCHOMP", 0, 1), placed("GARDEVOIR", 0, 3), ...front.slice(1)])
+  assert.equal(tips.length, 1)
+  assert.equal(tips[0].move, "swap")
+  assert.equal(placement([placed("GARCHOMP", 0, 2)]).length, 0)
+})
+test("yerleşim: takas önceliğinde dayanıklılık ve menzil farkı kullanılır", () => {
+  const tips = placement([placed("GARDEVOIR", 0, 3), placed("KADABRA", 1, 3),
+    placed("GARCHOMP", 0, 1), placed("PIKACHU", 1, 1)])
+  assert.equal(tips.length, 2)
+  const tough = (name) => { const s = data.stats[name]; return s[1] * (1 + (s[3] + s[4]) / 20) }
+  const score = (tip) => tough(["GARCHOMP", "PIKACHU"][tip.with - 2]) - tough(tip.name) + (data.stats[tip.name][0] - 1) * 100
+  assert.ok(score(tips[0]) >= score(tips[1]))
 })

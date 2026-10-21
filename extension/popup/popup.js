@@ -17,6 +17,8 @@ async function load() {
   // Kurulumda background.js dile göre yazar; ayar hiç yoksa aynı kural (Türkçe arayüz → çeviri açık)
   $("translation").checked = settings.translation ?? I18n.resolveLang(settings.uiLang) === "tr"
   $("panel").checked = settings.panel !== false
+  $("alert").checked = settings.alert !== false
+  $("alertSound").value = ["ball_catch", "chime"].includes(settings.alertSound) ? settings.alertSound : "level_up"
   $("planner").checked = settings.planner !== false
   $("overlay").checked = settings.overlay !== false
   $("poolTracking").checked = settings.poolTracking === true
@@ -43,6 +45,18 @@ async function save(patch) {
 
 $("uiLang").addEventListener("change", (e) => save({ uiLang: e.target.value }))
 $("translation").addEventListener("change", (e) => save({ translation: e.target.checked }))
+$("alert").addEventListener("change", (e) => save({ alert: e.target.checked }))
+// Seçilen oyun sesini bir kez dinlet (oyunun sitesinden; çan yalnız oyunda çalar)
+const GAME_SOUNDS = { level_up: "level_up.mp3", ball_catch: "ball_catch.ogg" }
+$("alertSound").addEventListener("change", (e) => {
+  save({ alertSound: e.target.value })
+  const file = GAME_SOUNDS[e.target.value]
+  if (file) {
+    const preview = new Audio(`https://www.pokemon-auto-chess.com/pokechess/assets/audio/sounds/${file}`)
+    preview.volume = 0.5
+    preview.play().catch(() => {})
+  }
+})
 $("panel").addEventListener("change", (e) => save({ panel: e.target.checked }))
 $("planner").addEventListener("change", (e) => save({ planner: e.target.checked }))
 $("overlay").addEventListener("change", (e) => save({ overlay: e.target.checked }))

@@ -637,6 +637,12 @@
       )
     }
 
+    if (a.placement.length) {
+      parts.push(section("placement", h("panel.sec.placement"),
+        a.placement.map((tip) => `<div class="item-line">${esc(({ front: "↑", back: "↓", swap: "⇅" })[tip.move])} ${esc(tip.reason)}</div>`).join(""),
+        { open: true, badge: a.placement.length }))
+    }
+
     if (a.craft.length) {
       parts.push(
         section(

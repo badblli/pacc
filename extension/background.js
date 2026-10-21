@@ -8,7 +8,7 @@ const CHECK_MINUTES = 6 * 60
 const MANUAL_MIN_INTERVAL_MS = 60 * 1000
 // compact* fonksiyonlarının çıktısı değişince artır: eski biçimde kayıtlı veri bir kez yeniden indirilir
 const META_FORMAT = 3
-const DEFAULT_SETTINGS = { uiLang: "auto", panel: true, overlay: true, poolTracking: false, tier: "auto", minGames: 50 }
+const DEFAULT_SETTINGS = { uiLang: "auto", panel: true, alert: true, overlay: true, poolTracking: false, tier: "auto", minGames: 50 }
 
 // content/i18n.js'teki resolveLang ile aynı kural (service worker o dosyayı yüklemiyor):
 // "auto" → tarayıcı dili "tr" ile başlıyorsa Türkçe, değilse İngilizce.

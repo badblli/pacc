@@ -167,6 +167,35 @@
     return found
   }
 
+  // Snapshot ve ekran güncellemeleri farklı anlarda gelebilir; kimlik ve konum birlikte doğrulanır.
+  function findScreenUnit(index, name) {
+    const ref = state.snap?.board?.[index]
+    if (!ref || ref.name !== name) return null
+    const units = Array.isArray(state.screen?.units) ? state.screen.units : []
+    const matches = (u) => u?.name === ref.name && u.x === ref.x && u.y === ref.y
+    return units.find((u) => u?.index === index && matches(u)) ?? units.find(matches) ?? null
+  }
+
+  function collectPlacement() {
+    if (state.settings.overlay === false || state.snap?.phase !== PHASE_PICK || state.screen?.mode !== "pick" ||
+        performance.now() - state.screenAt > SCREEN_TTL) return []
+    const found = []
+    for (const tip of advice?.placement ?? []) {
+      // Takas tek ipucudur, fakat iki birim de aynı gerekçeyle işaretlenir.
+      const indices = tip.move === "swap" ? [tip.index, tip.with] : [tip.index]
+      for (const index of indices) {
+        const ref = state.snap.board[index]
+        const unit = ref && findScreenUnit(index, ref.name)
+        const rect = unit && plainRect(unit.rect)
+        if (!rect || !(ref.y > 0)) continue
+        found.push({ key: `placement:${index}`, rect, className: "placement", color: "#7cc8ff",
+          badge: ({ front: "↑", back: "↓", swap: "⇅" })[tip.move], reason: "",
+          title: t("panel.sec.placement"), lines: [tip.reason] })
+      }
+    }
+    return found
+  }
+
   // Tahtadaki (canvas) item birleştirme işaretleri: parça ikonlarına ①②, hedef Pokémona halka + "→ Item"
   function collectCraft() {
     const recipes = advice?.craft
@@ -185,6 +214,7 @@
       used.add(i)
       return plainRect(items[i].rect)
     }
+    // Item hedefi için eski geniş eşleştirme korunur: konum gecikse de adı tek olan birim bulunur
     const findUnit = (recipe) => {
       const ti = Number.isInteger(recipe.targetIndex) ? recipe.targetIndex : null
       const ref = ti !== null ? state.snap?.board?.[ti] : null
@@ -295,7 +325,7 @@
           advice = null
         }
       }
-      targets = collect()
+      targets = [...collect(), ...collectPlacement()]
       try {
         targets.push(...collectCraft())
       } catch {

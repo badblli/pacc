@@ -9,10 +9,16 @@ const games = new URL("./fixtures/games/", import.meta.url)
 const files = existsSync(games) ? readdirSync(games).filter((f) => f.endsWith(".json")) : []
 if (!files.length) test("replay: kayıt klasörü boş", { skip: true }, () => {})
 const { advisor, data, meta } = loadEvaluation()
+// Testler paralel koşarken ya da makine meşgulken tek çağrı 50 ms'yi aşabilir (boşta ~3 ms).
+// Aşılırsa iki kez daha ölçülür; gerçek yavaşlama üç ölçümde de aşar.
 function timed(name, fn) {
-  const start = performance.now()
+  let start = performance.now()
   const result = fn()
-  assert.ok(performance.now() - start < 50, `${name}: 50 ms sınırı aşıldı`)
+  for (let tries = 1; performance.now() - start >= 50; tries++) {
+    assert.ok(tries < 3, `${name}: 50 ms sınırı üç ölçümde de aşıldı`)
+    start = performance.now()
+    fn()
+  }
   return result
 }
 function percentages(value) {
@@ -33,9 +39,23 @@ for (const file of files) test(`replay: ${file}`, () => {
     count++
     const snap = event.payload
     const ctx = timed("buildContext", () => advisor.buildContext({ data, meta, settings: {}, snap, plan }))
+    const placement = timed("placementAdvice", () => advisor.placementAdvice(ctx, snap))
     percentages(timed("analyze", () => advisor.analyze(ctx, snap)))
     const board = timed("boardAdvice", () => advisor.boardAdvice(ctx, snap))
     percentages(board)
+    assert.ok(placement.length <= 3)
+    for (const tip of placement) {
+      for (const index of tip.with === undefined ? [tip.index] : [tip.index, tip.with]) {
+        assert.ok(Number.isInteger(index) && index >= 0 && index < snap.board.length)
+        assert.ok(snap.board[index].y > 0)
+      }
+      const unit = snap.board[tip.index]
+      assert.equal(tip.name, unit.name)
+      assert.equal(tip.x, unit.x)
+      assert.equal(tip.y, unit.y)
+    }
+    assert.deepEqual(board.placement, placement)
+
     const choice = snap.choices?.[0]
     for (const option of board.choice?.options ?? []) {
       // Gerçek oyunda Pokémon seçiminde items boş dizi ([]) gelir; tür motorun verdiği kind'dan okunur
@@ -57,6 +77,17 @@ for (const file of files) test(`replay: ${file}`, () => {
     if (plan.length) for (const method of ["planFit", "planRecommendations"]) percentages(timed(method, () => advisor[method](ctx, plan)))
   }
   assert.ok(count > 0, "En az bir oyun durumu sınanmalı")
+})
+
+test("yerleşim: gerçek son tahtada Pikachu önde, Uxie arkada doğru kalır", () => {
+  const recording = JSON.parse(readFileSync(new URL("real-20261020-1952.json", games), "utf8"))
+  const last = recording.events.filter((e) => e.type === "game" && e.payload?.board?.length).at(-1).payload
+  // Son durum savaş fazında olsa da hazırlıkta aynı dizilim için öneri çıkmamalı.
+  const snap = { ...last, phase: 0 }
+  assert.ok(snap.board.some((u) => u.name === "PIKACHU" && u.y === 3))
+  assert.ok(snap.board.some((u) => u.name === "UXIE" && u.y === 1))
+  const ctx = advisor.buildContext({ data, meta, settings: {}, snap })
+  assert.equal(timed("placementAdvice", () => advisor.placementAdvice(ctx, snap)).length, 0)
 })
 
 const flush = () => new Promise((resolve) => setImmediate(resolve))

@@ -34,6 +34,8 @@
     CRAFT_HOLDER_W: 0.2,
     PLANNER_COMP_W: 50, PLANNER_SYN_W: 30, PLANNER_META_W: 0.2, PLANNER_COMP_BASE: 0.5,
     CAROUSEL_COMP_BONUS: 30, PORTAL_ACTIVE_BONUS: 10, PORTAL_NEAR_BONUS: 12,
+    // PLACE: dayanıklılık = can × (1 + toplam savunma / 20); menzil farkı önceliğe eklenir.
+    PLACE_DEF_DIV: 20, PLACE_RANGE_W: 100, PLACE_LIMIT: 3,
     PORTAL_SYN_CAP: 50, PORTAL_REGIONAL_W: 0.3, PORTAL_META_W: 0.2
   })
 
@@ -1055,6 +1057,50 @@
     return out
   }
 
+  // Yalnız açık sıra hatalarını gösterir; hedef hücre seçmez veya birim taşımaz.
+  function placementAdvice(ctx, snap) {
+    if (snap?.phase !== 0) return []
+    const W = { ...WEIGHTS, ...ctx.weights }
+    // Metinler önbelleğe girmez: aynı snapshot dil değişince yeniden çevrilir.
+    const rows = perSnap(`placement:${JSON.stringify(ctx.weights ?? {})}`, ctx, snap, () => {
+      const board = (snap.board ?? []).map((u, index) => ({ ...u, index }))
+        .filter((u) => Number.isInteger(u.x) && u.x >= 0 && u.x < 8 && Number.isInteger(u.y) && u.y >= 1 && u.y <= 3)
+      const units = board.flatMap((u) => {
+        const s = ctx.data.stats?.[u.name]
+        if (!Array.isArray(s) || s.length < 5 || !s.every(Number.isFinite) || s[0] < 1 || s[0] >= 9 || s[1] <= 0) return []
+        return [{ ...u, range: s[0], tough: s[1] * (1 + (s[3] + s[4]) / W.PLACE_DEF_DIV) }]
+      })
+      const melee = units.filter((u) => u.range === 1)
+      const anchor = !melee.length ? units.reduce((best, u) => !best || u.tough > best.tough ? u : best, null) : null
+      const occupied = new Set(board.map((u) => `${u.x},${u.y}`))
+      const free = (ys) => ys.some((y) => Array.from({ length: 8 }, (_, x) => `${x},${y}`).some((cell) => !occupied.has(cell)))
+      const backs = units.filter((u) => u.range >= 3 && u.y === 3 && u !== anchor &&
+        (free([1, 2]) || melee.some((m) => m.y < 3)))
+      const fronts = melee.filter((u) => u.y === 1 && (free([3]) || units.some((r) => r.range >= 3 && r.y === 3)))
+      const score = (r, m) => (m?.tough ?? 0) - (r?.tough ?? 0) + ((r?.range ?? 1) - 1) * W.PLACE_RANGE_W
+      const pairs = backs.flatMap((r) => fronts.map((m) => ({ r, m, score: score(r, m) })))
+        .sort((a, b) => b.score - a.score || a.r.index - b.r.index || a.m.index - b.m.index)
+      const used = new Set(), out = []
+      const tip = (u, move, other) => ({ index: u.index, name: u.name, x: u.x, y: u.y, move,
+        ...(other ? { with: other.index } : {}) })
+      for (const { r, m } of pairs) {
+        if (used.has(r.index) || used.has(m.index)) continue
+        used.add(r.index)
+        used.add(m.index)
+        out.push(tip(r, "swap", m))
+      }
+      const singles = [...backs.filter((u) => !used.has(u.index)).map((u) => ({ u, move: "back", score: score(u) })),
+        ...fronts.filter((u) => !used.has(u.index)).map((u) => ({ u, move: "front", score: score(null, u) }))]
+        .sort((a, b) => b.score - a.score || a.u.index - b.u.index)
+      return [...out, ...singles.map(({ u, move }) => tip(u, move))].slice(0, W.PLACE_LIMIT)
+    })
+    const keys = { front: "advice.placement.front", back: "advice.placement.back", swap: "advice.placement.swap" }
+    return rows.map((r) => ({ ...r, reason: T(ctx, keys[r.move], {
+      name: displayName(ctx, "pkm", r.name), range: ctx.data.stats[r.name][0],
+      other: r.with !== undefined ? displayName(ctx, "pkm", snap.board[r.with].name) : ""
+    }) }))
+  }
+
   function boardAdvice(ctx, snap) {
     const comps = suggestComps(ctx, snap)
     const current = snap.choices?.[0]
@@ -1080,7 +1126,7 @@
         const pct = roundPct(fit.raw)
         return { index, verdict, label: verdictLabel(ctx, verdict), reasons, pct, tag: tagFor(ctx, pct, fit.meta, fit.team) }
       })
-    return { choice, shop, craft: craftPlan(ctx, snap) }
+    return { choice, shop, craft: craftPlan(ctx, snap), placement: placementAdvice(ctx, snap) }
   }
 
   // ---------- 10) Takım planlayıcısı (DOM ve canlı oyun durumundan bağımsız) ----------
@@ -1415,6 +1461,7 @@
     planItems,
     compToPlan,
     boardAdvice,
+    placementAdvice,
     familyChain,
     analyze(ctx, snap) {
       const inventory = snap.inventory
@@ -1422,6 +1469,7 @@
       const items = suggestItems(ctx, snap, inventory)
       return {
         comps,
+        placement: placementAdvice(ctx, snap),
         items,
         craft: craftNow(ctx, items, inventory),
         propositions: rankPropositions(ctx, snap, items),
